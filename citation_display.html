@@ -31,41 +31,34 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Get the stored data from sessionStorage
             const storedData = sessionStorage.getItem('lastSubmittedCitation');
             let citationData = {};
             if (storedData) {
                 citationData = JSON.parse(storedData);
-                // Optionally clear it after reading if you only want to show it once
-                sessionStorage.removeItem('lastSubmittedCitation'); // Clear after use
+                sessionStorage.removeItem('lastSubmittedCitation'); 
             } else {
                 console.warn("No 'lastSubmittedCitation' found in sessionStorage. Displaying default values.");
-                // You might want to redirect back if no data is found, e.g.:
-                // window.location.href = 'selection.html';
             }
 
             const citationOutputContainer = document.querySelector('.citation-output-container');
 
-            // Function to get a value from the retrieved citationData object or a default 'N/A'
             const getCitationValue = (key, defaultValue = 'N/A') => citationData[key] || defaultValue;
 
-            // Prepare the values from citationData
-            const citationNumber = getCitationValue('citationNumber');
-            const dateIssued = getCitationValue('dateIssued');
-            const timeIssued = getCitationValue('timeIssued');
+            // Updated to reflect removed fields
             const officerBadge = getCitationValue('officerBadge');
             const officerName = getCitationValue('officerName');
             const officerRank = getCitationValue('officerRank');
             const violatorName = getCitationValue('violatorName');
-            const violationType = getCitationValue('violationType');
+            const violationType = getCitationValue('violationType'); // Now a direct text input
             const penalCode = getCitationValue('penalCode');
-            // Ensure totalAmountDue is parsed as float before toFixed
             const totalAmountDue = parseFloat(getCitationValue('totalAmountDue', '0')).toFixed(2);
             const additionalNotes = getCitationValue('violationDetails');
-            const courtDate = getCitationValue('courtDate');
+            
+            // Note: DateIssued, TimeIssued, CitationNumber, ViolatorAddress, ViolatorDOB, Location, CourtDate are now completely removed
 
             // Format the output as per your request
             const citationText = `
+CITATION FORMAT:
 
 Ping User Receiving Ticket: **@${violatorName.replace(/\s/g, '')}**
 Type of Ticket: **${violationType}**
@@ -87,7 +80,7 @@ X ________________________
 
 4000 Capitol Drive, Greenville, Wisconsin 54942 
 
-Court date: **${courtDate}**
+Court date: XX/XX/XX (Removed from form, placeholder text)
 Please contact a Supervisor for further inquiry.
 `;
             citationOutputContainer.innerHTML = `<pre id="citationContent" class="theme-label">${citationText}</pre>`;
