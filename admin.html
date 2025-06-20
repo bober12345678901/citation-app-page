@@ -50,6 +50,14 @@
             margin-bottom: 15px;
             flex-wrap: wrap;
         }
+        .admin-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+        .admin-section h3 {
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body class="min-h-screen theme-app-container flex justify-center py-8">
@@ -67,35 +75,57 @@
             Welcome, Admin! Loading data...
         </p>
 
-        <div class="action-buttons-group">
-            <button id="deleteSelectedCitationsBtn" class="theme-button-danger py-2 px-6 rounded-md font-semibold" disabled>Delete Selected Citations</button>
-            </div>
+        <div class="admin-section">
+            <div class="action-buttons-group">
+                <h3 class="theme-title text-xl font-bold">Manage Citations</h3>
+                <button id="deleteSelectedCitationsBtn" class="theme-button-danger py-2 px-6 rounded-md font-semibold" disabled>Delete Selected Citations</button>
+                </div>
 
-        <div id="citationsContainer" class="table-container">
-            <h3 class="theme-title text-xl font-bold mb-4">Citations (Sorted by Latest Submission)</h3>
-            <table class="admin-table" id="citationsTable">
-                <thead>
-                    <tr>
-                        <th><input type="checkbox" id="selectAllCitations"></th> <th>ID</th>
-                        <th>Timestamp</th>
-                        <th>Submitted By</th>
-                        <th>Badge #</th>
-                        <th>Violator Name</th>
-                        <th>Type</th>
-                        <th>Amount Due</th>
-                        <th>Notes</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    </tbody>
-            </table>
+            <div id="citationsContainer" class="table-container">
+                <h4 class="theme-label text-lg font-bold mb-2">Citations List (Sorted by Latest Submission)</h4>
+                <table class="admin-table" id="citationsTable">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="selectAllCitations"></th> <th>ID</th>
+                            <th>Timestamp</th>
+                            <th>Submitted By</th>
+                            <th>Badge #</th>
+                            <th>Violator Name</th>
+                            <th>Type</th>
+                            <th>Amount Due</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="admin-section">
+            <h3 class="theme-title text-xl font-bold mb-4">Import Penal Codes</h3>
+            <p class="theme-label mb-4">
+                Import penal codes from a CSV file. Ensure your CSV has headers: "Penal Code", "Offense", "Amount Due".<br>
+                "Amount Due" column must contain only numbers (e.g., 750, 10000, 0) with no currency symbols or commas.
+            </p>
+            <div class="action-buttons-group">
+                <input type="file" id="penalCodeCsvFile" accept=".csv" class="theme-input p-2 rounded-md">
+                <button id="importCsvBtn" class="theme-button-primary py-2 px-6 rounded-md font-semibold">Import from CSV</button>
+            </div>
+            <div class="mb-4">
+                <label for="penalCodeCsvText" class="theme-label block mb-2 mt-4">Or paste CSV content directly:</label>
+                <textarea id="penalCodeCsvText" rows="6" placeholder="Paste CSV data here (e.g., &#34;PC-101&#34;,&#34;Speeding&#34;,150)" class="theme-input w-full p-2 border rounded-md"></textarea>
+            </div>
+            <button id="pasteImportCsvBtn" class="theme-button-primary py-2 px-6 rounded-md font-semibold">Import from Pasted Text</button>
         </div>
         
     </div>
 
     <script>
+        // Store the authentication token (global for this script)
+        let authToken = sessionStorage.getItem('authToken');
+
         document.addEventListener('DOMContentLoaded', async function() {
-            const authToken = sessionStorage.getItem('authToken');
             const loggedInUserString = sessionStorage.getItem('loggedInUser');
             let loggedInUser = null;
             if (loggedInUserString) {
@@ -103,12 +133,17 @@
             }
 
             const adminInfoDisplay = document.getElementById('adminInfo');
-            const citationsContainer = document.getElementById('citationsContainer');
             const citationsTableBody = document.querySelector('#citationsTable tbody');
             const refreshButton = document.getElementById('refreshButton');
             const logoutButton = document.getElementById('logoutButton');
             const selectAllCitationsCheckbox = document.getElementById('selectAllCitations');
             const deleteSelectedCitationsBtn = document.getElementById('deleteSelectedCitationsBtn');
+
+            // CSV Import elements
+            const penalCodeCsvFile = document.getElementById('penalCodeCsvFile');
+            const importCsvBtn = document.getElementById('importCsvBtn');
+            const penalCodeCsvText = document.getElementById('penalCodeCsvText');
+            const pasteImportCsvBtn = document.getElementById('pasteImportCsvBtn');
 
             // --- Authentication and Authorization Check ---
             if (!authToken || !loggedInUser || loggedInUser.role !== 'admin') {
@@ -126,7 +161,7 @@
                 window.location.href = 'index.html'; // Redirect to login
             });
 
-            // --- Fetch Data Function ---
+            // --- Fetch & Display Citations Function (Existing) ---
             async function fetchAndDisplayCitations() {
                 adminInfoDisplay.textContent = 'Loading citations...';
                 citationsTableBody.innerHTML = '<tr><td colspan="9" class="text-center theme-label">Loading data...</td></tr>'; // 9 columns now
@@ -177,17 +212,17 @@
                         window.location.href = 'index.html';
                     } else {
                         const errorData = await response.json();
-                        adminInfoDisplay.textContent = `Error: ${errorData.message || response.statusText}`;
+                        alert(`Error: ${errorData.message || response.statusText}. Please check Worker logs.`);
                         citationsTableBody.innerHTML = `<tr><td colspan="9" class="text-center theme-label text-red-500">Error loading data.</td></tr>`;
                     }
                 } catch (error) {
                     console.error('Error fetching citations:', error);
-                    adminInfoDisplay.textContent = 'Network error: Could not connect to the server.';
+                    alert('Network error: Could not connect to the Worker to fetch citations.');
                     citationsTableBody.innerHTML = `<tr><td colspan="9" class="text-center theme-label text-red-500">Network Error. Check console.</td></tr>`;
                 }
             }
 
-            // --- Checkbox Selection Logic & Delete Button State ---
+            // --- Checkbox Selection Logic & Delete Button State (Existing) ---
             function toggleDeleteButtonState() {
                 const checkedCheckboxes = document.querySelectorAll('.citation-checkbox:checked');
                 deleteSelectedCitationsBtn.disabled = checkedCheckboxes.length === 0;
@@ -201,11 +236,10 @@
                 toggleDeleteButtonState();
             });
 
-            // --- Batch Deletion Functionality ---
+            // --- Batch Deletion Functionality (Existing) ---
             deleteSelectedCitationsBtn.addEventListener('click', async function() {
                 const selectedIds = [];
                 document.querySelectorAll('.citation-checkbox:checked').forEach(checkbox => {
-                    // Exclude the 'select all' checkbox itself if it has a data-id (though it shouldn't)
                     if (checkbox.dataset.id) { 
                         selectedIds.push(checkbox.dataset.id);
                     }
@@ -240,7 +274,7 @@
                         await fetchAndDisplayCitations(); // Refresh the table
                     } else if (response.status === 401 || response.status === 403) {
                         const errorData = await response.json();
-                        alert("Authentication/Authorization Error: Your session is invalid or you lack admin privileges for deletion. Please log in again.");
+                        alert("Authentication/Authorization Error: " + (errorData.message || 'Access denied. Please log in again.'));
                         sessionStorage.clear();
                         window.location.href = 'index.html';
                     } else {
@@ -256,8 +290,119 @@
             });
 
 
+            // --- NEW: CSV Import Functionality ---
+            async function handleImportPenalCodes(csvContent) {
+                if (!csvContent) {
+                    alert("No CSV content provided to import.");
+                    return;
+                }
+
+                let penalCodesToImport = [];
+                try {
+                    const lines = csvContent.trim().split('\n');
+                    if (lines.length < 2) {
+                        alert("CSV content must have at least a header row and one data row.");
+                        return;
+                    }
+
+                    const headers = lines[0].split(',').map(h => h.trim().toLowerCase()); // Cleaned headers
+                    const codeColIndex = headers.indexOf('penal code');
+                    const descriptionColIndex = headers.indexOf('offense');
+                    const amountDueColIndex = headers.indexOf('amount due');
+
+                    if (codeColIndex === -1 || descriptionColIndex === -1 || amountDueColIndex === -1) {
+                        alert('Error: CSV headers must include "Penal Code", "Offense", and "Amount Due".');
+                        return;
+                    }
+
+                    for (let i = 1; i < lines.length; i++) {
+                        const row = lines[i].split(','); // Simple split by comma (might need robust CSV parser for complex CSVs)
+                        
+                        const code = String(row[codeColIndex] || '').trim();
+                        const description = String(row[descriptionColIndex] || '').trim();
+                        let amount_due_raw = String(row[amountDueColIndex] || '').trim();
+
+                        // Clean and parse amount_due
+                        amount_due_raw = amount_due_raw.replace(/\$/g, '').replace(/,/g, '');
+                        let amount_due = parseFloat(amount_due_raw);
+
+                        // Validate required fields for the worker
+                        if (!code || !description || isNaN(amount_due)) {
+                            console.warn(`Skipping row ${i + 1} due to missing/invalid data: Code='${code}', Desc='${description}', Amount='${amount_due}'`);
+                            continue; // Skip this problematic row
+                        }
+                        penalCodesToImport.push({ code, description, amount_due });
+                    }
+
+                    if (penalCodesToImport.length === 0) {
+                        alert('No valid penal codes found in CSV to import.');
+                        return;
+                    }
+
+                    adminInfoDisplay.textContent = `Importing ${penalCodesToImport.length} penal codes...`;
+                    importCsvBtn.disabled = true; // Disable buttons during import
+                    pasteImportCsvBtn.disabled = true;
+
+                    const response = await fetch('https://citation-app-worker.pnbober.workers.dev/admin/penal-codes/import', { // Your Worker Import Endpoint URL
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${authToken}`
+                        },
+                        body: JSON.stringify({ penalCodes: penalCodesToImport }) // Worker expects { penalCodes: [...] }
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        alert('Import successful: ' + result.message);
+                        // Optionally refresh citations if they depend on penal codes, or penal codes list itself
+                        // fetchAndDisplayPenalCodes(); // If you add a list of penal codes to admin panel
+                    } else if (response.status === 401 || response.status === 403) {
+                        const errorData = await response.json();
+                        alert("Import failed: Authentication/Authorization Error. Please log in as administrator.");
+                        sessionStorage.clear();
+                        window.location.href = 'index.html';
+                    } else {
+                        const errorData = await response.json();
+                        alert('Import failed: ' + (errorData.message || response.statusText));
+                    }
+
+                } catch (error) {
+                    console.error('Error parsing or importing CSV:', error);
+                    alert('An error occurred during CSV import. Check console for details.');
+                } finally {
+                    importCsvBtn.disabled = false;
+                    pasteImportCsvBtn.disabled = false;
+                    adminInfoDisplay.textContent = `Welcome, Admin ${loggedInUser.username} (Badge: ${loggedInUser.badgeNumber})!`;
+                }
+            }
+
+            // CSV file input handler
+            importCsvBtn.addEventListener('click', function() {
+                const file = penalCodeCsvFile.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        handleImportPenalCodes(e.target.result);
+                    };
+                    reader.readAsText(file);
+                } else {
+                    alert("Please select a CSV file to import.");
+                }
+            });
+
+            // Paste CSV text area handler
+            pasteImportCsvBtn.addEventListener('click', function() {
+                const csvText = penalCodeCsvText.value;
+                if (csvText) {
+                    handleImportPenalCodes(csvText);
+                } else {
+                    alert("Please paste CSV content into the text area.");
+                }
+            });
+
             // --- Initial Load ---
-            fetchAndDisplayCitations();
+            fetchAndDisplayCitations(); // Load citations on page load
         });
     </script>
 </body>
