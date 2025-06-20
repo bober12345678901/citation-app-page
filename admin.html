@@ -205,7 +205,10 @@
             deleteSelectedCitationsBtn.addEventListener('click', async function() {
                 const selectedIds = [];
                 document.querySelectorAll('.citation-checkbox:checked').forEach(checkbox => {
-                    selectedIds.push(checkbox.dataset.id);
+                    // Exclude the 'select all' checkbox itself if it has a data-id (though it shouldn't)
+                    if (checkbox.dataset.id) { 
+                        selectedIds.push(checkbox.dataset.id);
+                    }
                 });
 
                 if (selectedIds.length === 0) {

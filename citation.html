@@ -8,7 +8,25 @@
     <link rel="stylesheet" href="styles.css">
     <script src="theme.js"></script>
     <style>
-        /* Any custom overrides if needed */
+        /* Autocomplete suggestions dropdown styles */
+        .autocomplete-suggestions {
+            border: 1px solid var(--border-color);
+            background: var(--box-bg-color);
+            max-height: 150px;
+            overflow-y: auto;
+            position: absolute;
+            z-index: 100;
+            width: calc(100% - 22px); /* Adjust based on input padding */
+        }
+        .autocomplete-suggestions div {
+            padding: 8px 10px;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+        .autocomplete-suggestions div:hover {
+            background-color: var(--button-secondary-hover-bg);
+            color: var(--button-text-color);
+        }
     </style>
 </head>
 <body class="min-h-screen theme-app-container">
@@ -17,6 +35,7 @@
             <h2 class="theme-title text-3xl font-bold text-center mb-6">Citation Form</h2>
             <form id="citationForm">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mb-4">
+                    
                     <div>
                         <label for="officerBadge" class="theme-label block mb-2 font-medium">Officer Badge #:</label>
                         <input type="text" id="officerBadge" name="officerBadge" required class="theme-input w-full p-2 border rounded-md">
@@ -33,23 +52,25 @@
                         <label for="violatorName" class="theme-label block mb-2 font-medium">Violator's Full Name:</label>
                         <input type="text" id="violatorName" name="violatorName" required class="theme-input w-full p-2 border rounded-md">
                     </div>
+                    
                     <div>
                         <label for="violationType" class="theme-label block mb-2 font-medium">Type of Violation:</label>
                         <input type="text" id="violationType" name="violationType" required class="theme-input w-full p-2 border rounded-md" placeholder="e.g., Speeding, Parking Violation">
                     </div>
-                    <div>
-                        <label for="penalCode" class="theme-label block mb-2 font-medium">Penal Code:</label>
-                        <input type="text" id="penalCode" name="penalCode" class="theme-input w-full p-2 border rounded-md">
+                    <div style="position: relative;"> <label for="penalCode" class="theme-label block mb-2 font-medium">Penal Code:</label>
+                        <input type="text" id="penalCode" name="penalCode" class="theme-input w-full p-2 border rounded-md" autocomplete="off">
+                        <div id="penalCodeSuggestions" class="autocomplete-suggestions"></div>
                     </div>
                     <div>
                         <label for="totalAmountDue" class="theme-label block mb-2 font-medium">Total Amount Due:</label>
-                        <input type="number" id="totalAmountDue" name="totalAmountDue" step="0.01" min="0" value="0.00" class="theme-input w-full p-2 border rounded-md">
+                        <input type="number" id="totalAmountDue" name="totalAmountDue" step="0.01" min="0" value="0.00" class="theme-input w-full p-2 border rounded-md" readonly>
                     </div>
                 </div>
                 <div class="mb-4">
                     <label for="violationDetails" class="theme-label block mb-2 font-medium">Additional Notes:</label>
                     <textarea id="violationDetails" name="violationDetails" placeholder="Provide details of the violation" class="theme-input w-full p-2 border rounded-md min-h-[80px]"></textarea>
                 </div>
+                
                 <div class="flex flex-wrap justify-center gap-4">
                     <button type="submit" class="theme-button-primary py-2 px-6 rounded-md font-semibold">Submit Citation</button>
                     <button type="reset" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">Clear Form</button>
@@ -60,60 +81,134 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        let penalCodesData = []; // Store penal codes fetched from backend
+
+        document.addEventListener('DOMContentLoaded', async function() {
             // Check if user is logged in
             const token = sessionStorage.getItem('authToken');
             if (!token) {
                 alert("You must be logged in to submit a citation.");
-                sessionStorage.clear(); // Clear any partial session data
-                window.location.href = 'index.html'; // Redirect to login
-                return; // Stop script execution
+                sessionStorage.clear();
+                window.location.href = 'index.html';
+                return;
             }
-        });
 
-        document.getElementById('citationForm').addEventListener('submit', async function(event) {
-            event.preventDefault(); 
-            const form = event.target;
-            const formData = new FormData(form);
-            const jsonData = {};
-            formData.forEach((value, key) => { jsonData[key] = value; });
+            const penalCodeInput = document.getElementById('penalCode');
+            const totalAmountDueInput = document.getElementById('totalAmountDue');
+            const suggestionsDiv = document.getElementById('penalCodeSuggestions');
 
-            const token = sessionStorage.getItem('authToken'); // Retrieve token from sessionStorage
-
+            // --- Fetch Penal Codes on Load ---
             try {
-                const response = await fetch('https://citation-app-worker.pnbober.workers.dev/submit-citation', { // Your Worker URL
-                    method: 'POST',
+                const response = await fetch('https://citation-app-worker.pnbober.workers.dev/penal-codes', { // Your Worker URL
+                    method: 'GET',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}` 
-                    },
-                    body: JSON.stringify(jsonData),
+                        'Authorization': `Bearer ${token}`
+                    }
                 });
-
-                if (response.ok) { 
-                    const result = await response.json();
-                    alert(result.message); 
-
-                    // We now capture Date Issued, Time Issued, and Location from current moment if they were removed from form
-                    // Only if you removed them and still want them in display/backend.
-                    // If you want them removed entirely, ignore these lines.
-                    // For this form, they are fully removed, so no extra data captured here.
-
-                    sessionStorage.setItem('lastSubmittedCitation', JSON.stringify(jsonData));
-                    window.location.href = 'citation_display.html'; 
-                } else if (response.status === 401 || response.status === 403) {
-                    alert("Authentication failed. Please log in again.");
-                    sessionStorage.clear(); 
-                    window.location.href = 'index.html';
-                }
-                else { 
+                if (response.ok) {
+                    penalCodesData = await response.json();
+                    console.log("Penal codes loaded:", penalCodesData);
+                } else {
                     const errorData = await response.json();
-                    alert('Submission failed: ' + (errorData.message || response.statusText));
+                    console.error('Failed to load penal codes:', errorData.message);
+                    alert('Warning: Could not load penal codes for auto-fill. ' + (errorData.message || response.statusText));
                 }
-            } catch (error) { 
-                console.error('Error:', error);
-                alert('An error occurred. Check console for details.');
+            } catch (error) {
+                console.error('Network error loading penal codes:', error);
+                alert('Network error: Could not load penal codes for auto-fill.');
             }
+
+            // --- Autocomplete and Auto-fill Logic ---
+            penalCodeInput.addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                suggestionsDiv.innerHTML = '';
+                if (query.length > 0) {
+                    const filteredCodes = penalCodesData.filter(pc =>
+                        pc.code.toLowerCase().includes(query) || (pc.description && pc.description.toLowerCase().includes(query))
+                    );
+                    filteredCodes.forEach(pc => {
+                        const suggestionItem = document.createElement('div');
+                        suggestionItem.textContent = `${pc.code} - ${pc.description || 'No description'}`;
+                        suggestionItem.dataset.code = pc.code; // Store code for selection
+                        suggestionItem.dataset.amount = pc.amount_due; // Store amount
+                        suggestionsDiv.appendChild(suggestionItem);
+
+                        suggestionItem.addEventListener('click', function() {
+                            penalCodeInput.value = this.dataset.code;
+                            totalAmountDueInput.value = parseFloat(this.dataset.amount).toFixed(2);
+                            suggestionsDiv.innerHTML = ''; // Clear suggestions
+                            suggestionsDiv.style.display = 'none'; // Hide dropdown
+                        });
+                    });
+                }
+                // Show/hide suggestions div based on content
+                if (suggestionsDiv.innerHTML === '') {
+                    suggestionsDiv.style.display = 'none';
+                } else {
+                    suggestionsDiv.style.display = 'block';
+                }
+                
+                // If user types and then input doesn't match a known code, clear amount
+                const matchedCode = penalCodesData.find(pc => pc.code.toLowerCase() === query);
+                if (!matchedCode) {
+                    totalAmountDueInput.value = '0.00';
+                }
+            });
+
+            // Hide suggestions when input loses focus (with a slight delay)
+            penalCodeInput.addEventListener('blur', () => {
+                setTimeout(() => {
+                    suggestionsDiv.style.display = 'none';
+                }, 100); // Small delay to allow click on suggestion
+            });
+            // Show suggestions again when input gains focus
+            penalCodeInput.addEventListener('focus', () => {
+                if (suggestionsDiv.innerHTML !== '') {
+                    suggestionsDiv.style.display = 'block';
+                }
+            });
+
+
+            // --- Form Submission ---
+            document.getElementById('citationForm').addEventListener('submit', async function(event) {
+                event.preventDefault(); 
+                const form = event.target;
+                const formData = new FormData(form);
+                const jsonData = {};
+                formData.forEach((value, key) => { jsonData[key] = value; });
+
+                const token = sessionStorage.getItem('authToken');
+
+                try {
+                    const response = await fetch('https://citation-app-worker.pnbober.workers.dev/submit-citation', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}` 
+                        },
+                        body: JSON.stringify(jsonData),
+                    });
+
+                    if (response.ok) { 
+                        const result = await response.json();
+                        alert(result.message); 
+
+                        sessionStorage.setItem('lastSubmittedCitation', JSON.stringify(jsonData));
+                        window.location.href = 'citation_display.html'; 
+                    } else if (response.status === 401 || response.status === 403) {
+                        alert("Authentication failed. Please log in again.");
+                        sessionStorage.clear(); 
+                        window.location.href = 'index.html';
+                    }
+                    else { 
+                        const errorData = await response.json();
+                        alert('Submission failed: ' + (errorData.message || response.statusText));
+                    }
+                } catch (error) { 
+                    console.error('Error:', error);
+                    alert('An error occurred. Check console for details.');
+                }
+            });
         });
     </script>
 </body>
