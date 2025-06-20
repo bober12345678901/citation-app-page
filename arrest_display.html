@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Completed Arrest Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+    <script src="theme.js"></script>
+    <style>
+        /* Any custom overrides if needed */
+        .arrest-output-container pre strong {
+            color: inherit; /* Ensure strong tags are readable with text color */
+        }
+    </style>
+</head>
+<body class="min-h-screen theme-app-container">
+    <div class="flex items-center justify-center min-h-screen w-full py-8">
+        <div class="theme-lookup-box p-8 rounded-xl shadow-lg w-full max-w-2xl mx-4 sm:mx-auto transition-colors duration-300 border border-solid my-auto">
+            <h2 class="theme-title text-3xl font-bold text-center mb-6">Completed Arrest Report</h2>
+            <div class="arrest-output-container theme-label">
+                </div>
+
+            <div class="flex flex-wrap justify-center gap-4 mt-8">
+                <button onclick="window.location.href='arrest.html'" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">Back to Arrest Form</button>
+                <button onclick="copyArrestText()" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">Copy Text</button>
+                <button onclick="window.location.href='selection.html'" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">Back to Selection</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const arrestOutputContainer = document.querySelector('.arrest-output-container');
+
+            // Function to get a URL parameter or a default value
+            const getParam = (param, defaultValue = 'N/A') => urlParams.get(param) || defaultValue;
+
+            // Prepare the values (these will be "N/A" if redirected from a backend submission directly)
+            const yourUsername = getParam('yourUsername');
+            const leoUsernames = getParam('leoUsernames');
+            const ranks = getParam('ranks');
+            const arrestingOfficerBadge = getParam('arrestingOfficerBadge');
+            const incidentDetails = getParam('incidentDetails');
+            const charge = getParam('charge');
+            const totalFines = parseFloat(getParam('totalFines', '0')).toFixed(2);
+            const courtDate = getParam('courtDate');
+
+            // Format the output as per your request
+            const arrestText = `
+Arrest Report | WSP
+
+Your username: **${yourUsername}**
+Law Enforcement username(s): **${leoUsernames}**
+Ranks: **${ranks}**
+Badge Number: **${arrestingOfficerBadge}**
+
+__Description/Mugshot__
+
+${incidentDetails}
+
+---
+__Offense:__
+
+${charge}
+Total: **$${totalFines}**
+
+Sign at the X:
+X ________________________
+
+Arresting officer signature X:
+X ________________________
+
+4000 Capitol Drive, Greenville, Wisconsin 54942
+
+Court date: **${courtDate}**
+Please call (262) 785-4700 ext. 7 for further inquiry. 
+`;
+            arrestOutputContainer.innerHTML = `<pre id="arrestContent" class="theme-label">${arrestText}</pre>`; // Apply theme-label to pre
+
+            // Function to copy text
+            window.copyArrestText = function() {
+                const textToCopy = document.getElementById('arrestContent').innerText;
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    alert('Arrest report text copied to clipboard!');
+                }).catch(err => {
+                    console.error('Failed to copy text: ', err);
+                    alert('Failed to copy text. Please try again or copy manually.');
+                });
+            };
+        });
+    </script>
+</body>
+</html>

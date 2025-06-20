@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+    <script src="theme.js"></script>
+    <style>
+        /* Any custom overrides if needed */
+        a {
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen theme-app-container">
+    <div class="flex items-center justify-center min-h-screen w-full py-8">
+        <div class="theme-lookup-box p-8 rounded-xl shadow-lg w-full max-w-md mx-4 sm:mx-auto transition-colors duration-300 border border-solid my-auto">
+            <h2 class="theme-title text-3xl font-bold text-center mb-6">Officer Login</h2>
+
+            <div class="mb-4">
+                <label for="themeSelector" class="theme-label block mb-2 font-medium">Theme:</label>
+                <select id="themeSelector" class="theme-input w-full p-2 border rounded-md transition-colors duration-200">
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                    <option value="sunset">Sunset</option>
+                    <option value="ocean">Ocean</option>
+                    <option value="forest">Forest</option>
+                    <option value="midnight">Midnight</option>
+                    <option value="dracula">Dracula</option>
+                    <option value="cyberpunk">Cyberpunk</option>
+                    <option value="custom">Custom...</option>
+                </select>
+                <div id="customColorsContainer" class="hidden mt-4">
+                    <label class="theme-label block mb-1 font-medium">Custom Colors:</label>
+                    <div class="flex flex-col space-y-2">
+                        <div>
+                            <label for="customBgColor" class="theme-label block mb-1">Background Color:</label>
+                            <input type="color" id="customBgColor" value="#f3f4f6" class="w-full h-10 p-0 border rounded-md cursor-pointer theme-input" />
+                        </div>
+                        <div>
+                            <label for="customTextColor" class="theme-label block mb-1">Text Color:</label>
+                            <input type="color" id="customTextColor" value="#1f2937" class="w-full h-10 p-0 border rounded-md cursor-pointer theme-input" />
+                        </div>
+                        <div>
+                            <label for="customAccentColor" class="theme-label block mb-1">Accent Color:</label>
+                            <input type="color" id="customAccentColor" value="#3b82f6" class="w-full h-10 p-0 border rounded-md cursor-pointer theme-input" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <form id="loginForm">
+                <div class="mb-4">
+                    <label for="badgeNumber" class="theme-label block mb-2">Badge Number:</label>
+                    <input type="text" id="badgeNumber" name="badgeNumber" required class="theme-input w-full p-2 border rounded-md">
+                </div>
+                <div class="mb-6">
+                    <label for="username" class="theme-label block mb-2">Username:</label>
+                    <input type="text" id="username" name="username" required class="theme-input w-full p-2 border rounded-md">
+                </div>
+                <button type="submit" class="theme-button-primary w-full p-2 rounded-md font-semibold">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent default form submission
+            alert('Login attempted! Redirecting to selection page.');
+            window.location.href = 'selection.html'; // Redirect to the new selection page
+        });
+    </script>
+</body>
+</html>
