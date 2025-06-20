@@ -12,6 +12,14 @@
         .citation-output-container pre strong {
             color: inherit; /* Ensure strong tags are readable with text color */
         }
+        .penal-codes-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .penal-codes-list li {
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body class="min-h-screen theme-app-container">
@@ -44,25 +52,37 @@
 
             const getCitationValue = (key, defaultValue = 'N/A') => citationData[key] || defaultValue;
 
-            // Updated to reflect removed fields from the form
+            // Updated to reflect new data structure
             const officerBadge = getCitationValue('officerBadge');
             const officerName = getCitationValue('officerName');
             const officerRank = getCitationValue('officerRank');
             const violatorName = getCitationValue('violatorName');
             const violationType = getCitationValue('violationType'); 
-            const penalCode = getCitationValue('penalCode');
             const totalAmountDue = parseFloat(getCitationValue('totalAmountDue', '0')).toFixed(2);
             const additionalNotes = getCitationValue('violationDetails');
             
-            // Note: Fields like CitationNumber, DateIssued, TimeIssued, ViolatorAddress, ViolatorDOB,
-            // Location, CourtDate are now completely removed from the form and therefore not displayed here.
+            // --- NEW: Handle multiple penal codes ---
+            const appliedPenalCodes = citationData.appliedPenalCodes || [];
+            let penalCodeListHtml = '';
+            if (appliedPenalCodes.length > 0) {
+                penalCodeListHtml = `<ul class="penal-codes-list">`;
+                appliedPenalCodes.forEach(pc => {
+                    penalCodeListHtml += `<li>**${pc.code || 'N/A'}** (Amount: $${parseFloat(pc.amount || 0).toFixed(2)})</li>`;
+                });
+                penalCodeListHtml += `</ul>`;
+            } else {
+                penalCodeListHtml = 'N/A (No penal codes applied)';
+            }
+            // --- END NEW ---
 
             // Format the output as per your request
             const citationText = `
+CITATION FORMAT:
 
 Ping User Receiving Ticket: **@${violatorName.replace(/\s/g, '')}**
 Type of Ticket: **${violationType}**
-Penal Code: **${penalCode}**
+Penal Code(s):
+${penalCodeListHtml}
 Total Amount Due: **$${totalAmountDue}**
 Additional Notes: ${additionalNotes}
 
