@@ -21,7 +21,7 @@
             <div class="citation-output-container theme-label">
                 </div>
 
-            <div class="flex flex-wrap justify-center gap-4 mt-8">
+            <div class="button-group flex flex-wrap justify-center gap-4 mt-8">
                 <button onclick="window.location.href='citation.html'" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">Back to Citation Form</button>
                 <button onclick="copyCitationText()" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">Copy Text</button>
                 <button onclick="window.location.href='selection.html'" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">Back to Selection</button>
@@ -44,21 +44,21 @@
 
             const getCitationValue = (key, defaultValue = 'N/A') => citationData[key] || defaultValue;
 
-            // Updated to reflect removed fields
+            // Updated to reflect removed fields from the form
             const officerBadge = getCitationValue('officerBadge');
             const officerName = getCitationValue('officerName');
             const officerRank = getCitationValue('officerRank');
             const violatorName = getCitationValue('violatorName');
-            const violationType = getCitationValue('violationType'); // Now a direct text input
+            const violationType = getCitationValue('violationType'); 
             const penalCode = getCitationValue('penalCode');
             const totalAmountDue = parseFloat(getCitationValue('totalAmountDue', '0')).toFixed(2);
             const additionalNotes = getCitationValue('violationDetails');
             
-            // Note: DateIssued, TimeIssued, CitationNumber, ViolatorAddress, ViolatorDOB, Location, CourtDate are now completely removed
+            // Note: Fields like CitationNumber, DateIssued, TimeIssued, ViolatorAddress, ViolatorDOB,
+            // Location, CourtDate are now completely removed from the form and therefore not displayed here.
 
             // Format the output as per your request
             const citationText = `
-CITATION FORMAT:
 
 Ping User Receiving Ticket: **@${violatorName.replace(/\s/g, '')}**
 Type of Ticket: **${violationType}**
@@ -80,7 +80,7 @@ X ________________________
 
 4000 Capitol Drive, Greenville, Wisconsin 54942 
 
-Court date: XX/XX/XX (Removed from form, placeholder text)
+Court date: XX/XX/XX (This was removed from the form, so it's placeholder text for the display)
 Please contact a Supervisor for further inquiry.
 `;
             citationOutputContainer.innerHTML = `<pre id="citationContent" class="theme-label">${citationText}</pre>`;
