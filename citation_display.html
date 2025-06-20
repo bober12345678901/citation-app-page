@@ -31,23 +31,25 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // --- NEW CODE BLOCK ---
             // Get the stored data from sessionStorage
             const storedData = sessionStorage.getItem('lastSubmittedCitation');
             let citationData = {};
             if (storedData) {
                 citationData = JSON.parse(storedData);
                 // Optionally clear it after reading if you only want to show it once
-                sessionStorage.removeItem('lastSubmittedCitation');
+                sessionStorage.removeItem('lastSubmittedCitation'); // Clear after use
+            } else {
+                console.warn("No 'lastSubmittedCitation' found in sessionStorage. Displaying default values.");
+                // You might want to redirect back if no data is found, e.g.:
+                // window.location.href = 'selection.html';
             }
-            // --- END NEW CODE BLOCK ---
 
             const citationOutputContainer = document.querySelector('.citation-output-container');
 
             // Function to get a value from the retrieved citationData object or a default 'N/A'
             const getCitationValue = (key, defaultValue = 'N/A') => citationData[key] || defaultValue;
 
-            // Prepare the values from the citationData object
+            // Prepare the values from citationData
             const citationNumber = getCitationValue('citationNumber');
             const dateIssued = getCitationValue('dateIssued');
             const timeIssued = getCitationValue('timeIssued');
@@ -64,7 +66,6 @@
 
             // Format the output as per your request
             const citationText = `
-CITATION FORMAT:
 
 Ping User Receiving Ticket: **@${violatorName.replace(/\s/g, '')}**
 Type of Ticket: **${violationType}**

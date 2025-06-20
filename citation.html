@@ -108,6 +108,7 @@
             });
 
             try {
+                // Ensure this URL is correct:
                 const response = await fetch('https://citation-app-worker.pnbober.workers.dev/submit-citation', {
                     method: 'POST',
                     headers: {
@@ -116,22 +117,20 @@
                     body: JSON.stringify(jsonData),
                 });
 
-                if (response.ok) {
+                if (response.ok) { // This block executes ONLY if the response status is 2xx (e.g., 200, 201)
                     const result = await response.json();
                     alert('Citation submitted successfully! ID: ' + result.citation_id);
 
-                    // --- NEW LINE ADDED HERE ---
                     // Store the submitted data in sessionStorage before redirecting
                     sessionStorage.setItem('lastSubmittedCitation', JSON.stringify(jsonData));
-                    // --- END NEW LINE ---
-
+                    
                     // Now redirect to the display page
-                    window.location.href = 'citation_display.html'; // No need for URL params anymore!
-                } else {
+                    window.location.href = 'citation_display.html'; 
+                } else { // This block executes if the response status is NOT 2xx (e.g., 400, 500)
                     const errorData = await response.json();
                     alert('Failed to submit citation: ' + (errorData.message || response.statusText));
                 }
-            } catch (error) {
+            } catch (error) { // This block executes if there's a network error or other fetch-related issue
                 console.error('Error:', error);
                 alert('An error occurred while submitting the citation. Check console for details.');
             }
