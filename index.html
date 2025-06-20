@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Custom Theme CSS Variables -->
     <link rel="stylesheet" href="styles.css">
+    <!-- Theme JavaScript -->
     <script src="theme.js"></script>
     <style>
         /* Any custom overrides if needed */
@@ -14,11 +17,14 @@
         }
     </style>
 </head>
-<body class="min-h-screen theme-app-container">
+<body class="min-h-screen theme-app-container flex items-center justify-center">
+    <!-- Wrapper for centering content -->
     <div class="flex items-center justify-center min-h-screen w-full py-8">
+        <!-- Main container for login box, using theme styles -->
         <div class="theme-lookup-box p-8 rounded-xl shadow-lg w-full max-w-md mx-4 sm:mx-auto transition-colors duration-300 border border-solid my-auto">
             <h2 class="theme-title text-3xl font-bold text-center mb-6">Officer Login</h2>
 
+            <!-- Theme Selector -->
             <div class="mb-4">
                 <label for="themeSelector" class="theme-label block mb-2 font-medium">Theme:</label>
                 <select id="themeSelector" class="theme-input w-full p-2 border rounded-md transition-colors duration-200">
@@ -50,25 +56,64 @@
                     </div>
                 </div>
             </div>
+            <!-- End Theme Selector -->
+
             <form id="loginForm">
                 <div class="mb-4">
-                    <label for="badgeNumber" class="theme-label block mb-2">Badge Number:</label>
-                    <input type="text" id="badgeNumber" name="badgeNumber" required class="theme-input w-full p-2 border rounded-md">
+                    <label for="usernameOrBadge" class="theme-label block mb-2">Username or Badge Number:</label>
+                    <input type="text" id="usernameOrBadge" name="usernameOrBadge" required class="theme-input w-full p-2 border rounded-md">
                 </div>
                 <div class="mb-6">
-                    <label for="username" class="theme-label block mb-2">Username:</label>
-                    <input type="text" id="username" name="username" required class="theme-input w-full p-2 border rounded-md">
+                    <label for="password" class="theme-label block mb-2">Password:</label>
+                    <input type="password" id="password" name="password" required class="theme-input w-full p-2 border rounded-md">
                 </div>
-                <button type="submit" class="theme-button-primary w-full p-2 rounded-md font-semibold">Login</button>
+                <button type="submit" class="theme-button-primary w-full p-2 rounded-md font-semibold mb-4">Login</button>
+                <a href="signup.html" class="theme-label block text-center text-sm hover:underline">Don't have an account? Sign Up</a>
             </form>
         </div>
     </div>
 
     <script>
-        document.getElementById('loginForm').addEventListener('submit', function(event) {
+        document.getElementById('loginForm').addEventListener('submit', async function(event) {
             event.preventDefault(); // Prevent default form submission
-            alert('Login attempted! Redirecting to selection page.');
-            window.location.href = 'selection.html'; // Redirect to the new selection page
+
+            const usernameOrBadge = document.getElementById('usernameOrBadge').value;
+            const password = document.getElementById('password').value;
+
+            // Determine if input is username or badge number
+            const loginData = {};
+            if (isNaN(usernameOrBadge)) { // If it's not a number, treat as username
+                loginData.username = usernameOrBadge;
+            } else { // Otherwise, treat as badge number
+                loginData.badgeNumber = usernameOrBadge;
+            }
+            loginData.password = password;
+
+            try {
+                const response = await fetch('https://citation-app-worker.pnbober.workers.dev/login', { // Your Worker URL
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(loginData),
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert('Login successful! Welcome, ' + result.username + ' (Badge: ' + result.badgeNumber + ')');
+                    // Store the token and user info (e.g., in sessionStorage)
+                    sessionStorage.setItem('authToken', result.token);
+                    sessionStorage.setItem('loggedInUser', JSON.stringify({ username: result.username, badgeNumber: result.badgeNumber }));
+
+                    window.location.href = 'selection.html'; // Redirect to selection page after successful login
+                } else {
+                    alert('Login failed: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error during login:', error);
+                alert('An error occurred during login. Check console for details.');
+            }
         });
     </script>
 </body>
