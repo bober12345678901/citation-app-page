@@ -54,7 +54,7 @@
                 if (userInfo.role === 'admin') {
                     adminPanelLink.classList.remove('hidden');
                 } else {
-                    adminPanelLink.classList.add('hidden'); // Ensure hidden if not admin
+                    adminPanelLink.classList.remove('hidden'); // Ensure hidden if not admin
                 }
             }
 
