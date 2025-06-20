@@ -31,23 +31,37 @@
         /* Style for dynamically added penal code groups */
         .penal-code-group {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr)); /* Same 2-column grid */
+            /* Now 3 columns: penalCode, amountDue, removeBtn */
+            grid-template-columns: 1fr 1fr auto; /* Adjusted to fit Remove button on one line */
             gap: 1.5rem; /* Tailwind's gap-x-6 gap-y-4 */
             margin-bottom: 1rem; /* Tailwind's mb-4 */
             align-items: end; /* Align buttons to bottom of input */
         }
         .penal-code-group .input-wrapper { /* Wrapper for relative positioning of suggestions */
             position: relative;
+            grid-column: span 1; /* Ensure input-wrapper takes 1 column space */
+        }
+        .penal-code-group .amount-due-wrapper {
+             grid-column: span 1; /* Ensure amount-due takes 1 column space */
         }
         .penal-code-group .button-remove {
-            grid-column: span 2; /* Make button span full width if needed */
-            justify-self: center;
+            grid-column: span 1; /* Make button span 1 column */
+            justify-self: end; /* Align to end */
+            width: auto; /* Allow button to size naturally */
+            min-width: 80px; /* Give it a minimum width */
         }
-        @media (min-width: 768px) { /* Medium screens and up */
+        @media (max-width: 767px) { /* On smaller screens, stack buttons below inputs */
+            .penal-code-group {
+                grid-template-columns: 1fr; /* Stack all elements */
+            }
+            .penal-code-group .input-wrapper,
+            .penal-code-group .amount-due-wrapper {
+                grid-column: span 1;
+            }
             .penal-code-group .button-remove {
-                grid-column: span 1; /* Make it one column on md screens */
-                justify-self: start; /* Align to start */
-                margin-left: 1rem; /* Add some margin from input */
+                grid-column: span 1;
+                width: 100%; /* Make button full width */
+                justify-self: stretch;
             }
         }
         .text-right {
@@ -81,7 +95,7 @@
                     
                     <div>
                         <label for="violationType" class="theme-label block mb-2 font-medium">Type of Violation:</label>
-                        <input type="text" id="violationType" name="violationType" required class="theme-input w-full p-2 border rounded-md" placeholder="e.g., Speeding, Parking Violation">
+                        <input type="text" id="violationType" name="violationType" required class="theme-input w-full p-2 border rounded-md" placeholder="e.g., Felony, Misdemeanor" readonly>
                     </div>
                 </div>
 
@@ -94,7 +108,7 @@
                                 <input type="text" id="penalCode_0" name="penalCode_0" class="theme-input w-full p-2 border rounded-md penal-code-input" autocomplete="off">
                                 <div id="penalCodeSuggestions_0" class="autocomplete-suggestions"></div>
                             </div>
-                            <div>
+                            <div class="amount-due-wrapper">
                                 <label for="amountDue_0" class="theme-label block mb-2 font-medium">Amount Due:</label>
                                 <input type="number" id="amountDue_0" name="amountDue_0" step="0.01" min="0" value="0.00" class="theme-input w-full p-2 border rounded-md amount-due-input" readonly>
                             </div>
@@ -140,6 +154,7 @@
             const totalAmountDueSumInput = document.getElementById('totalAmountDueSum');
             const citationForm = document.getElementById('citationForm');
             const clearFormBtn = document.getElementById('clearFormBtn');
+            const mainViolationTypeInput = document.getElementById('violationType'); // The main Violation Type field
 
             // --- Fetch Penal Codes on Load ---
             try {
@@ -163,12 +178,13 @@
             }
 
             // --- Function to Add a New Penal Code Input Group ---
-            function addPenalCodeGroup(initialCode = '', initialAmount = '0.00', initialType = '') {
+            function addPenalCodeGroup(initialCode = '', initialAmount = '0.00') {
                 penalCodeGroupCounter++;
                 const newGroupId = penalCodeGroupCounter;
 
                 const newGroup = document.createElement('div');
-                newGroup.classList.add('penal-code-group');
+                newGroup.classList.add('penal-code-group', 'grid', 'gap-x-6', 'gap-y-4', 'mb-4', 'items-end'); // Add Tailwind grid classes
+                newGroup.style.gridTemplateColumns = '1fr 1fr auto'; // Explicit grid columns for consistency
                 newGroup.dataset.groupId = newGroupId;
                 newGroup.innerHTML = `
                     <div class="input-wrapper">
@@ -176,13 +192,9 @@
                         <input type="text" id="penalCode_${newGroupId}" name="penalCode_${newGroupId}" class="theme-input w-full p-2 border rounded-md penal-code-input" value="${initialCode}" autocomplete="off">
                         <div id="penalCodeSuggestions_${newGroupId}" class="autocomplete-suggestions"></div>
                     </div>
-                    <div>
+                    <div class="amount-due-wrapper">
                         <label for="amountDue_${newGroupId}" class="theme-label block mb-2 font-medium">Amount Due:</label>
                         <input type="number" id="amountDue_${newGroupId}" name="amountDue_${newGroupId}" step="0.01" min="0" value="${initialAmount}" class="theme-input w-full p-2 border rounded-md amount-due-input" readonly>
-                    </div>
-                    <div>
-                        <label for="violationType_${newGroupId}" class="theme-label block mb-2 font-medium">Violation Type:</label>
-                        <input type="text" id="violationType_${newGroupId}" name="violationType_${newGroupId}" value="${initialType}" class="theme-input w-full p-2 border rounded-md violation-type-input" readonly>
                     </div>
                     <button type="button" class="theme-button-danger py-2 px-6 rounded-md font-semibold button-remove">Remove</button>
                 `;
@@ -202,13 +214,12 @@
             function setupAutocompleteForInput(groupId) {
                 const penalCodeInput = document.getElementById(`penalCode_${groupId}`);
                 const amountDueInput = document.getElementById(`amountDue_${groupId}`);
-                const violationTypeInput = document.getElementById(`violationType_${groupId}`);
                 const suggestionsDiv = document.getElementById(`penalCodeSuggestions_${groupId}`);
 
                 penalCodeInput.addEventListener('input', function() {
                     const query = this.value.toLowerCase();
                     suggestionsDiv.innerHTML = '';
-                    suggestionsDiv.style.display = 'none';
+                    suggestionsDiv.style.display = 'none'; // Hide if no query or no matches
 
                     if (query.length > 0) {
                         const filteredCodes = penalCodesData.filter(pc =>
@@ -217,44 +228,57 @@
                         if (filteredCodes.length > 0) {
                             filteredCodes.forEach(pc => {
                                 const suggestionItem = document.createElement('div');
-                                suggestionItem.textContent = `${pc.code} - ${pc.description || 'No description'}`;
+                                // Display Type of Violation in suggestion
+                                suggestionItem.textContent = `${pc.code} - ${pc.description || 'No description'} (${pc.type || 'N/A'})`; 
                                 suggestionItem.dataset.code = pc.code;
                                 suggestionItem.dataset.amount = pc.amount_due;
-                                suggestionItem.dataset.type = pc.type || ''; // Store type
+                                suggestionItem.dataset.type = pc.type || ''; // Store type in dataset
                                 suggestionsDiv.appendChild(suggestionItem);
 
                                 suggestionItem.addEventListener('click', function() {
                                     penalCodeInput.value = this.dataset.code;
                                     amountDueInput.value = parseFloat(this.dataset.amount).toFixed(2);
-                                    violationTypeInput.value = this.dataset.type; // Auto-fill Type of Violation
-                                    suggestionsDiv.innerHTML = '';
-                                    suggestionsDiv.style.display = 'none';
+                                    mainViolationTypeInput.value = this.dataset.type; // AUTO-FILL MAIN VIOLATION TYPE
+                                    suggestionsDiv.innerHTML = ''; // Clear suggestions
+                                    suggestionsDiv.style.display = 'none'; // Hide dropdown
                                     calculateTotalAmountDue(); // Recalculate total
                                 });
                             });
-                            suggestionsDiv.style.display = 'block';
+                            suggestionsDiv.style.display = 'block'; // Show dropdown if there are suggestions
                         }
                     }
                     
-                    // If user types and it doesn't match a known code, clear amount and type
+                    // If user types and then input doesn't match a known code, clear amount and main violation type
                     const matchedCode = penalCodesData.find(pc => pc.code.toLowerCase() === query);
                     if (!matchedCode) {
                         amountDueInput.value = '0.00';
-                        violationTypeInput.value = ''; // Clear type
+                        mainViolationTypeInput.value = ''; // Clear main violation type
+                    } else {
+                        // If there is a direct match, ensure values are set on input focus/type
+                        amountDueInput.value = parseFloat(matchedCode.amount_due).toFixed(2);
+                        mainViolationTypeInput.value = matchedCode.type || '';
                     }
                     calculateTotalAmountDue(); // Recalculate on input change
                 });
 
+                // Hide suggestions when input loses focus (with a slight delay to allow click on suggestion)
                 penalCodeInput.addEventListener('blur', () => {
-                    setTimeout(() => { suggestionsDiv.style.display = 'none'; }, 100);
-                    // On blur, if text matches exactly, ensure amount/type are set
+                    setTimeout(() => {
+                        suggestionsDiv.style.display = 'none';
+                    }, 100); 
+                    // On blur, if text matches exactly, ensure amount/type are set (final check)
                     const exactMatch = penalCodesData.find(pc => pc.code.toLowerCase() === penalCodeInput.value.toLowerCase());
                     if (exactMatch) {
                         amountDueInput.value = parseFloat(exactMatch.amount_due).toFixed(2);
-                        violationTypeInput.value = exactMatch.type || '';
+                        mainViolationTypeInput.value = exactMatch.type || '';
+                    } else {
+                        // If no exact match on blur, clear associated fields
+                        amountDueInput.value = '0.00';
+                        mainViolationTypeInput.value = '';
                     }
                     calculateTotalAmountDue();
                 });
+                // Show suggestions again when input gains focus (if already populated)
                 penalCodeInput.addEventListener('focus', () => {
                     if (suggestionsDiv.innerHTML !== '' && penalCodeInput.value.length > 0) {
                         suggestionsDiv.style.display = 'block';
@@ -286,7 +310,7 @@
                 // Reset initial group
                 document.getElementById('penalCode_0').value = '';
                 document.getElementById('amountDue_0').value = '0.00';
-                document.getElementById('violationType_0').value = '';
+                mainViolationTypeInput.value = ''; // Also clear main violation type
                 calculateTotalAmountDue(); // Recalculate after clear
             });
 
@@ -303,8 +327,8 @@
                 citationData.officerRank = document.getElementById('officerRank').value;
                 citationData.violatorName = document.getElementById('violatorName').value;
                 citationData.violationDetails = document.getElementById('violationDetails').value;
-                // violationType from the main input
-                citationData.violationType = document.getElementById('violationType').value;
+                // Main violationType field is collected here, auto-filled by latest penal code
+                citationData.violationType = mainViolationTypeInput.value; 
                 
                 // Collect all penal codes and their amounts into an array
                 const appliedPenalCodes = [];
@@ -313,24 +337,27 @@
                 document.querySelectorAll('.penal-code-group').forEach(group => {
                     const penalCodeInput = group.querySelector('.penal-code-input');
                     const amountDueInput = group.querySelector('.amount-due-input');
-                    const violationTypeInput = group.querySelector('.violation-type-input'); // Get individual violation type if applicable
 
                     const code = penalCodeInput.value.trim();
                     const amount = parseFloat(amountDueInput.value);
-                    const type = violationTypeInput ? violationTypeInput.value.trim() : '';
+                    // The 'type' for each penal code is fetched, but not needed in the dynamic group inputs anymore.
+                    // If you want to store type per penal code in the array, you'd add it here.
+                    // For now, only main violationType is stored directly.
 
                     if (code && !isNaN(amount)) { // Only add if code is present and amount is valid
+                        // Find the type associated with this code from penalCodesData
+                        const matchedCode = penalCodesData.find(pc => pc.code.toLowerCase() === code.toLowerCase());
                         appliedPenalCodes.push({
                             code: code,
                             amount: amount,
-                            type: type // Include type in the array
+                            type: matchedCode ? (matchedCode.type || 'N/A') : 'N/A' // Include type with each applied code
                         });
                         overallTotalAmount += amount;
                     }
                 });
 
                 citationData.appliedPenalCodes = appliedPenalCodes; // Store the array of codes
-                citationData.totalAmountDue = overallTotalAmount; // Store the sum
+                citationData.totalAmountDue = overallTotalAmount; // Store the sum (this overrides any single totalAmountDue from penalCode_0 if it existed)
 
                 const token = sessionStorage.getItem('authToken');
 

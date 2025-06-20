@@ -12,14 +12,7 @@
         .citation-output-container pre strong {
             color: inherit; /* Ensure strong tags are readable with text color */
         }
-        .penal-codes-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        .penal-codes-list li {
-            margin-bottom: 5px;
-        }
+        /* No specific list styling needed now as we're using a comma-separated string */
     </style>
 </head>
 <body class="min-h-screen theme-app-container">
@@ -57,21 +50,22 @@
             const officerName = getCitationValue('officerName');
             const officerRank = getCitationValue('officerRank');
             const violatorName = getCitationValue('violatorName');
+            // The overall violationType is now auto-filled by one of the penal codes
             const violationType = getCitationValue('violationType'); 
             const totalAmountDue = parseFloat(getCitationValue('totalAmountDue', '0')).toFixed(2);
             const additionalNotes = getCitationValue('violationDetails');
             
-            // --- NEW: Handle multiple penal codes ---
+            // --- NEW: Handle multiple penal codes for display (comma-separated) ---
             const appliedPenalCodes = citationData.appliedPenalCodes || [];
-            let penalCodeListHtml = '';
+            let penalCodeDisplayString = 'N/A'; // Default if no codes
             if (appliedPenalCodes.length > 0) {
-                penalCodeListHtml = `<ul class="penal-codes-list">`;
-                appliedPenalCodes.forEach(pc => {
-                    penalCodeListHtml += `<li>**${pc.code || 'N/A'}** (Amount: $${parseFloat(pc.amount || 0).toFixed(2)})</li>`;
-                });
-                penalCodeListHtml += `</ul>`;
-            } else {
-                penalCodeListHtml = 'N/A (No penal codes applied)';
+                // Map each code to a string like "PC-XXX (Type) - $YYY.YY" and join with a comma
+                penalCodeDisplayString = appliedPenalCodes.map(pc => {
+                    const code = pc.code || 'N/A';
+                    const type = pc.type ? ` (${pc.type})` : ''; // Add type if it exists
+                    const amount = parseFloat(pc.amount || 0).toFixed(2);
+                    return `${code}${type} - $${amount}`;
+                }).join(', ');
             }
             // --- END NEW ---
 
@@ -79,8 +73,7 @@
             const citationText = `
 Ping User Receiving Ticket: **@${violatorName.replace(/\s/g, '')}**
 Type of Ticket: **${violationType}**
-Penal Code(s):
-${penalCodeListHtml}
+Penal Code(s): ${penalCodeDisplayString}
 Total Amount Due: **$${totalAmountDue}**
 Additional Notes: ${additionalNotes}
 
