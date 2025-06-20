@@ -104,7 +104,7 @@
                     alert('Login successful! Welcome, ' + result.username + ' (Badge: ' + result.badgeNumber + ')');
                     // Store the token and user info (e.g., in sessionStorage)
                     sessionStorage.setItem('authToken', result.token);
-                    sessionStorage.setItem('loggedInUser', JSON.stringify({ username: result.username, badgeNumber: result.badgeNumber }));
+					sessionStorage.setItem('loggedInUser', JSON.stringify({ username: result.username, badgeNumber: result.badgeNumber, role: result.role })); // <-- ADDED role: result.role HERE
 
                     window.location.href = 'selection.html'; // Redirect to selection page after successful login
                 } else {
