@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Citations</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+    <script src="theme.js"></script>
+    <style>
+        /* Specific styles for the table and admin panel */
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .admin-table th, .admin-table td {
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            text-align: left;
+            word-wrap: break-word; /* Ensures text breaks within cells */
+            font-size: 0.9em;
+            color: var(--text-color); /* Inherit text color */
+        }
+        .admin-table th {
+            background-color: var(--button-primary-bg);
+            color: var(--button-text-color);
+            position: sticky; /* Makes header sticky for scrolling tables */
+            top: 0;
+            z-index: 1;
+        }
+        .admin-table tbody tr:nth-child(even) {
+            background-color: color-mix(in srgb, var(--box-bg-color) 90%, var(--border-color)); /* Slightly different row color */
+        }
+        .admin-table tbody tr:hover {
+            background-color: color-mix(in srgb, var(--box-bg-color) 70%, var(--accent-color)); /* Hover effect */
+        }
+        .table-container {
+            max-height: 500px; /* Limit height of table for scrolling */
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen theme-app-container flex justify-center py-8">
+    <div class="theme-lookup-box p-8 rounded-xl shadow-lg w-full max-w-5xl mx-4 sm:mx-auto transition-colors duration-300 border border-solid my-auto">
+        <div class="flex flex-wrap justify-between items-center mb-6">
+            <h2 class="theme-title text-3xl font-bold">Admin Panel</h2>
+            <div class="flex gap-4">
+                <button id="refreshButton" class="theme-button-primary py-2 px-6 rounded-md font-semibold">Refresh Data</button>
+                <button onclick="window.location.href='selection.html'" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">Back to Selection</button>
+                <button id="logoutButton" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">Logout</button>
+            </div>
+        </div>
+
+        <p class="theme-label mb-4" id="adminInfo">
+            Welcome, Admin! Loading data...
+        </p>
+
+        <div id="citationsContainer" class="table-container">
+            <h3 class="theme-title text-xl font-bold mb-4">Citations (Sorted by Latest Submission)</h3>
+            <table class="admin-table" id="citationsTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Timestamp</th>
+                        <th>Submitted By</th>
+                        <th>Badge #</th>
+                        <th>Violator Name</th>
+                        <th>Type</th>
+                        <th>Amount Due</th>
+                        <th>Notes</th>
+                        </tr>
+                </thead>
+                <tbody>
+                    </tbody>
+            </table>
+        </div>
+
+        </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            const authToken = sessionStorage.getItem('authToken');
+            const loggedInUserString = sessionStorage.getItem('loggedInUser');
+            let loggedInUser = null;
+            if (loggedInUserString) {
+                loggedInUser = JSON.parse(loggedInUserString);
+            }
+
+            const adminInfoDisplay = document.getElementById('adminInfo');
+            const citationsContainer = document.getElementById('citationsContainer');
+            const citationsTableBody = document.querySelector('#citationsTable tbody');
+            const refreshButton = document.getElementById('refreshButton');
+            const logoutButton = document.getElementById('logoutButton');
+
+            // --- Authentication and Authorization Check ---
+            if (!authToken || !loggedInUser || loggedInUser.role !== 'admin') {
+                alert("Access Denied: You must be an administrator to view this page.");
+                sessionStorage.clear(); // Clear any partial session data
+                window.location.href = 'index.html'; // Redirect to login
+                return; // Stop script execution
+            }
+            adminInfoDisplay.textContent = `Welcome, Admin ${loggedInUser.username} (Badge: ${loggedInUser.badgeNumber})!`;
+
+            // --- Logout Functionality ---
+            logoutButton.addEventListener('click', function() {
+                sessionStorage.clear(); // Clear all session data
+                alert("You have been logged out.");
+                window.location.href = 'index.html'; // Redirect to login
+            });
+
+            // --- Fetch Data Function ---
+            async function fetchCitations() {
+                adminInfoDisplay.textContent = 'Loading citations...';
+                citationsTableBody.innerHTML = '<tr><td colspan="8" class="text-center theme-label">Loading data...</td></tr>'; // 8 columns based on your table header
+
+                try {
+                    const response = await fetch('https://citation-app-worker.pnbober.workers.dev/citations', { // Your Worker URL
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${authToken}` // Send token for authentication
+                        }
+                    });
+
+                    if (response.ok) {
+                        const citations = await response.json();
+                        citationsTableBody.innerHTML = ''; // Clear loading message
+
+                        if (citations.length === 0) {
+                            citationsTableBody.innerHTML = '<tr><td colspan="8" class="text-center theme-label">No citations found.</td></tr>';
+                        } else {
+                            citations.forEach(citation => {
+                                const row = citationsTableBody.insertRow();
+                                row.innerHTML = `
+                                    <td>${citation.id ? citation.id.substring(0, 8) + '...' : 'N/A'}</td>
+                                    <td>${citation.timestamp ? new Date(citation.timestamp).toLocaleString() : 'N/A'}</td>
+                                    <td>${citation.submittedBy || 'N/A'}</td>
+                                    <td>${citation.submittedByBadge || 'N/A'}</td>
+                                    <td>${citation.violatorName || 'N/A'}</td>
+                                    <td>${citation.violationType || 'N/A'}</td>
+                                    <td>$${parseFloat(citation.totalAmountDue || 0).toFixed(2)}</td>
+                                    <td>${citation.violationDetails || 'N/A'}</td>
+                                `;
+                            });
+                        }
+                        adminInfoDisplay.textContent = `Displaying ${citations.length} citations.`;
+
+                    } else if (response.status === 401 || response.status === 403) {
+                        const errorData = await response.json();
+                        alert("Authentication/Authorization Error: " + (errorData.message || 'Access denied. Please log in as an administrator.'));
+                        sessionStorage.clear();
+                        window.location.href = 'index.html';
+                    } else {
+                        const errorData = await response.json();
+                        adminInfoDisplay.textContent = `Error: ${errorData.message || response.statusText}`;
+                        citationsTableBody.innerHTML = `<tr><td colspan="8" class="text-center theme-label text-red-500">Error loading data.</td></tr>`;
+                    }
+                } catch (error) {
+                    console.error('Error fetching citations:', error);
+                    adminInfoDisplay.textContent = 'Network error: Could not connect to the server.';
+                    citationsTableBody.innerHTML = `<tr><td colspan="8" class="text-center theme-label text-red-500">Network Error. Check console.</td></tr>`;
+                }
+            }
+
+            // --- Event Listeners ---
+            refreshButton.addEventListener('click', fetchCitations);
+
+            // Fetch citations on page load
+            fetchCitations();
+        });
+    </script>
+</body>
+</html>

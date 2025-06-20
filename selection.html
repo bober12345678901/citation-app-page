@@ -8,20 +8,63 @@
     <link rel="stylesheet" href="styles.css">
     <script src="theme.js"></script>
     <style>
-        /* Any custom overrides if needed */
-        a {
-            text-decoration: none;
-        }
+        a { text-decoration: none; }
     </style>
 </head>
-<body class="min-h-screen theme-app-container">
-    <div class="flex items-center justify-center min-h-screen w-full py-8">
-        <div class="theme-lookup-box p-8 rounded-xl shadow-lg w-full max-w-md mx-4 sm:mx-auto text-center transition-colors duration-300 border border-solid my-auto">
-            <h2 class="theme-title text-3xl font-bold mb-8">Choose Your Form</h2>
-            <a href="citation.html" class="theme-button-primary block w-full p-3 mb-4 rounded-md font-semibold">Go to Citation Form</a>
-            <a href="arrest.html" class="theme-button-primary block w-full p-3 mb-4 rounded-md font-semibold">Go to Arrest Form</a>
-            <a href="index.html" class="theme-label inline-block text-sm mt-4 hover:underline">Back to Login</a>
-        </div>
+<body class="min-h-screen theme-app-container flex items-center justify-center">
+    <div class="theme-lookup-box p-8 rounded-xl shadow-lg w-full max-w-md mx-4 sm:mx-auto text-center transition-colors duration-300 border border-solid my-auto">
+        <h2 class="theme-title text-3xl font-bold mb-8">Choose Your Form</h2>
+        
+        <p class="theme-label mb-4" id="userInfo">
+            Welcome, Officer!
+        </p>
+
+        <a href="citation.html" class="theme-button-primary block w-full p-3 mb-4 rounded-md font-semibold">Go to Citation Form</a>
+        <a href="arrest.html" class="theme-button-primary block w-full p-3 mb-4 rounded-md font-semibold">Go to Arrest Form</a>
+        
+        <a href="admin.html" id="adminPanelLink" class="theme-button-secondary block w-full p-3 mb-4 rounded-md font-semibold hidden">Admin Panel</a>
+        
+        <button id="logoutButton" class="theme-button-secondary w-full p-3 mt-4 rounded-md font-semibold">Logout</button>
+        <a href="index.html" class="theme-label inline-block text-sm mt-4 hover:underline hidden" id="backToLoginLink">Back to Login</a>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = sessionStorage.getItem('authToken');
+            const userInfoString = sessionStorage.getItem('loggedInUser');
+            let userInfo = null;
+            if (userInfoString) {
+                userInfo = JSON.parse(userInfoString);
+            }
+
+            const userInfoDisplay = document.getElementById('userInfo');
+            const logoutButton = document.getElementById('logoutButton');
+            const adminPanelLink = document.getElementById('adminPanelLink');
+
+            // Authentication check
+            if (!token || !userInfo) {
+                alert("You must be logged in to access this page.");
+                sessionStorage.clear(); // Clear any partial session data
+                window.location.href = 'index.html'; // Redirect to login if no token
+                return; // Stop script execution
+            } else {
+                userInfoDisplay.textContent = `Welcome, Officer ${userInfo.username} (Badge: ${userInfo.badgeNumber})!`;
+                
+                // Show Admin Panel link only if user role is 'admin'
+                if (userInfo.role === 'admin') {
+                    adminPanelLink.classList.remove('hidden');
+                } else {
+                    adminPanelLink.classList.add('hidden'); // Ensure hidden if not admin
+                }
+            }
+
+            // Logout Functionality
+            logoutButton.addEventListener('click', function() {
+                sessionStorage.clear(); // Clear all session data
+                alert("You have been logged out.");
+                window.location.href = 'index.html'; // Redirect to login
+            });
+        });
+    </script>
 </body>
 </html>
