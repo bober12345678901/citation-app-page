@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Custom Theme CSS Variables -->
     <link rel="stylesheet" href="styles.css">
-    <!-- Theme JavaScript -->
     <script src="theme.js"></script>
     <style>
         a {
@@ -27,7 +24,7 @@
             </div>
             <div class="mb-4">
                 <label for="newBadgeNumber" class="theme-label block mb-2">Badge Number:</label>
-                <input type="text" id="newBadgeNumber" name="newBadgeNumber" required class="theme-input w-full p-2 border rounded-md">
+                <input type="number" id="newBadgeNumber" name="newBadgeNumber" required class="theme-input w-full p-2 border rounded-md" min="1">
             </div>
             <div class="mb-6">
                 <label for="newPassword" class="theme-label block mb-2">Password:</label>
@@ -43,6 +40,8 @@
             event.preventDefault();
 
             const username = document.getElementById('newUsername').value;
+            // For type="number" inputs, .value might return a string or empty string.
+            // Ensure it's treated as a string for the JSON payload.
             const badgeNumber = document.getElementById('newBadgeNumber').value;
             const password = document.getElementById('newPassword').value;
 

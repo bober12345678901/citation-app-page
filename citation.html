@@ -97,42 +97,54 @@
     </div>
 
     <script>
-        document.getElementById('citationForm').addEventListener('submit', async function(event) {
-            event.preventDefault(); // Prevent default form submission
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is logged in
+            const token = sessionStorage.getItem('authToken'); // Get token from sessionStorage
+            if (!token) {
+                alert("You must be logged in to submit a citation.");
+                sessionStorage.clear(); // Clear any partial session data
+                window.location.href = 'index.html'; // Redirect to login
+                return; // Stop script execution
+            }
+        });
 
+        document.getElementById('citationForm').addEventListener('submit', async function(event) {
+            event.preventDefault(); 
             const form = event.target;
             const formData = new FormData(form);
             const jsonData = {};
-            formData.forEach((value, key) => {
-                jsonData[key] = value;
-            });
+            formData.forEach((value, key) => { jsonData[key] = value; });
+
+            const token = sessionStorage.getItem('authToken'); // Retrieve token from sessionStorage
 
             try {
-                // Ensure this URL is correct:
                 const response = await fetch('https://citation-app-worker.pnbober.workers.dev/submit-citation', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` // <--- THIS LINE IS CRUCIAL
                     },
                     body: JSON.stringify(jsonData),
                 });
 
-                if (response.ok) { // This block executes ONLY if the response status is 2xx (e.g., 200, 201)
+                if (response.ok) { 
                     const result = await response.json();
-                    alert('Citation submitted successfully! ID: ' + result.citation_id);
+                    alert(result.message); // Should be "Citation submitted successfully!"
 
-                    // Store the submitted data in sessionStorage before redirecting
                     sessionStorage.setItem('lastSubmittedCitation', JSON.stringify(jsonData));
-                    
-                    // Now redirect to the display page
                     window.location.href = 'citation_display.html'; 
-                } else { // This block executes if the response status is NOT 2xx (e.g., 400, 500)
-                    const errorData = await response.json();
-                    alert('Failed to submit citation: ' + (errorData.message || response.statusText));
+                } else if (response.status === 401 || response.status === 403) {
+                    alert("Authentication failed. Please log in again.");
+                    sessionStorage.clear(); // Clear invalid token
+                    window.location.href = 'index.html';
                 }
-            } catch (error) { // This block executes if there's a network error or other fetch-related issue
+                else { 
+                    const errorData = await response.json();
+                    alert('Submission failed: ' + (errorData.message || response.statusText));
+                }
+            } catch (error) { 
                 console.error('Error:', error);
-                alert('An error occurred while submitting the citation. Check console for details.');
+                alert('An error occurred. Check console for details.');
             }
         });
     </script>
