@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Custom Theme CSS Variables -->
     <link rel="stylesheet" href="styles.css">
-    <!-- Theme JavaScript -->
     <script src="theme.js"></script>
     <style>
         /* Any custom overrides if needed */
@@ -18,13 +15,10 @@
     </style>
 </head>
 <body class="min-h-screen theme-app-container flex items-center justify-center">
-    <!-- Wrapper for centering content -->
     <div class="flex items-center justify-center min-h-screen w-full py-8">
-        <!-- Main container for login box, using theme styles -->
         <div class="theme-lookup-box p-8 rounded-xl shadow-lg w-full max-w-md mx-4 sm:mx-auto transition-colors duration-300 border border-solid my-auto">
             <h2 class="theme-title text-3xl font-bold text-center mb-6">Officer Login</h2>
 
-            <!-- Theme Selector -->
             <div class="mb-4">
                 <label for="themeSelector" class="theme-label block mb-2 font-medium">Theme:</label>
                 <select id="themeSelector" class="theme-input w-full p-2 border rounded-md transition-colors duration-200">
@@ -56,8 +50,6 @@
                     </div>
                 </div>
             </div>
-            <!-- End Theme Selector -->
-
             <form id="loginForm">
                 <div class="mb-4">
                     <label for="usernameOrBadge" class="theme-label block mb-2">Username or Badge Number:</label>
@@ -80,12 +72,15 @@
             const usernameOrBadge = document.getElementById('usernameOrBadge').value;
             const password = document.getElementById('password').value;
 
-            // Determine if input is username or badge number
             const loginData = {};
-            if (isNaN(usernameOrBadge)) { // If it's not a number, treat as username
-                loginData.username = usernameOrBadge;
-            } else { // Otherwise, treat as badge number
+            // If input is numeric, try badgeNumber, else username
+            if (usernameOrBadge && !isNaN(usernameOrBadge)) {
                 loginData.badgeNumber = usernameOrBadge;
+            } else if (usernameOrBadge) {
+                loginData.username = usernameOrBadge;
+            } else {
+                alert("Please enter either a username or a badge number.");
+                return;
             }
             loginData.password = password;
 
@@ -104,7 +99,8 @@
                     alert('Login successful! Welcome, ' + result.username + ' (Badge: ' + result.badgeNumber + ')');
                     // Store the token and user info (e.g., in sessionStorage)
                     sessionStorage.setItem('authToken', result.token);
-					sessionStorage.setItem('loggedInUser', JSON.stringify({ username: result.username, badgeNumber: result.badgeNumber, role: result.role })); // <-- ADDED role: result.role HERE
+                    // THIS LINE IS CRITICAL TO ENSURE ROLE IS STORED:
+                    sessionStorage.setItem('loggedInUser', JSON.stringify({ username: result.username, badgeNumber: result.badgeNumber, role: result.role }));
 
                     window.location.href = 'selection.html'; // Redirect to selection page after successful login
                 } else {
