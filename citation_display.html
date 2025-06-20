@@ -31,25 +31,36 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const urlParams = new URLSearchParams(window.location.search);
+            // --- NEW CODE BLOCK ---
+            // Get the stored data from sessionStorage
+            const storedData = sessionStorage.getItem('lastSubmittedCitation');
+            let citationData = {};
+            if (storedData) {
+                citationData = JSON.parse(storedData);
+                // Optionally clear it after reading if you only want to show it once
+                sessionStorage.removeItem('lastSubmittedCitation');
+            }
+            // --- END NEW CODE BLOCK ---
+
             const citationOutputContainer = document.querySelector('.citation-output-container');
 
-            // Function to get a URL parameter or a default value
-            const getParam = (param, defaultValue = 'N/A') => urlParams.get(param) || defaultValue;
+            // Function to get a value from the retrieved citationData object or a default 'N/A'
+            const getCitationValue = (key, defaultValue = 'N/A') => citationData[key] || defaultValue;
 
-            // Prepare the values (these will be "N/A" if redirected from a backend submission directly)
-            const citationNumber = getParam('citationNumber');
-            const dateIssued = getParam('dateIssued');
-            const timeIssued = getParam('timeIssued');
-            const officerBadge = getParam('officerBadge');
-            const officerName = getParam('officerName');
-            const officerRank = getParam('officerRank');
-            const violatorName = getParam('violatorName');
-            const violationType = getParam('violationType');
-            const penalCode = getParam('penalCode');
-            const totalAmountDue = parseFloat(getParam('totalAmountDue', '0')).toFixed(2);
-            const additionalNotes = getParam('violationDetails');
-            const courtDate = getParam('courtDate');
+            // Prepare the values from the citationData object
+            const citationNumber = getCitationValue('citationNumber');
+            const dateIssued = getCitationValue('dateIssued');
+            const timeIssued = getCitationValue('timeIssued');
+            const officerBadge = getCitationValue('officerBadge');
+            const officerName = getCitationValue('officerName');
+            const officerRank = getCitationValue('officerRank');
+            const violatorName = getCitationValue('violatorName');
+            const violationType = getCitationValue('violationType');
+            const penalCode = getCitationValue('penalCode');
+            // Ensure totalAmountDue is parsed as float before toFixed
+            const totalAmountDue = parseFloat(getCitationValue('totalAmountDue', '0')).toFixed(2);
+            const additionalNotes = getCitationValue('violationDetails');
+            const courtDate = getCitationValue('courtDate');
 
             // Format the output as per your request
             const citationText = `
@@ -78,7 +89,7 @@ X ________________________
 Court date: **${courtDate}**
 Please contact a Supervisor for further inquiry.
 `;
-            citationOutputContainer.innerHTML = `<pre id="citationContent" class="theme-label">${citationText}</pre>`; // Apply theme-label to pre
+            citationOutputContainer.innerHTML = `<pre id="citationContent" class="theme-label">${citationText}</pre>`;
 
             // Function to copy text
             window.copyCitationText = function() {

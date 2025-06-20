@@ -119,11 +119,14 @@
                 if (response.ok) {
                     const result = await response.json();
                     alert('Citation submitted successfully! ID: ' + result.citation_id);
-                    // After successful submission, you can decide where to go:
-                    // 1. Back to selection:
-                    window.location.href = 'selection.html';
-                    // 2. To the display page (note: this display page currently doesn't fetch live data from KV)
-                    // window.location.href = 'citation_display.html?' + new URLSearchParams(jsonData).toString();
+
+                    // --- NEW LINE ADDED HERE ---
+                    // Store the submitted data in sessionStorage before redirecting
+                    sessionStorage.setItem('lastSubmittedCitation', JSON.stringify(jsonData));
+                    // --- END NEW LINE ---
+
+                    // Now redirect to the display page
+                    window.location.href = 'citation_display.html'; // No need for URL params anymore!
                 } else {
                     const errorData = await response.json();
                     alert('Failed to submit citation: ' + (errorData.message || response.statusText));
