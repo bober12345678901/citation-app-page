@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Citations</title>
+    <title>Admin Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="styles.css">
     <script src="theme.js"></script>
@@ -25,7 +25,7 @@
         .admin-table th {
             background-color: var(--button-primary-bg);
             color: var(--button-text-color);
-            position: sticky; /* Makes header sticky for scrolling tables */
+            position: sticky; /* Sticky header for scrolling tables */
             top: 0;
             z-index: 1;
         }
@@ -44,6 +44,12 @@
         .hidden {
             display: none;
         }
+        .action-buttons-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
     </style>
 </head>
 <body class="min-h-screen theme-app-container flex justify-center py-8">
@@ -61,12 +67,16 @@
             Welcome, Admin! Loading data...
         </p>
 
+        <div class="action-buttons-group">
+            <button id="deleteSelectedCitationsBtn" class="theme-button-danger py-2 px-6 rounded-md font-semibold" disabled>Delete Selected Citations</button>
+            </div>
+
         <div id="citationsContainer" class="table-container">
             <h3 class="theme-title text-xl font-bold mb-4">Citations (Sorted by Latest Submission)</h3>
             <table class="admin-table" id="citationsTable">
                 <thead>
                     <tr>
-                        <th>ID</th>
+                        <th><input type="checkbox" id="selectAllCitations"></th> <th>ID</th>
                         <th>Timestamp</th>
                         <th>Submitted By</th>
                         <th>Badge #</th>
@@ -74,14 +84,14 @@
                         <th>Type</th>
                         <th>Amount Due</th>
                         <th>Notes</th>
-                        </tr>
+                    </tr>
                 </thead>
                 <tbody>
                     </tbody>
             </table>
         </div>
-
-        </div>
+        
+    </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', async function() {
@@ -97,6 +107,8 @@
             const citationsTableBody = document.querySelector('#citationsTable tbody');
             const refreshButton = document.getElementById('refreshButton');
             const logoutButton = document.getElementById('logoutButton');
+            const selectAllCitationsCheckbox = document.getElementById('selectAllCitations');
+            const deleteSelectedCitationsBtn = document.getElementById('deleteSelectedCitationsBtn');
 
             // --- Authentication and Authorization Check ---
             if (!authToken || !loggedInUser || loggedInUser.role !== 'admin') {
@@ -115,9 +127,10 @@
             });
 
             // --- Fetch Data Function ---
-            async function fetchCitations() {
+            async function fetchAndDisplayCitations() {
                 adminInfoDisplay.textContent = 'Loading citations...';
-                citationsTableBody.innerHTML = '<tr><td colspan="8" class="text-center theme-label">Loading data...</td></tr>'; // 8 columns based on your table header
+                citationsTableBody.innerHTML = '<tr><td colspan="9" class="text-center theme-label">Loading data...</td></tr>'; // 9 columns now
+                deleteSelectedCitationsBtn.disabled = true; // Disable delete button on load
 
                 try {
                     const response = await fetch('https://citation-app-worker.pnbober.workers.dev/citations', { // Your Worker URL
@@ -132,11 +145,12 @@
                         citationsTableBody.innerHTML = ''; // Clear loading message
 
                         if (citations.length === 0) {
-                            citationsTableBody.innerHTML = '<tr><td colspan="8" class="text-center theme-label">No citations found.</td></tr>';
+                            citationsTableBody.innerHTML = '<tr><td colspan="9" class="text-center theme-label">No citations found.</td></tr>';
                         } else {
                             citations.forEach(citation => {
                                 const row = citationsTableBody.insertRow();
                                 row.innerHTML = `
+                                    <td><input type="checkbox" class="citation-checkbox" data-id="${citation.id}"></td>
                                     <td>${citation.id ? citation.id.substring(0, 8) + '...' : 'N/A'}</td>
                                     <td>${citation.timestamp ? new Date(citation.timestamp).toLocaleString() : 'N/A'}</td>
                                     <td>${citation.submittedBy || 'N/A'}</td>
@@ -150,6 +164,12 @@
                         }
                         adminInfoDisplay.textContent = `Displaying ${citations.length} citations.`;
 
+                        // Re-attach event listeners for checkboxes after table is updated
+                        document.querySelectorAll('.citation-checkbox').forEach(checkbox => {
+                            checkbox.addEventListener('change', toggleDeleteButtonState);
+                        });
+                        selectAllCitationsCheckbox.checked = false; // Uncheck select all when new data loads
+                        toggleDeleteButtonState(); // Update button state
                     } else if (response.status === 401 || response.status === 403) {
                         const errorData = await response.json();
                         alert("Authentication/Authorization Error: " + (errorData.message || 'Access denied. Please log in as an administrator.'));
@@ -158,20 +178,83 @@
                     } else {
                         const errorData = await response.json();
                         adminInfoDisplay.textContent = `Error: ${errorData.message || response.statusText}`;
-                        citationsTableBody.innerHTML = `<tr><td colspan="8" class="text-center theme-label text-red-500">Error loading data.</td></tr>`;
+                        citationsTableBody.innerHTML = `<tr><td colspan="9" class="text-center theme-label text-red-500">Error loading data.</td></tr>`;
                     }
                 } catch (error) {
                     console.error('Error fetching citations:', error);
                     adminInfoDisplay.textContent = 'Network error: Could not connect to the server.';
-                    citationsTableBody.innerHTML = `<tr><td colspan="8" class="text-center theme-label text-red-500">Network Error. Check console.</td></tr>`;
+                    citationsTableBody.innerHTML = `<tr><td colspan="9" class="text-center theme-label text-red-500">Network Error. Check console.</td></tr>`;
                 }
             }
 
-            // --- Event Listeners ---
-            refreshButton.addEventListener('click', fetchCitations);
+            // --- Checkbox Selection Logic & Delete Button State ---
+            function toggleDeleteButtonState() {
+                const checkedCheckboxes = document.querySelectorAll('.citation-checkbox:checked');
+                deleteSelectedCitationsBtn.disabled = checkedCheckboxes.length === 0;
+            }
 
-            // Fetch citations on page load
-            fetchCitations();
+            selectAllCitationsCheckbox.addEventListener('change', function() {
+                const isChecked = this.checked;
+                document.querySelectorAll('.citation-checkbox').forEach(checkbox => {
+                    checkbox.checked = isChecked;
+                });
+                toggleDeleteButtonState();
+            });
+
+            // --- Batch Deletion Functionality ---
+            deleteSelectedCitationsBtn.addEventListener('click', async function() {
+                const selectedIds = [];
+                document.querySelectorAll('.citation-checkbox:checked').forEach(checkbox => {
+                    selectedIds.push(checkbox.dataset.id);
+                });
+
+                if (selectedIds.length === 0) {
+                    alert('Please select at least one citation to delete.');
+                    return;
+                }
+
+                if (!confirm(`Are you sure you want to delete ${selectedIds.length} selected citation(s)? This action cannot be undone.`)) {
+                    return; // User cancelled
+                }
+
+                adminInfoDisplay.textContent = `Deleting ${selectedIds.length} citations...`;
+                deleteSelectedCitationsBtn.disabled = true; // Disable during deletion
+
+                try {
+                    const response = await fetch('https://citation-app-worker.pnbober.workers.dev/citations', {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${authToken}`
+                        },
+                        body: JSON.stringify({ ids: selectedIds }) // Send array of IDs
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        alert(result.message);
+                        selectAllCitationsCheckbox.checked = false; // Uncheck select all
+                        await fetchAndDisplayCitations(); // Refresh the table
+                    } else if (response.status === 401 || response.status === 403) {
+                        const errorData = await response.json();
+                        alert("Authentication/Authorization Error: Your session is invalid or you lack admin privileges for deletion. Please log in again.");
+                        sessionStorage.clear();
+                        window.location.href = 'index.html';
+                    } else {
+                        const errorData = await response.json();
+                        alert('Deletion failed: ' + (errorData.message || response.statusText));
+                    }
+                } catch (error) {
+                    console.error('Error during deletion:', error);
+                    alert('An error occurred during deletion. Check console for details.');
+                } finally {
+                    deleteSelectedCitationsBtn.disabled = false; // Re-enable button
+                }
+            });
+
+
+            // --- Initial Load ---
+            fetchAndDisplayCitations();
         });
     </script>
 </body>
