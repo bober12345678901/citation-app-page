@@ -16,7 +16,7 @@
     </style>
 </head>
 <body class="min-h-screen theme-app-container">
-    <div class="flex items-center justify-center min-h-screen w-full py-8">
+    <div class="flex items-center justify-content: center min-h-screen w-full py-8">
         <div class="theme-lookup-box p-8 rounded-xl shadow-lg w-full max-w-2xl mx-4 sm:mx-auto transition-colors duration-300 border border-solid my-auto">
             <h2 class="theme-title text-3xl font-bold text-center mb-6">Completed Citation</h2>
             <div class="citation-output-container theme-label">
@@ -36,44 +36,40 @@
             let citationData = {};
             if (storedData) {
                 citationData = JSON.parse(storedData);
-                sessionStorage.removeItem('lastSubmittedCitation'); 
+                sessionStorage.removeItem('lastSubmittedCitation');
             } else {
                 console.warn("No 'lastSubmittedCitation' found in sessionStorage. Displaying default values.");
             }
 
             const citationOutputContainer = document.querySelector('.citation-output-container');
 
-            const getCitationValue = (key, defaultValue = 'N/A') => citationData[key] || defaultValue;
+            const getCitationValue = (param, defaultValue = 'N/A') => citationData[param] || defaultValue;
 
-            // Updated to reflect new data structure
+             // --- NEW: Display Penal Code Descriptions instead of Type ---
+            const appliedPenalCodes = citationData.appliedPenalCodes || [];
+            let penalCodeDisplayString = 'N/A'; // Default if no codes
+            let violationType = 'N/A'; // Default value
+            if (appliedPenalCodes.length > 0) {
+                // Join descriptions instead of codes, and capture the violation type from the first penal code
+                penalCodeDisplayString = appliedPenalCodes.map(pc => {
+                    return `${pc.description || 'N/A'} - $${parseFloat(pc.amount || 0).toFixed(2)}`;
+                }).join(', ');
+                violationType = appliedPenalCodes[0].type || 'N/A';  // Get the type from the first penal code
+            }
+
             const officerBadge = getCitationValue('officerBadge');
             const officerName = getCitationValue('officerName');
             const officerRank = getCitationValue('officerRank');
             const violatorName = getCitationValue('violatorName');
-            // The overall violationType is now auto-filled by one of the penal codes
-            const violationType = getCitationValue('violationType'); 
+
             const totalAmountDue = parseFloat(getCitationValue('totalAmountDue', '0')).toFixed(2);
             const additionalNotes = getCitationValue('violationDetails');
-            
-            // --- NEW: Handle multiple penal codes for display (comma-separated) ---
-            const appliedPenalCodes = citationData.appliedPenalCodes || [];
-            let penalCodeDisplayString = 'N/A'; // Default if no codes
-            if (appliedPenalCodes.length > 0) {
-                // Map each code to a string like "PC-XXX (Type) - $YYY.YY" and join with a comma
-                penalCodeDisplayString = appliedPenalCodes.map(pc => {
-                    const code = pc.code || 'N/A';
-                    const type = pc.type ? ` (${pc.type})` : ''; // Add type if it exists
-                    const amount = parseFloat(pc.amount || 0).toFixed(2);
-                    return `${code}${type} - $${amount}`;
-                }).join(', ');
-            }
-            // --- END NEW ---
 
             // Format the output as per your request
             const citationText = `
 Ping User Receiving Ticket: **@${violatorName.replace(/\s/g, '')}**
 Type of Ticket: **${violationType}**
-Penal Code(s): ${penalCodeDisplayString}
+Violation(s): ${penalCodeDisplayString}
 Total Amount Due: **$${totalAmountDue}**
 Additional Notes: ${additionalNotes}
 
@@ -87,11 +83,11 @@ By signing this citation, you acknowledge that this is NOT an admission of guilt
 **You must pay the citation to @panbober**
 
 Sign at the X:
-X ________________________
+X @${violatorName.replace(/\s/g, '')}
 
 4000 Capitol Drive, Greenville, Wisconsin 54942 
 
-Court date: XX/XX/XX (This was removed from the form, so it's placeholder text for the display)
+Court date: XX/XX/XX 
 Please contact a Supervisor for further inquiry.
 `;
             citationOutputContainer.innerHTML = `<pre id="citationContent" class="theme-label">${citationText}</pre>`;
