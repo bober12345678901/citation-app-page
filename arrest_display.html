@@ -21,7 +21,7 @@
             <div class="arrest-output-container theme-label">
                 </div>
 
-            <div class="flex flex-wrap justify-center gap-4 mt-8">
+            <div class="button-group flex flex-wrap justify-center gap-4 mt-8">
                 <button onclick="window.location.href='arrest.html'" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">Back to Arrest Form</button>
                 <button onclick="copyArrestText()" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">Copy Text</button>
                 <button onclick="window.location.href='selection.html'" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">Back to Selection</button>
@@ -31,28 +31,34 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const urlParams = new URLSearchParams(window.location.search);
+            const storedData = sessionStorage.getItem('lastSubmittedArrest');
+            let arrestData = {};
+            if (storedData) {
+                arrestData = JSON.parse(storedData);
+                sessionStorage.removeItem('lastSubmittedArrest'); 
+            } else {
+                console.warn("No 'lastSubmittedArrest' found in sessionStorage. Displaying default values.");
+            }
+
             const arrestOutputContainer = document.querySelector('.arrest-output-container');
 
-            // Function to get a URL parameter or a default value
-            const getParam = (param, defaultValue = 'N/A') => urlParams.get(param) || defaultValue;
+            const getArrestValue = (key, defaultValue = 'N/A') => arrestData[key] || defaultValue;
 
-            // Prepare the values (these will be "N/A" if redirected from a backend submission directly)
-            const yourUsername = getParam('yourUsername');
-            const leoUsernames = getParam('leoUsernames');
-            const ranks = getParam('ranks');
-            const arrestingOfficerBadge = getParam('arrestingOfficerBadge');
-            const incidentDetails = getParam('incidentDetails');
-            const charge = getParam('charge');
-            const totalFines = parseFloat(getParam('totalFines', '0')).toFixed(2);
-            const courtDate = getParam('courtDate');
+            // Updated to reflect removed fields from the form
+            const yourUsername = getArrestValue('yourUsername');
+            const leoUsernames = getArrestValue('leoUsernames');
+            const ranks = getArrestValue('ranks');
+            const arrestingOfficerBadge = getArrestValue('arrestingOfficerBadge');
+            const incidentDetails = getArrestValue('incidentDetails');
+            const charge = getArrestValue('charge');
+            const totalFines = parseFloat(getArrestValue('totalFines', '0')).toFixed(2);
+            
+            // Note: ArrestID, DateOfArrest, TimeOfArrest, SuspectDOB, SuspectAddress, ArrestLocation, CourtDate are now removed.
 
             // Format the output as per your request
             const arrestText = `
-Arrest Report | WSP
-
-Your username: **${yourUsername}**
-Law Enforcement username(s): **${leoUsernames}**
+Your username: **@${yourUsername}**
+Law Enforcement username(s): **@${leoUsernames}**
 Ranks: **${ranks}**
 Badge Number: **${arrestingOfficerBadge}**
 
@@ -67,17 +73,17 @@ ${charge}
 Total: **$${totalFines}**
 
 Sign at the X:
-X ________________________
+X @${yourUsername}
 
 Arresting officer signature X:
-X ________________________
+X @${leoUsernames}
 
 4000 Capitol Drive, Greenville, Wisconsin 54942
 
-Court date: **${courtDate}**
+Court date: XX/XX/XX (Removed from form, placeholder text)
 Please call (262) 785-4700 ext. 7 for further inquiry. 
 `;
-            arrestOutputContainer.innerHTML = `<pre id="arrestContent" class="theme-label">${arrestText}</pre>`; // Apply theme-label to pre
+            arrestOutputContainer.innerHTML = `<pre id="arrestContent" class="theme-label">${arrestText}</pre>`;
 
             // Function to copy text
             window.copyArrestText = function() {
