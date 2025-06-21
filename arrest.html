@@ -8,7 +8,64 @@
     <link rel="stylesheet" href="styles.css">
     <script src="theme.js"></script>
     <style>
-        /* Any custom overrides if needed */
+        /* Autocomplete suggestions dropdown styles (similar to citation.html) */
+        .autocomplete-suggestions {
+            border: 1px solid var(--border-color);
+            background: var(--box-bg-color);
+            max-height: 150px;
+            overflow-y: auto;
+            position: absolute;
+            z-index: 100;
+            width: calc(100% - 22px); /* Adjust based on input padding */
+            left: 11px; /* Align with input field */
+        }
+        .autocomplete-suggestions div {
+            padding: 8px 10px;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+        .autocomplete-suggestions div:hover {
+            background-color: var(--button-secondary-hover-bg);
+            color: var(--button-text-color);
+        }
+        /* Style for dynamically added charge groups (similar to penal-code-group) */
+        .charge-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto; /* Charge, Jail Time, Remove Button */
+            gap: 1.5rem; /* Tailwind's gap-x-6 gap-y-4 */
+            margin-bottom: 1rem; /* Tailwind's mb-4 */
+            align-items: end; /* Align buttons to bottom of input */
+        }
+        .charge-group .input-wrapper {
+            position: relative;
+            grid-column: span 1;
+        }
+        .charge-group .jail-time-wrapper {
+             grid-column: span 1;
+        }
+        .charge-group .button-remove {
+            grid-column: span 1;
+            justify-self: end;
+            width: auto;
+            min-width: 80px;
+        }
+        @media (max-width: 767px) { /* On smaller screens, stack buttons below inputs */
+            .charge-group {
+                grid-template-columns: 1fr;
+            }
+            .charge-group .input-wrapper,
+            .charge-group .jail-time-wrapper {
+                grid-column: span 1;
+            }
+            .charge-group .button-remove {
+                grid-column: span 1;
+                width: 100%;
+                justify-self: stretch;
+            }
+        }
+        .text-right {
+            text-align: right;
+        }
     </style>
 </head>
 <body class="min-h-screen theme-app-container">
@@ -17,6 +74,7 @@
             <h2 class="theme-title text-3xl font-bold text-center mb-6">Arrest Report Form</h2>
             <form id="arrestForm">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mb-4">
+                    
                     <div>
                         <label for="arrestingOfficerBadge" class="theme-label block mb-2 font-medium">Arresting Officer Badge #:</label>
                         <input type="text" id="arrestingOfficerBadge" name="arrestingOfficerBadge" required class="theme-input w-full p-2 border rounded-md">
@@ -37,24 +95,43 @@
                         <label for="suspectName" class="theme-label block mb-2 font-medium">Suspect's Full Name:</label>
                         <input type="text" id="suspectName" name="suspectName" required class="theme-input w-full p-2 border rounded-md">
                     </div>
-                    </div>
-                <div class="mb-4">
-                    <label for="charge" class="theme-label block mb-2 font-medium">Charge(s) (e.g., 1 - Example):</label>
-                    <textarea id="charge" name="charge" placeholder="List all charges, one per line (e.g., 1 - Theft)" required class="theme-input w-full p-2 border rounded-md min-h-[80px]"></textarea>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mb-4">
-                    <div>
-                        <label for="totalFines" class="theme-label block mb-2 font-medium">Total Fines:</label>
-                        <input type="number" id="totalFines" name="totalFines" step="0.01" min="0" value="0.00" class="theme-input w-full p-2 border rounded-md">
+
+                <div class="mb-4">
+                    <h3 class="theme-label font-bold text-lg mb-2">Charge(s) & Jail Time (Seconds):</h3>
+                    <div id="chargeInputsContainer">
+                        <div class="charge-group" data-group-id="0">
+                            <div class="input-wrapper">
+                                <label for="chargeCode_0" class="theme-label block mb-2 font-medium">Charge Code:</label>
+                                <input type="text" id="chargeCode_0" name="chargeCode_0" class="theme-input w-full p-2 border rounded-md charge-code-input" autocomplete="off">
+                                <div id="chargeSuggestions_0" class="autocomplete-suggestions"></div>
+                            </div>
+                            <div class="jail-time-wrapper">
+                                <label for="jailTime_0" class="theme-label block mb-2 font-medium">Jail Time (Sec):</label>
+                                <input type="number" id="jailTime_0" name="jailTime_0" step="1" min="0" value="0" class="theme-input w-full p-2 border rounded-md jail-time-input" readonly>
+                            </div>
+                            </div>
                     </div>
-                    </div>
+                    <button type="button" id="addChargeBtn" class="theme-button-secondary py-2 px-6 rounded-md font-semibold mt-4">Add Another Charge</button>
+                </div>
+                <div class="mb-4 text-right">
+                    <label for="totalJailTimeSum" class="theme-label block mb-2 font-bold text-xl">Total Jail Time (All Charges, Sec):</label>
+                    <input type="text" id="totalJailTimeSum" name="totalJailTimeSum" class="theme-input p-2 border rounded-md text-right font-bold text-xl" value="0" readonly>
+                </div>
+
+                <div class="mb-4">
+                    <label for="totalFines" class="theme-label block mb-2 font-medium">Total Fines:</label>
+                    <input type="number" id="totalFines" name="totalFines" step="0.01" min="0" value="0.00" class="theme-input w-full p-2 border rounded-md">
+                </div>
+
                 <div class="mb-6">
                     <label for="incidentDetails" class="theme-label block mb-2 font-medium">Description/Mugshot (or just description):</label>
                     <textarea id="incidentDetails" name="incidentDetails" placeholder="Provide detailed account of the incident leading to arrest, or description/mugshot details" required class="theme-input w-full p-2 border rounded-md min-h-[120px]"></textarea>
                 </div>
+                
                 <div class="flex flex-wrap justify-center gap-4">
                     <button type="submit" class="theme-button-danger py-2 px-6 rounded-md font-semibold">Submit Arrest Report</button>
-                    <button type="reset" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">Clear Form</button>
+                    <button type="reset" class="theme-button-secondary py-2 px-6 rounded-md font-semibold" id="clearFormBtn">Clear Form</button>
                     <button type="button" onclick="window.location.href='selection.html'" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">Back to Selection</button>
                 </div>
             </form>
@@ -62,7 +139,10 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        let penalCodesData = []; // Reuse penal codes data for charges
+        let chargeGroupCounter = 0; // To assign unique IDs to new charge groups
+
+        document.addEventListener('DOMContentLoaded', async function() {
             // Check if user is logged in
             const token = sessionStorage.getItem('authToken');
             if (!token) {
@@ -71,45 +151,233 @@
                 window.location.href = 'index.html';
                 return;
             }
-        });
 
-        document.getElementById('arrestForm').addEventListener('submit', async function(event) {
-            event.preventDefault(); 
-            const form = event.target;
-            const formData = new FormData(form);
-            const jsonData = {};
-            formData.forEach((value, key) => { jsonData[key] = value; });
+            const chargeInputsContainer = document.getElementById('chargeInputsContainer');
+            const addChargeBtn = document.getElementById('addChargeBtn');
+            const totalJailTimeSumInput = document.getElementById('totalJailTimeSum');
+            const arrestForm = document.getElementById('arrestForm');
+            const clearFormBtn = document.getElementById('clearFormBtn');
 
-            const token = sessionStorage.getItem('authToken');
-
+            // --- Fetch Penal Codes (Charges) on Load ---
             try {
-                const response = await fetch('https://citation-app-worker.pnbober.workers.dev/submit-arrest', { // Your Worker URL
-                    method: 'POST',
+                const response = await fetch('https://citation-app-worker.pnbober.workers.dev/penal-codes', { // Your Worker URL
+                    method: 'GET',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}` 
-                    },
-                    body: JSON.stringify(jsonData),
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (response.ok) {
+                    penalCodesData = await response.json();
+                    console.log("Penal codes (charges) loaded:", penalCodesData);
+                } else {
+                    const errorData = await response.json();
+                    console.error('Failed to load charges:', errorData.message);
+                    alert('Warning: Could not load charges for auto-fill. ' + (errorData.message || response.statusText));
+                }
+            } catch (error) {
+                console.error('Network error loading charges:', error);
+                alert('Network error: Could not load charges for auto-fill.');
+            }
+
+            // --- Function to Add a New Charge Input Group ---
+            function addChargeGroup(initialCode = '', initialJailTime = '0') {
+                chargeGroupCounter++;
+                const newGroupId = chargeGroupCounter;
+
+                const newGroup = document.createElement('div');
+                newGroup.classList.add('charge-group', 'grid', 'gap-x-6', 'gap-y-4', 'mb-4', 'items-end');
+                newGroup.style.gridTemplateColumns = '1fr 1fr auto'; 
+                newGroup.dataset.groupId = newGroupId;
+                newGroup.innerHTML = `
+                    <div class="input-wrapper">
+                        <label for="chargeCode_${newGroupId}" class="theme-label block mb-2 font-medium">Charge Code:</label>
+                        <input type="text" id="chargeCode_${newGroupId}" name="chargeCode_${newGroupId}" class="theme-input w-full p-2 border rounded-md charge-code-input" value="${initialCode}" autocomplete="off">
+                        <div id="chargeSuggestions_${newGroupId}" class="autocomplete-suggestions"></div>
+                    </div>
+                    <div class="jail-time-wrapper">
+                        <label for="jailTime_${newGroupId}" class="theme-label block mb-2 font-medium">Jail Time (Sec):</label>
+                        <input type="number" id="jailTime_${newGroupId}" name="jailTime_${newGroupId}" step="1" min="0" value="${initialJailTime}" class="theme-input w-full p-2 border rounded-md jail-time-input" readonly>
+                    </div>
+                    <button type="button" class="theme-button-danger py-2 px-6 rounded-md font-semibold button-remove">Remove</button>
+                `;
+                chargeInputsContainer.appendChild(newGroup);
+
+                setupAutocompleteForChargeInput(newGroupId);
+                newGroup.querySelector('.button-remove').addEventListener('click', function() {
+                    newGroup.remove();
+                    calculateTotalJailTime(); // Recalculate total after removal
                 });
 
-                if (response.ok) { 
-                    const result = await response.json();
-                    alert(result.message); 
-                    sessionStorage.setItem('lastSubmittedArrest', JSON.stringify(jsonData)); 
-                    window.location.href = 'arrest_display.html'; 
-                } else if (response.status === 401 || response.status === 403) {
-                    alert("Authentication failed. Please log in again.");
-                    sessionStorage.clear(); 
-                    window.location.href = 'index.html';
-                }
-                else { 
-                    const errorData = await response.json();
-                    alert('Submission failed: ' + (errorData.message || response.statusText));
-                }
-            } catch (error) { 
-                console.error('Error:', error);
-                alert('An error occurred. Check console for details.');
+                calculateTotalJailTime(); // Recalculate total after adding
             }
+
+            // --- Setup Autocomplete for a specific input group (Charges) ---
+            function setupAutocompleteForChargeInput(groupId) {
+                const chargeCodeInput = document.getElementById(`chargeCode_${groupId}`);
+                const jailTimeInput = document.getElementById(`jailTime_${groupId}`);
+                const suggestionsDiv = document.getElementById(`chargeSuggestions_${groupId}`);
+
+                chargeCodeInput.addEventListener('input', function() {
+                    const query = this.value.toLowerCase();
+                    suggestionsDiv.innerHTML = '';
+                    suggestionsDiv.style.display = 'none';
+
+                    if (query.length > 0) {
+                        const filteredCodes = penalCodesData.filter(pc =>
+                            pc.code.toLowerCase().includes(query) || (pc.description && pc.description.toLowerCase().includes(query))
+                        );
+                        if (filteredCodes.length > 0) {
+                            filteredCodes.forEach(pc => {
+                                const suggestionItem = document.createElement('div');
+                                // Display Offense Name and Type in suggestion
+                                suggestionItem.textContent = `${pc.code} - ${pc.description || 'No description'} (Jail: ${pc.jail_time_seconds || 0}s)`; 
+                                suggestionItem.dataset.code = pc.code;
+                                suggestionItem.dataset.jailTime = pc.jail_time_seconds || 0; // Store jail time
+                                suggestionItem.dataset.description = pc.description || ''; // Store description
+                                suggestionItem.dataset.amount = pc.amount_due || 0; // Store amount (for submission if needed)
+                                suggestionItem.dataset.type = pc.type || ''; // Store type (for submission if needed)
+                                suggestionsDiv.appendChild(suggestionItem);
+
+                                suggestionItem.addEventListener('click', function() {
+                                    chargeCodeInput.value = this.dataset.code;
+                                    jailTimeInput.value = parseFloat(this.dataset.jailTime).toFixed(0); // Convert to integer seconds
+                                    suggestionsDiv.innerHTML = ''; 
+                                    suggestionsDiv.style.display = 'none'; 
+                                    calculateTotalJailTime(); 
+                                });
+                            });
+                            suggestionsDiv.style.display = 'block'; 
+                        }
+                    }
+                    
+                    const matchedCode = penalCodesData.find(pc => pc.code.toLowerCase() === query);
+                    if (!matchedCode) {
+                        jailTimeInput.value = '0';
+                    } else {
+                        jailTimeInput.value = parseFloat(matchedCode.jail_time_seconds || 0).toFixed(0);
+                    }
+                    calculateTotalJailTime();
+                });
+
+                chargeCodeInput.addEventListener('blur', () => {
+                    setTimeout(() => {
+                        suggestionsDiv.style.display = 'none';
+                    }, 100); 
+                    const exactMatch = penalCodesData.find(pc => pc.code.toLowerCase() === chargeCodeInput.value.toLowerCase());
+                    if (exactMatch) {
+                        jailTimeInput.value = parseFloat(exactMatch.jail_time_seconds || 0).toFixed(0);
+                    } else {
+                        jailTimeInput.value = '0';
+                    }
+                    calculateTotalJailTime();
+                });
+                chargeCodeInput.addEventListener('focus', () => {
+                    if (suggestionsDiv.innerHTML !== '' && chargeCodeInput.value.length > 0) {
+                        suggestionsDiv.style.display = 'block';
+                    }
+                });
+            }
+
+            // --- Calculate Total Jail Time ---
+            function calculateTotalJailTime() {
+                let total = 0;
+                document.querySelectorAll('.jail-time-input').forEach(input => {
+                    const value = parseFloat(input.value);
+                    if (!isNaN(value)) {
+                        total += value;
+                    }
+                });
+                totalJailTimeSumInput.value = total.toFixed(0); // Display as integer seconds
+            }
+
+            // --- Initial Setup ---
+            setupAutocompleteForChargeInput(0); // Setup for the first (initial) charge group
+            addChargeBtn.addEventListener('click', () => addChargeGroup()); // Add new charge group on button click
+            calculateTotalJailTime(); // Calculate initial total jail time
+
+            // --- Form Clear Logic ---
+            clearFormBtn.addEventListener('click', function() {
+                document.querySelectorAll('.charge-group[data-group-id]:not([data-group-id="0"])').forEach(group => group.remove());
+                document.getElementById('chargeCode_0').value = '';
+                document.getElementById('jailTime_0').value = '0';
+                document.getElementById('totalFines').value = '0.00'; // Assuming total fines is cleared too
+                calculateTotalJailTime(); 
+            });
+
+
+            // --- Form Submission ---
+            arrestForm.addEventListener('submit', async function(event) {
+                event.preventDefault(); 
+                const form = event.target;
+                
+                const arrestData = {};
+                // Collect basic form fields
+                arrestData.arrestingOfficerBadge = document.getElementById('arrestingOfficerBadge').value;
+                arrestData.yourUsername = document.getElementById('yourUsername').value;
+                arrestData.leoUsernames = document.getElementById('leoUsernames').value;
+                arrestData.ranks = document.getElementById('ranks').value;
+                arrestData.suspectName = document.getElementById('suspectName').value;
+                arrestData.incidentDetails = document.getElementById('incidentDetails').value;
+                arrestData.totalFines = parseFloat(document.getElementById('totalFines').value); // Total fines, now collected manually
+                
+                // Collect all applied charges and their details into an array
+                const appliedCharges = [];
+                let overallTotalJailTime = 0; // Recalculate total for submission to be safe
+
+                document.querySelectorAll('.charge-group').forEach(group => {
+                    const chargeCodeInput = group.querySelector('.charge-code-input');
+                    const jailTimeInput = group.querySelector('.jail-time-input');
+
+                    const code = chargeCodeInput.value.trim();
+                    const jailTime = parseFloat(jailTimeInput.value);
+                    
+                    if (code && !isNaN(jailTime)) { 
+                        const matchedCode = penalCodesData.find(pc => pc.code.toLowerCase() === code.toLowerCase());
+                        appliedCharges.push({
+                            code: code,
+                            description: matchedCode ? (matchedCode.description || 'N/A') : 'N/A', // Include description
+                            amount_due: matchedCode ? (matchedCode.amount_due || 0) : 0, // Include amount_due
+                            type: matchedCode ? (matchedCode.type || 'N/A') : 'N/A', // Include type
+                            jail_time_seconds: jailTime // The collected jail time for this specific charge
+                        });
+                        overallTotalJailTime += jailTime;
+                    }
+                });
+
+                arrestData.appliedCharges = appliedCharges; // Store the array of charges
+                arrestData.totalJailTime = overallTotalJailTime; // Store the sum of jail times
+
+                const token = sessionStorage.getItem('authToken');
+
+                try {
+                    const response = await fetch('https://citation-app-worker.pnbober.workers.dev/submit-arrest', { // Your Worker URL
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}` 
+                        },
+                        body: JSON.stringify(arrestData), // Send the constructed object
+                    });
+
+                    if (response.ok) { 
+                        const result = await response.json();
+                        alert(result.message); 
+                        sessionStorage.setItem('lastSubmittedArrest', JSON.stringify(arrestData)); 
+                        window.location.href = 'arrest_display.html'; 
+                    } else if (response.status === 401 || response.status === 403) {
+                        alert("Authentication failed. Please log in again.");
+                        sessionStorage.clear(); 
+                        window.location.href = 'index.html';
+                    }
+                    else { 
+                        const errorData = await response.json();
+                        alert('Submission failed: ' + (errorData.message || response.statusText));
+                    }
+                } catch (error) { 
+                    console.error('Error:', error);
+                    alert('An error occurred. Check console for details.');
+                }
+            });
         });
     </script>
 </body>
