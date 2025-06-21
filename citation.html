@@ -88,7 +88,7 @@
                         <input type="text" id="officerRank" name="officerRank" required class="theme-input w-full p-2 border rounded-md">
                     </div>
                     <div>
-                        <label for="violatorName" class="theme-label block mb-2 font-medium">Violator's Full Name:</label>
+                        <label for="violatorName" class="theme-label block mb-2 font-medium">Violator's Username:</label>
                         <input type="text" id="violatorName" name="violatorName" required class="theme-input w-full p-2 border rounded-md">
                     </div>
                     
@@ -182,8 +182,8 @@
                 const newGroupId = penalCodeGroupCounter;
 
                 const newGroup = document.createElement('div');
-                newGroup.classList.add('penal-code-group', 'grid', 'gap-x-6', 'gap-y-4', 'mb-4', 'items-end');
-                newGroup.style.gridTemplateColumns = '1fr 1fr auto'; 
+                newGroup.classList.add('penal-code-group', 'grid', 'gap-x-6', 'gap-y-4', 'mb-4', 'items-end'); // Add Tailwind grid classes
+                newGroup.style.gridTemplateColumns = '1fr 1fr auto'; // Explicit grid columns for consistency
                 newGroup.dataset.groupId = newGroupId;
                 newGroup.innerHTML = `
                     <div class="input-wrapper">
@@ -199,6 +199,7 @@
                 `;
                 penalCodeInputsContainer.appendChild(newGroup);
 
+                // Re-attach event listeners for the new inputs
                 setupAutocompleteForInput(newGroupId);
                 newGroup.querySelector('.button-remove').addEventListener('click', function() {
                     newGroup.remove();
@@ -228,7 +229,7 @@
                         if (filteredCodes.length > 0) {
                             filteredCodes.forEach(pc => {
                                 const suggestionItem = document.createElement('div');
-                                // Display Offense Name and Type in suggestion
+                                // Display Offense Name and Type in suggestion (e.g., "(1)01 - Criminal Threats (Misdemeanor)")
                                 suggestionItem.textContent = `${pc.code} - ${pc.description || 'No description'} (${pc.type || 'N/A'})`; 
                                 suggestionItem.dataset.code = pc.code;
                                 suggestionItem.dataset.amount = pc.amount_due;
@@ -291,20 +292,20 @@
                 totalAmountDueSumInput.value = `$${total.toFixed(2)}`;
             }
 
-            // --- NEW: Update Main Violation Type based on all selected Penal Codes (OFFENSE NAMES) ---
+            // --- NEW: Update Main Violation Type based on all selected Penal Codes ---
             function updateMainViolationType() {
-                const selectedDescriptions = []; // Renamed from selectedViolationTypes
+                const selectedViolationTypes = [];
                 document.querySelectorAll('.penal-code-input').forEach(input => {
                     const code = input.value.trim();
                     if (code) {
                         const matchedCode = penalCodesData.find(pc => pc.code.toLowerCase() === code.toLowerCase());
                         if (matchedCode && matchedCode.description) { // Use description for type of ticket
-                            selectedDescriptions.push(matchedCode.description);
+                            selectedViolationTypes.push(matchedCode.description);
                         }
                     }
                 });
                 // Remove duplicates and join with comma
-                mainViolationTypeInput.value = Array.from(new Set(selectedDescriptions)).join(', ');
+                mainViolationTypeInput.value = Array.from(new Set(selectedViolationTypes)).join(', ');
                 if (mainViolationTypeInput.value === '') {
                     mainViolationTypeInput.placeholder = "Auto-filled from Penal Code(s)";
                 } else {
@@ -324,7 +325,7 @@
                 document.querySelectorAll('.penal-code-group[data-group-id]:not([data-group-id="0"])').forEach(group => group.remove());
                 document.getElementById('penalCode_0').value = '';
                 document.getElementById('amountDue_0').value = '0.00';
-                mainViolationTypeInput.value = ''; 
+                mainViolationTypeInput.value = ''; // Also clear main violation type
                 calculateTotalAmountDue(); 
                 updateMainViolationType(); // Update after clear
             });
@@ -341,8 +342,7 @@
                 citationData.officerRank = document.getElementById('officerRank').value;
                 citationData.violatorName = document.getElementById('violatorName').value;
                 citationData.violationDetails = document.getElementById('violationDetails').value;
-                // Get the combined violation type string from the main input
-                citationData.violationType = mainViolationTypeInput.value; 
+                citationData.violationType = mainViolationTypeInput.value; // Get the combined string here
                 
                 const appliedPenalCodes = [];
                 let overallTotalAmount = 0; 
@@ -360,8 +360,7 @@
                             code: code,
                             description: matchedCode ? (matchedCode.description || 'N/A') : 'N/A', // Include description
                             amount: amount,
-                            type: matchedCode ? (matchedCode.type || 'N/A') : 'N/A', // Include type
-                            jail_time_seconds: matchedCode ? (matchedCode.jail_time_seconds || 0) : 0 // Include jail time
+                            type: matchedCode ? (matchedCode.type || 'N/A') : 'N/A' // Include type
                         });
                         overallTotalAmount += amount;
                     }
