@@ -8,7 +8,9 @@
     <link rel="stylesheet" href="styles.css">
     <script src="theme.js"></script>
     <style>
-        a { text-decoration: none; }
+        a {
+            text-decoration: none;
+        }
     </style>
 </head>
 <body class="min-h-screen theme-app-container flex items-center justify-center">
@@ -28,6 +30,16 @@
         <a href="index.html" class="theme-label inline-block text-sm mt-4 hover:underline hidden" id="backToLoginLink">Back to Login</a>
     </div>
 
+    <div id="customModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div id="customModal" class="theme-lookup-box p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 sm:mx-auto">
+            <h3 id="customModalTitle" class="theme-title text-xl font-bold mb-4"></h3>
+            <p id="customModalMessage" class="theme-label mb-6"></p>
+            <div id="customModalButtons" class="flex justify-end space-x-3">
+                <button id="customModalCancelBtn" class="theme-button-secondary py-2 px-4 rounded-md font-semibold hidden">Cancel</button>
+                <button id="customModalOkBtn" class="theme-button-primary py-2 px-4 rounded-md font-semibold">OK</button>
+            </div>
+        </div>
+    </div>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const token = sessionStorage.getItem('authToken');
@@ -43,10 +55,11 @@
 
             // Authentication check
             if (!token || !userInfo) {
-                alert("You must be logged in to access this page.");
-                sessionStorage.clear(); // Clear any partial session data
-                window.location.href = 'index.html'; // Redirect to login if no token
-                return; // Stop script execution
+                window.showCustomAlert("You must be logged in to access this page.", "Authentication Error").then(() => {
+                    sessionStorage.clear();
+                    window.location.href = 'index.html'; // Redirect after OK is clicked
+                });
+                return;
             } else {
                 userInfoDisplay.textContent = `Welcome, Officer ${userInfo.username} (Badge: ${userInfo.badgeNumber})!`;
                 
@@ -60,9 +73,10 @@
 
             // Logout Functionality
             logoutButton.addEventListener('click', function() {
-                sessionStorage.clear(); // Clear all session data
-                alert("You have been logged out.");
-                window.location.href = 'index.html'; // Redirect to login
+                window.showCustomAlert("You have been logged out.", "Information").then(() => { // Custom alert
+                    sessionStorage.clear(); // Clear all session data
+                    window.location.href = 'index.html'; // Redirect after OK is clicked
+                });
             });
         });
     </script>

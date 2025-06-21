@@ -49,24 +49,24 @@
             const ranks = getArrestValue('ranks');
             const arrestingOfficerBadge = getArrestValue('arrestingOfficerBadge');
             const incidentDetails = getArrestValue('incidentDetails');
-            const totalFines = parseFloat(getArrestValue('totalFines', '0')).toFixed(2);
+            const totalFines = parseFloat(getArrestValue('totalFines', '0')).toFixed(2); // Get the calculated total fines
             
-            // --- Display applied charges and total jail time/fines ---
+            // --- NEW: Display applied charges and total jail time/fines ---
             const appliedCharges = arrestData.appliedCharges || [];
             let chargesListString = 'N/A (No charges applied)';
-            const totalJailTimeDisplay = parseFloat(getArrestValue('totalJailTime', '0')).toFixed(0);
+            const totalJailTimeDisplay = parseFloat(getArrestValue('totalJailTime', '0')).toFixed(0); // Display as integer seconds
 
             if (appliedCharges.length > 0) {
+                // Example format: "**CODE** - Description ($AmountDue) (Jail: Seconds)" - simplified to match user's example style
                 chargesListString = appliedCharges.map(charge => {
                     const code = charge.code || 'N/A';
                     const description = charge.description ? ` - ${charge.description}` : '';
                     const amountDuePart = (parseFloat(charge.amount_due || 0) > 0) ? ` ($${parseFloat(charge.amount_due).toFixed(2)})` : '';
                     const jailTimePart = (parseFloat(charge.jail_time_seconds || 0) > 0) ? ` (Jail: ${parseFloat(charge.jail_time_seconds).toFixed(0)}s)` : '';
-                    // Bolding only the code part
-                    return `**${code}**${description}${amountDuePart}${jailTimePart}`; // <--- CHANGE IS HERE
-                }).join('\n');
+                    return `**${code}**${description}${amountDuePart}${jailTimePart}`; // Bolding the code part
+                }).join('\n'); // Join with newline for stacking
             }
-            // --- END Display logic ---
+            // --- END NEW ---
 
             // Format the output as per your request
             const arrestText = `
@@ -93,7 +93,7 @@ X @${leoUsernames}
 
 4000 Capitol Drive, Greenville, Wisconsin 54942
 
-Court date: XX/XX/XX 
+Court date: XX/XX/XX
 Please call (262) 785-4700 ext. 7 for further inquiry. 
 `;
             arrestOutputContainer.innerHTML = `<pre id="arrestContent" class="theme-label">${arrestText}</pre>`;
@@ -102,10 +102,10 @@ Please call (262) 785-4700 ext. 7 for further inquiry.
             window.copyArrestText = function() {
                 const textToCopy = document.getElementById('arrestContent').innerText;
                 navigator.clipboard.writeText(textToCopy).then(() => {
-                    alert('Arrest report text copied to clipboard!');
+                    window.showCustomAlert('Arrest report text copied to clipboard!', 'Success');
                 }).catch(err => {
                     console.error('Failed to copy text: ', err);
-                    alert('Failed to copy text. Please try again or copy manually.');
+                    window.showCustomAlert('Failed to copy text. Please try again or copy manually.', 'Error');
                 });
             };
         });

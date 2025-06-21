@@ -65,6 +65,16 @@
         </div>
     </div>
 
+    <div id="customModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div id="customModal" class="theme-lookup-box p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 sm:mx-auto">
+            <h3 id="customModalTitle" class="theme-title text-xl font-bold mb-4"></h3>
+            <p id="customModalMessage" class="theme-label mb-6"></p>
+            <div id="customModalButtons" class="flex justify-end space-x-3">
+                <button id="customModalCancelBtn" class="theme-button-secondary py-2 px-4 rounded-md font-semibold hidden">Cancel</button>
+                <button id="customModalOkBtn" class="theme-button-primary py-2 px-4 rounded-md font-semibold">OK</button>
+            </div>
+        </div>
+    </div>
     <script>
         document.getElementById('loginForm').addEventListener('submit', async function(event) {
             event.preventDefault(); // Prevent default form submission
@@ -79,7 +89,7 @@
             } else if (usernameOrBadge) {
                 loginData.username = usernameOrBadge;
             } else {
-                alert("Please enter either a username or a badge number.");
+                window.showCustomAlert("Please enter either a username or a badge number.", "Input Error"); // Custom alert
                 return;
             }
             loginData.password = password;
@@ -96,18 +106,18 @@
                 const result = await response.json();
 
                 if (response.ok) {
-                    alert('Login successful! Welcome, ' + result.username + ' (Badge: ' + result.badgeNumber + ')');
-                    // Store the token and user info (e.g., in sessionStorage)
-                    sessionStorage.setItem('authToken', result.token);
-					sessionStorage.setItem('loggedInUser', JSON.stringify({ username: result.username, badgeNumber: result.badgeNumber, role: result.role }));
-
-                    window.location.href = 'selection.html'; // Redirect to selection page after successful login
+                    window.showCustomAlert('Login successful! Welcome, ' + result.username + ' (Badge: ' + result.badgeNumber + ')', 'Success').then(() => {
+                        sessionStorage.setItem('authToken', result.token);
+                        sessionStorage.setItem('loggedInUser', JSON.stringify({ username: result.username, badgeNumber: result.badgeNumber, role: result.role }));
+                        window.location.href = 'selection.html'; // Redirect after OK is clicked
+                    });
                 } else {
-                    alert('Login failed: ' + result.message);
+                    const errorData = await response.json();
+                    window.showCustomAlert('Login failed: ' + (errorData.message || response.statusText), 'Error'); // Custom alert
                 }
             } catch (error) {
                 console.error('Error during login:', error);
-                alert('An error occurred during login. Check console for details.');
+                window.showCustomAlert('An error occurred during login. Check console for details.', 'Error'); // Custom alert
             }
         });
     </script>

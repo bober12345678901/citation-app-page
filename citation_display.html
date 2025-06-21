@@ -30,6 +30,16 @@
         </div>
     </div>
 
+    <div id="customModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div id="customModal" class="theme-lookup-box p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 sm:mx-auto">
+            <h3 id="customModalTitle" class="theme-title text-xl font-bold mb-4"></h3>
+            <p id="customModalMessage" class="theme-label mb-6"></p>
+            <div id="customModalButtons" class="flex justify-end space-x-3">
+                <button id="customModalCancelBtn" class="theme-button-secondary py-2 px-4 rounded-md font-semibold hidden">Cancel</button>
+                <button id="customModalOkBtn" class="theme-button-primary py-2 px-4 rounded-md font-semibold">OK</button>
+            </div>
+        </div>
+    </div>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const storedData = sessionStorage.getItem('lastSubmittedCitation');
@@ -57,24 +67,21 @@
             // --- Determine Main "Type of Ticket" (combined descriptions) ---
             let typeOfTicketDisplay = 'N/A';
             if (appliedPenalCodes.length > 0) {
-                // Get all descriptions and join them with a comma
                 typeOfTicketDisplay = appliedPenalCodes.map(pc => pc.description || 'N/A').join(', ');
             }
 
             // --- Format "Penal Code" (just codes, comma-separated) ---
-            let penalCodeDisplayString = 'N/A'; // Default if no codes
+            let penalCodeDisplayString = 'N/A'; 
             if (appliedPenalCodes.length > 0) {
-                // Get all codes and join them with a comma
                 penalCodeDisplayString = appliedPenalCodes.map(pc => pc.code || 'N/A').join(', ');
             }
 
-            // Format the output as per your request
             const citationText = `
-Ping User Receiving Ticket: @${violatorName.replace(/\s/g, '')}
+Ping User Receiving Ticket: **@${violatorName.replace(/\s/g, '')}**
 Type of Ticket: **${typeOfTicketDisplay}**
-Penal Code: **${penalCodeDisplayString}**
+Penal Code: ${penalCodeDisplayString}
 Total Amount Due: **$${totalAmountDue}**
-Additional Notes: **${additionalNotes}**
+Additional Notes: ${additionalNotes}
 
 Department Name: **WSP**
 Rank and Signature: **${officerRank}**
@@ -90,7 +97,7 @@ X @${violatorName.replace(/\s/g, '')}
 
 4000 Capitol Drive, Greenville, Wisconsin 54942 
 
-Court date: XX/XX/XX 
+Court date: XX/XX/XX
 Please contact a Supervisor for further inquiry.
 `;
             citationOutputContainer.innerHTML = `<pre id="citationContent" class="theme-label">${citationText}</pre>`;
@@ -99,10 +106,10 @@ Please contact a Supervisor for further inquiry.
             window.copyCitationText = function() {
                 const textToCopy = document.getElementById('citationContent').innerText;
                 navigator.clipboard.writeText(textToCopy).then(() => {
-                    alert('Citation text copied to clipboard!');
+                    window.showCustomAlert('Citation text copied to clipboard!', 'Success'); // Custom alert
                 }).catch(err => {
                     console.error('Failed to copy text: ', err);
-                    alert('Failed to copy text. Please try again or copy manually.');
+                    window.showCustomAlert('Failed to copy text. Please try again or copy manually.', 'Error'); // Custom alert
                 });
             };
         });

@@ -35,13 +35,21 @@
         </form>
     </div>
 
+    <div id="customModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div id="customModal" class="theme-lookup-box p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 sm:mx-auto">
+            <h3 id="customModalTitle" class="theme-title text-xl font-bold mb-4"></h3>
+            <p id="customModalMessage" class="theme-label mb-6"></p>
+            <div id="customModalButtons" class="flex justify-end space-x-3">
+                <button id="customModalCancelBtn" class="theme-button-secondary py-2 px-4 rounded-md font-semibold hidden">Cancel</button>
+                <button id="customModalOkBtn" class="theme-button-primary py-2 px-4 rounded-md font-semibold">OK</button>
+            </div>
+        </div>
+    </div>
     <script>
         document.getElementById('signupForm').addEventListener('submit', async function(event) {
             event.preventDefault();
 
             const username = document.getElementById('newUsername').value;
-            // For type="number" inputs, .value might return a string or empty string.
-            // Ensure it's treated as a string for the JSON payload.
             const badgeNumber = document.getElementById('newBadgeNumber').value;
             const password = document.getElementById('newPassword').value;
 
@@ -57,14 +65,16 @@
                 const result = await response.json();
 
                 if (response.ok) {
-                    alert(result.message);
-                    window.location.href = 'index.html'; // Redirect to login after successful registration
+                    window.showCustomAlert(result.message, 'Success').then(() => {
+                        window.location.href = 'index.html'; // Redirect after OK is clicked
+                    });
                 } else {
-                    alert('Registration failed: ' + result.message);
+                    const errorData = await response.json();
+                    window.showCustomAlert('Registration failed: ' + (errorData.message || response.statusText), 'Error');
                 }
             } catch (error) {
-                console.error('Error during registration:', error);
-                alert('An error occurred during registration. Check console for details.');
+                console.error('Error during sign up:', error);
+                window.showCustomAlert('An error occurred during sign up. Check console for details.', 'Error');
             }
         });
     </script>
