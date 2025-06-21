@@ -44,16 +44,28 @@
 
             const getArrestValue = (key, defaultValue = 'N/A') => arrestData[key] || defaultValue;
 
-            // Updated to reflect removed fields from the form
             const yourUsername = getArrestValue('yourUsername');
             const leoUsernames = getArrestValue('leoUsernames');
             const ranks = getArrestValue('ranks');
             const arrestingOfficerBadge = getArrestValue('arrestingOfficerBadge');
             const incidentDetails = getArrestValue('incidentDetails');
-            const charge = getArrestValue('charge');
-            const totalFines = parseFloat(getArrestValue('totalFines', '0')).toFixed(2);
             
-            // Note: ArrestID, DateOfArrest, TimeOfArrest, SuspectDOB, SuspectAddress, ArrestLocation, CourtDate are now removed.
+            // --- NEW: Display applied charges and total jail time/fines ---
+            const appliedCharges = arrestData.appliedCharges || [];
+            let chargesListString = 'N/A (No charges applied)';
+            const totalJailTimeDisplay = parseFloat(getArrestValue('totalJailTime', '0')).toFixed(0); // Display as integer seconds
+            const totalFinesDisplay = parseFloat(getArrestValue('totalFines', '0')).toFixed(2); // Display as currency
+
+            if (appliedCharges.length > 0) {
+                chargesListString = appliedCharges.map(charge => {
+                    const code = charge.code || 'N/A';
+                    const description = charge.description ? ` - ${charge.description}` : '';
+                    const amountDuePart = (parseFloat(charge.amount_due || 0) > 0) ? ` ($${parseFloat(charge.amount_due).toFixed(2)})` : '';
+                    const jailTimePart = (parseFloat(charge.jail_time_seconds || 0) > 0) ? ` (Jail: ${parseFloat(charge.jail_time_seconds).toFixed(0)}s)` : '';
+                    return `${code}${description}${amountDuePart}${jailTimePart}`;
+                }).join(', ');
+            }
+            // --- END NEW ---
 
             // Format the output as per your request
             const arrestText = `
@@ -69,8 +81,8 @@ ${incidentDetails}
 ---
 __Offense:__
 
-${charge}
-Total: **$${totalFines}**
+${chargesListString}
+Total: **$${totalFinesDisplay}** + **${totalJailTimeDisplay}s Jail Time**
 
 Sign at the X:
 X @${yourUsername}
