@@ -397,7 +397,7 @@
 
                     if (response.ok) { 
                         const result = await response.json();
-                        window.showCustomAlert(result.message, 'Success').then(() => {
+                        window.hideCustomAlert(result.message, 'Success').then(() => {
                             sessionStorage.setItem('lastSubmittedCitation', JSON.stringify(citationData)); 
                             window.location.href = 'citation_display.html'; 
                         });
