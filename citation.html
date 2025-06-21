@@ -397,10 +397,10 @@
 
                     if (response.ok) { 
                         const result = await response.json();
-                        window.showCustomAlert(result.message, 'Success').then(() => {
-                            sessionStorage.setItem('lastSubmittedCitation', JSON.stringify(citationData)); 
-                            window.location.href = 'citation_display.html'; 
-                        });
+                        window.showCustomAlert(result.message, 'Success'); 
+
+                        sessionStorage.setItem('lastSubmittedCitation', JSON.stringify(citationData)); 
+                        window.location.href = 'citation_display.html'; 
                     } else if (response.status === 401 || response.status === 403) {
                         window.showCustomAlert("Authentication failed. Please log in again.", 'Error').then(() => {
                             sessionStorage.clear(); 
