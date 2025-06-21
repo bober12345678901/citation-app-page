@@ -72,11 +72,11 @@
             const citationText = `
 CITATION FORMAT:
 
-Ping User Receiving Ticket: **@${violatorName.replace(/\s/g, '')}**
+Ping User Receiving Ticket: @${violatorName.replace(/\s/g, '')}
 Type of Ticket: **${typeOfTicketDisplay}**
 Penal Code: ${penalCodeDisplayString}
 Total Amount Due: **$${totalAmountDue}**
-Additional Notes: ${additionalNotes}
+Additional Notes: **${additionalNotes}**
 
 Department Name: **WSP**
 Rank and Signature: **${officerRank}**
@@ -88,7 +88,7 @@ By signing this citation, you acknowledge that this is NOT an admission of guilt
 **You must pay the citation to @panbober**
 
 Sign at the X:
-X ________________________
+X @${violatorName.replace(/\s/g, '')}
 
 4000 Capitol Drive, Greenville, Wisconsin 54942 
 
