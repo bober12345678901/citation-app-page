@@ -1,4 +1,4 @@
-// theme.js - WITH CUSTOM ALERT SYSTEM
+// theme.js - WITH CUSTOM ALERT SYSTEM (FIXED VARIABLE NAMES)
 
 // Global reference to the modal elements
 let _customModalOverlay;
@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
         applyTheme('custom'); 
     }
 
-    // Event Listeners
+    // Event Listeners for theme selection (if elements exist)
     if (themeSelector) {
         themeSelector.addEventListener('change', (event) => {
             applyTheme(event.target.value);
@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (customAccentColorInput) customAccentColorInput.addEventListener('input', saveCustomColors);
 
 
-    // Load saved theme on page load
+    // Load saved theme on page load (if themeSelector is present)
     const savedTheme = sessionStorage.getItem('selectedTheme') || 'light'; 
     if (themeSelector) {
         themeSelector.value = savedTheme;
@@ -122,20 +122,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- CUSTOM ALERT SYSTEM ---
-    // Get modal elements (they should exist in the HTML if you've copied them)
+    // Initialize modal elements once the DOM is ready and the HTML is present
+    // These assignments MUST happen after the modal HTML is added to the page.
     _customModalOverlay = document.getElementById('customModalOverlay');
     _customModalTitle = document.getElementById('customModalTitle');
     _customModalMessage = document.getElementById('customModalMessage');
     _customModalOkBtn = document.getElementById('customModalOkBtn');
     _customModalCancelBtn = document.getElementById('customModalCancelBtn');
 
+    // Attach event listeners to modal buttons
     if (_customModalOkBtn) {
         _customModalOkBtn.addEventListener('click', () => {
             _customModalOverlay.classList.add('hidden');
             document.body.style.overflow = ''; // Restore scrolling
-            if (_resolveCustomConfirm) { // Only resolve if it's a confirm
+            if (_resolveCustomConfirm) { // Only resolve if it's a confirm (null for alerts)
                 _resolveCustomConfirm(true); 
-                _resolveCustomConfirm = null; 
+                _resolveCustomConfirm = null; // Clear resolver
             }
         });
     }
@@ -146,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.style.overflow = ''; // Restore scrolling
             if (_resolveCustomConfirm) { // Only resolve if it's a confirm
                 _resolveCustomConfirm(false); 
-                _resolveCustomConfirm = null; 
+                _resolveCustomConfirm = null; // Clear resolver
             }
         });
     }
@@ -160,16 +162,17 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     window.showCustomAlert = function(message, type = 'info', title = null) {
         return new Promise(resolve => {
-            if (!_customModalOverlay) { // Fallback to native if modal elements not found
+            // Check if modal elements are available. If not, fallback to native alert.
+            if (!_customModalOverlay || !_customModalTitle || !_customModalMessage || !_customModalOkBtn) { 
                 alert(message);
                 resolve();
                 return;
             }
 
-            customAlertHeader.textContent = ''; 
-            customAlertBody.textContent = message;
+            _customModalTitle.textContent = ''; // Clear previous title content
+            _customModalMessage.textContent = message;
 
-            // Clear previous type classes
+            // Clear previous type classes from the title
             _customModalTitle.classList.remove('success', 'error', 'warning', 'info');
 
             // Set type and title
@@ -187,33 +190,37 @@ document.addEventListener('DOMContentLoaded', () => {
             _customModalOkBtn.classList.remove('hidden'); // Ensure OK button is visible
             _customModalOkBtn.textContent = 'OK'; // Set OK button text
 
-            _customModalOverlay.classList.remove('hidden');
+            _customModalOverlay.classList.remove('hidden'); // Show the overlay
             document.body.style.overflow = 'hidden'; // Prevent scrolling background
             _customModalOkBtn.focus(); // Focus OK button for usability
 
-            _customModalOkBtn.onclick = () => { // Use onclick directly to avoid multiple listeners
+            // The click listener for _customModalOkBtn is set once in DOMContentLoaded
+            // and simply hides the modal and resolves _resolveCustomConfirm (if it's a confirm).
+            // For alerts, we need to ensure the specific alert's promise is resolved.
+            // A simpler way for alerts is to directly resolve when OK is clicked.
+            // We use onclick here to overwrite previous handlers for alerts.
+            _customModalOkBtn.onclick = () => {
                 _customModalOverlay.classList.add('hidden');
-                document.body.style.overflow = ''; // Restore scrolling
-                _customModalOkBtn.onclick = null; // Clear handler
-                resolve(); // Resolve the promise
+                document.body.style.overflow = '';
+                _customModalOkBtn.onclick = null; // Clear this specific handler
+                resolve(); // Resolve the promise for this showCustomAlert call
             };
         });
     };
 
     /**
      * Replaces native confirm() with a custom modal popup.
-     * Returns a Promise that resolves to true (OK) or false (Cancel).
      * @param {string} message The message to display.
      * @param {string} [title="Confirm Action"] The title of the modal.
      * @returns {Promise<boolean>} A promise that resolves to true if OK is clicked, false if Cancel.
      */
     window.showCustomConfirm = function(message, title = "Confirm Action") {
         return new Promise((resolve) => {
-            if (!_customModalOverlay) { // Fallback to native if modal elements not found
-                resolve(confirm(message));
+            if (!_customModalOverlay || !_customModalTitle || !_customModalMessage || !_customModalOkBtn || !_customModalCancelBtn) {
+                resolve(confirm(message)); // Fallback to native if modal elements not found
                 return;
             }
-            _resolveCustomConfirm = resolve; // Store the resolve function
+            _resolveCustomConfirm = resolve; // Store the resolve function for button handlers
 
             _customModalTitle.textContent = title;
             _customModalMessage.textContent = message;
@@ -228,10 +235,8 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.style.overflow = 'hidden'; // Prevent scrolling background
             _customModalOkBtn.focus(); // Focus OK button
 
-            // Handlers are set once in DOMContentLoaded; they will resolve _resolveCustomConfirm
+            // The click listeners for _customModalOkBtn and _customModalCancelBtn are set once in DOMContentLoaded
+            // and handle resolving _resolveCustomConfirm.
         });
     };
-
-    // Note: window.alert = window.showCustomAlert; is no longer used for manual replacement for safety.
-    // Instead, you must manually replace 'alert()' calls with 'window.showCustomAlert()' in HTML files.
 });
