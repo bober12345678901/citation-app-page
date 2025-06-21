@@ -49,21 +49,22 @@
             const ranks = getArrestValue('ranks');
             const arrestingOfficerBadge = getArrestValue('arrestingOfficerBadge');
             const incidentDetails = getArrestValue('incidentDetails');
+            const totalFines = parseFloat(getArrestValue('totalFines', '0')).toFixed(2);
             
             // --- NEW: Display applied charges and total jail time/fines ---
             const appliedCharges = arrestData.appliedCharges || [];
             let chargesListString = 'N/A (No charges applied)';
-            const totalJailTimeDisplay = parseFloat(getArrestValue('totalJailTime', '0')).toFixed(0); // Display as integer seconds
-            const totalFinesDisplay = parseFloat(getArrestValue('totalFines', '0')).toFixed(2); // Display as currency
+            const totalJailTimeDisplay = parseFloat(getArrestValue('totalJailTime', '0')).toFixed(0);
 
             if (appliedCharges.length > 0) {
+                // Changed join(', ') to join('\n')
                 chargesListString = appliedCharges.map(charge => {
                     const code = charge.code || 'N/A';
                     const description = charge.description ? ` - ${charge.description}` : '';
                     const amountDuePart = (parseFloat(charge.amount_due || 0) > 0) ? ` ($${parseFloat(charge.amount_due).toFixed(2)})` : '';
                     const jailTimePart = (parseFloat(charge.jail_time_seconds || 0) > 0) ? ` (Jail: ${parseFloat(charge.jail_time_seconds).toFixed(0)}s)` : '';
                     return `${code}${description}${amountDuePart}${jailTimePart}`;
-                }).join(', ');
+                }).join('\n'); // <--- CHANGED HERE
             }
             // --- END NEW ---
 
@@ -82,7 +83,7 @@ ${incidentDetails}
 __Offense:__
 
 ${chargesListString}
-Total: **$${totalFinesDisplay}** + **${totalJailTimeDisplay}s Jail Time**
+Total: **$${totalFines}** + **${totalJailTimeDisplay}s Jail Time**
 
 Sign at the X:
 X @${yourUsername}
@@ -92,7 +93,7 @@ X @${leoUsernames}
 
 4000 Capitol Drive, Greenville, Wisconsin 54942
 
-Court date: XX/XX/XX (Removed from form, placeholder text)
+Court date: XX/XX/XX
 Please call (262) 785-4700 ext. 7 for further inquiry. 
 `;
             arrestOutputContainer.innerHTML = `<pre id="arrestContent" class="theme-label">${arrestText}</pre>`;
