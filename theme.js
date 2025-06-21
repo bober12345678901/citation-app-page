@@ -1,8 +1,15 @@
-// theme.js
+// theme.js - WITH CUSTOM ALERT SYSTEM
+
+// Global reference to the modal elements
+let _customModalOverlay;
+let _customModalTitle;
+let _customModalMessage;
+let _customModalOkBtn;
+let _customModalCancelBtn;
+let _resolveCustomConfirm; // To store the resolve function for custom confirm
 
 document.addEventListener('DOMContentLoaded', () => {
     // Tailwind CSS Configuration MUST be inside DOMContentLoaded if CDN is in head
-    // and if you are using 'class' for dark mode.
     if (typeof tailwind !== 'undefined' && tailwind.config) {
         tailwind.config = {
             darkMode: 'class', // Enable dark mode by toggling a 'dark' class on the html element
@@ -25,15 +32,16 @@ document.addEventListener('DOMContentLoaded', () => {
         midnight: { bg: '#0f172a', text: '#e2e8f0', accent: '#7c3aed', boxBg: '#1e293b', border: '#475569', inputBg: '#334155', inputText: '#e2e8f0', buttonText: '#ffffff', buttonPrimaryHover: '#6d28d9', buttonSecondary: '#64748b', buttonSecondaryHover: '#475569', buttonDanger: '#dc2626', buttonDangerHover: '#b91c1c' },
         dracula: { bg: '#282a36', text: '#f8f8f2', accent: '#bd93f9', boxBg: '#44475a', border: '#6272a4', inputBg: '#50fa7b', inputText: '#f8f8f2', buttonText: '#ffffff', buttonPrimaryHover: '#ff79c6', buttonSecondary: '#6272a4', buttonSecondaryHover: '#44475a', buttonDanger: '#ff5555', buttonDangerHover: '#ff3333' },
         cyberpunk: { bg: '#0d0f1b', text: '#fefefe', accent: '#ff007c', boxBg: '#1a1d2e', border: '#00ffff', inputBg: '#2a2e4a', inputText: '#fefefe', buttonText: '#ffffff', buttonPrimaryHover: '#ff00ff', buttonSecondary: '#00ff00', buttonSecondaryHover: '#00cc00', buttonDanger: '#fe4a4a', buttonDangerHover: '#e73030' },
-        custom: null // Will be loaded from localStorage or default
+        custom: null // Will be loaded from sessionStorage or default
     };
 
     function applyTheme(themeName) {
         let theme = themePresets[themeName];
-        body.className = `min-h-screen theme-app-container theme-${themeName} flex items-center justify-center`; // Ensure these base classes are always there
+        // Ensure base classes are always present for layout/styling
+        body.className = `min-h-screen theme-app-container theme-${themeName} flex items-center justify-center`; 
 
         if (themeName === 'custom') {
-            const customColors = JSON.parse(localStorage.getItem('customThemeColors')) || {
+            const customColors = JSON.parse(sessionStorage.getItem('customThemeColors')) || {
                 bg: '#f3f4f6', text: '#1f2937', accent: '#3b82f6', boxBg: '#ffffff', border: '#d1d5db', inputBg: '#ffffff', inputText: '#1f2937', buttonText: '#ffffff', buttonPrimaryHover: '#2563eb', buttonSecondary: '#6b7280', buttonSecondaryHover: '#4b5563', buttonDanger: '#dc2626', buttonDangerHover: '#b91c1c'
             };
             theme = customColors;
@@ -54,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.documentElement.style.setProperty('--input-bg-color', theme.inputBg);
             document.documentElement.style.setProperty('--input-text-color', theme.inputText);
             document.documentElement.style.setProperty('--button-text-color', theme.buttonText);
-            document.documentElement.style.setProperty('--button-primary-bg', theme.accent); // Primary button uses accent
+            document.documentElement.style.setProperty('--button-primary-bg', theme.accent);
             document.documentElement.style.setProperty('--button-primary-hover-bg', theme.buttonPrimaryHover);
             document.documentElement.style.setProperty('--button-secondary-bg', theme.buttonSecondary);
             document.documentElement.style.setProperty('--button-secondary-hover-bg', theme.buttonSecondaryHover);
@@ -69,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        localStorage.setItem('selectedTheme', themeName);
+        sessionStorage.setItem('selectedTheme', themeName); 
     }
 
     function saveCustomColors() {
@@ -86,11 +94,11 @@ document.addEventListener('DOMContentLoaded', () => {
             buttonPrimaryHover: customAccentColorInput.value,
             buttonSecondary: customTextColorInput.value,
             buttonSecondaryHover: customAccentColorInput.value,
-            buttonDanger: '#dc2626', // Keep danger consistent for custom
+            buttonDanger: '#dc2626', 
             buttonDangerHover: '#b91c1c'
         };
-        localStorage.setItem('customThemeColors', JSON.stringify(customColors));
-        applyTheme('custom'); // Re-apply custom theme after saving
+        sessionStorage.setItem('customThemeColors', JSON.stringify(customColors)); 
+        applyTheme('custom'); 
     }
 
     // Event Listeners
@@ -106,9 +114,124 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // Load saved theme on page load
-    const savedTheme = localStorage.getItem('selectedTheme') || 'light';
+    const savedTheme = sessionStorage.getItem('selectedTheme') || 'light'; 
     if (themeSelector) {
         themeSelector.value = savedTheme;
     }
     applyTheme(savedTheme);
+
+
+    // --- CUSTOM ALERT SYSTEM ---
+    // Get modal elements (they should exist in the HTML if you've copied them)
+    _customModalOverlay = document.getElementById('customModalOverlay');
+    _customModalTitle = document.getElementById('customModalTitle');
+    _customModalMessage = document.getElementById('customModalMessage');
+    _customModalOkBtn = document.getElementById('customModalOkBtn');
+    _customModalCancelBtn = document.getElementById('customModalCancelBtn');
+
+    if (_customModalOkBtn) {
+        _customModalOkBtn.addEventListener('click', () => {
+            _customModalOverlay.classList.add('hidden');
+            document.body.style.overflow = ''; // Restore scrolling
+            if (_resolveCustomConfirm) { // Only resolve if it's a confirm
+                _resolveCustomConfirm(true); 
+                _resolveCustomConfirm = null; 
+            }
+        });
+    }
+
+    if (_customModalCancelBtn) {
+        _customModalCancelBtn.addEventListener('click', () => {
+            _customModalOverlay.classList.add('hidden');
+            document.body.style.overflow = ''; // Restore scrolling
+            if (_resolveCustomConfirm) { // Only resolve if it's a confirm
+                _resolveCustomConfirm(false); 
+                _resolveCustomConfirm = null; 
+            }
+        });
+    }
+
+    /**
+     * Replaces native alert() with a custom modal popup.
+     * @param {string} message The message to display.
+     * @param {string} [type="info"] Optional type for styling ('success', 'error', 'warning', 'info').
+     * @param {string} [title] Optional title for the modal. Defaults based on type.
+     * @returns {Promise<void>} A promise that resolves when OK is clicked.
+     */
+    window.showCustomAlert = function(message, type = 'info', title = null) {
+        return new Promise(resolve => {
+            if (!_customModalOverlay) { // Fallback to native if modal elements not found
+                alert(message);
+                resolve();
+                return;
+            }
+
+            customAlertHeader.textContent = ''; 
+            customAlertBody.textContent = message;
+
+            // Clear previous type classes
+            _customModalTitle.classList.remove('success', 'error', 'warning', 'info');
+
+            // Set type and title
+            let effectiveTitle = title;
+            if (!effectiveTitle) { // Set default title if not provided
+                if (type === 'success') effectiveTitle = 'Success!';
+                else if (type === 'error') effectiveTitle = 'Error!';
+                else if (type === 'warning') effectiveTitle = 'Warning!';
+                else effectiveTitle = 'Information';
+            }
+            _customModalTitle.textContent = effectiveTitle;
+            _customModalTitle.classList.add(type); // Add type class for styling
+
+            _customModalCancelBtn.classList.add('hidden'); // Hide cancel button for alerts
+            _customModalOkBtn.classList.remove('hidden'); // Ensure OK button is visible
+            _customModalOkBtn.textContent = 'OK'; // Set OK button text
+
+            _customModalOverlay.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Prevent scrolling background
+            _customModalOkBtn.focus(); // Focus OK button for usability
+
+            _customModalOkBtn.onclick = () => { // Use onclick directly to avoid multiple listeners
+                _customModalOverlay.classList.add('hidden');
+                document.body.style.overflow = ''; // Restore scrolling
+                _customModalOkBtn.onclick = null; // Clear handler
+                resolve(); // Resolve the promise
+            };
+        });
+    };
+
+    /**
+     * Replaces native confirm() with a custom modal popup.
+     * Returns a Promise that resolves to true (OK) or false (Cancel).
+     * @param {string} message The message to display.
+     * @param {string} [title="Confirm Action"] The title of the modal.
+     * @returns {Promise<boolean>} A promise that resolves to true if OK is clicked, false if Cancel.
+     */
+    window.showCustomConfirm = function(message, title = "Confirm Action") {
+        return new Promise((resolve) => {
+            if (!_customModalOverlay) { // Fallback to native if modal elements not found
+                resolve(confirm(message));
+                return;
+            }
+            _resolveCustomConfirm = resolve; // Store the resolve function
+
+            _customModalTitle.textContent = title;
+            _customModalMessage.textContent = message;
+            _customModalTitle.classList.remove('success', 'error', 'warning', 'info'); // Clear type classes
+            _customModalTitle.classList.add('info'); // Default confirm to info styling
+
+            _customModalCancelBtn.classList.remove('hidden'); // Show cancel button for confirms
+            _customModalOkBtn.classList.remove('hidden'); // Ensure OK button is visible
+            _customModalOkBtn.textContent = 'OK'; // Set OK button text
+
+            _customModalOverlay.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Prevent scrolling background
+            _customModalOkBtn.focus(); // Focus OK button
+
+            // Handlers are set once in DOMContentLoaded; they will resolve _resolveCustomConfirm
+        });
+    };
+
+    // Note: window.alert = window.showCustomAlert; is no longer used for manual replacement for safety.
+    // Instead, you must manually replace 'alert()' calls with 'window.showCustomAlert()' in HTML files.
 });
