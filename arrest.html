@@ -66,6 +66,17 @@
         .text-right {
             text-align: right;
         }
+        /* Style for checkbox label to align checkbox visually */
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 8px; /* Space between checkbox and label */
+        }
+        .checkbox-container input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--accent-color); /* Colors the checkbox itself */
+        }
     </style>
 </head>
 <body class="min-h-screen theme-app-container">
@@ -92,7 +103,7 @@
                         <input type="text" id="ranks" name="ranks" placeholder="Comma-separated if multiple" class="theme-input w-full p-2 border rounded-md">
                     </div>
                     <div>
-                        <label for="suspectName" class="theme-label block mb-2 font-medium">Suspect's Username:</label>
+                        <label for="suspectName" class="theme-label block mb-2 font-medium">Suspect's Full Name:</label>
                         <input type="text" id="suspectName" name="suspectName" required class="theme-input w-full p-2 border rounded-md">
                     </div>
                 </div>
@@ -124,6 +135,12 @@
                     <input type="text" id="totalFinesSum" name="totalFinesSum" class="theme-input p-2 border rounded-md text-right font-bold text-xl" value="$0.00" readonly>
                 </div>
 
+                <div class="mb-6">
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="warrantNeeded" name="warrantNeeded" class="theme-input">
+                        <label for="warrantNeeded" class="theme-label block font-medium">Warrant Needed</label>
+                    </div>
+                </div>
                 <div class="mb-6">
                     <label for="incidentDetails" class="theme-label block mb-2 font-medium">Description/Mugshot (or just description):</label>
                     <textarea id="incidentDetails" name="incidentDetails" placeholder="Provide detailed account of the incident leading to arrest, or description/mugshot details" required class="theme-input w-full p-2 border rounded-md min-h-[120px]"></textarea>
@@ -168,6 +185,7 @@
             const totalFinesSumInput = document.getElementById('totalFinesSum'); // New total fines sum input
             const arrestForm = document.getElementById('arrestForm');
             const clearFormBtn = document.getElementById('clearFormBtn');
+            const warrantNeededCheckbox = document.getElementById('warrantNeeded'); // Get checkbox element
 
             // --- Fetch Penal Codes (Charges) on Load ---
             try {
@@ -305,7 +323,7 @@
                 totalJailTimeSumInput.value = total.toFixed(0); // Display as integer seconds
             }
 
-            // --- NEW: Calculate Total Fines from Charges ---
+            // --- Calculate Total Fines from Charges ---
             function calculateTotalFines() {
                 let totalFines = 0;
                 document.querySelectorAll('.charge-code-input').forEach(input => {
@@ -328,11 +346,22 @@
 
             // --- Form Clear Logic ---
             clearFormBtn.addEventListener('click', function() {
-                document.querySelectorAll('.charge-group[data-group-id]:not([data-group-id="0"])').forEach(group => group.remove());
-                document.getElementById('chargeCode_0').value = '';
-                document.getElementById('jailTime_0').value = '0';
-                calculateTotalJailTime(); 
-                calculateTotalFines();
+                window.showCustomConfirm("Are you sure you want to clear the form?", "Confirm Clear").then(confirmed => {
+                    if (confirmed) {
+                        document.querySelectorAll('.charge-group[data-group-id]:not([data-group-id="0"])').forEach(group => group.remove());
+                        document.getElementById('chargeCode_0').value = '';
+                        document.getElementById('jailTime_0').value = '0';
+                        document.getElementById('arrestingOfficerBadge').value = '';
+                        document.getElementById('yourUsername').value = '';
+                        document.getElementById('leoUsernames').value = '';
+                        document.getElementById('ranks').value = '';
+                        document.getElementById('suspectName').value = '';
+                        document.getElementById('incidentDetails').value = '';
+                        warrantNeededCheckbox.checked = false; // Clear checkbox
+                        calculateTotalJailTime(); 
+                        calculateTotalFines();
+                    }
+                });
             });
 
 
@@ -342,18 +371,17 @@
                 const form = event.target;
                 
                 const arrestData = {};
-                // Collect basic form fields
                 arrestData.arrestingOfficerBadge = document.getElementById('arrestingOfficerBadge').value;
                 arrestData.yourUsername = document.getElementById('yourUsername').value;
                 arrestData.leoUsernames = document.getElementById('leoUsernames').value;
                 arrestData.ranks = document.getElementById('ranks').value;
                 arrestData.suspectName = document.getElementById('suspectName').value;
                 arrestData.incidentDetails = document.getElementById('incidentDetails').value;
+                arrestData.warrantNeeded = warrantNeededCheckbox.checked; // Capture checkbox value
                 
-                // Collect all applied charges and their details into an array
                 const appliedCharges = [];
                 let overallTotalJailTime = 0; 
-                let overallTotalFines = 0; // Capture overall total fines for submission
+                let overallTotalFines = 0; 
 
                 document.querySelectorAll('.charge-group').forEach(group => {
                     const chargeCodeInput = group.querySelector('.charge-code-input');
@@ -364,7 +392,7 @@
                     
                     if (code && !isNaN(jailTime)) { 
                         const matchedCode = penalCodesData.find(pc => pc.code.toLowerCase() === code.toLowerCase());
-                        if (matchedCode) { // Only add if code exists in database
+                        if (matchedCode) { 
                             appliedCharges.push({
                                 code: code,
                                 description: matchedCode.description || 'N/A', 
@@ -380,7 +408,7 @@
 
                 arrestData.appliedCharges = appliedCharges; 
                 arrestData.totalJailTime = overallTotalJailTime; 
-                arrestData.totalFines = overallTotalFines; // Use calculated overall total fines
+                arrestData.totalFines = overallTotalFines; 
 
                 const token = sessionStorage.getItem('authToken');
 
@@ -396,9 +424,10 @@
 
                     if (response.ok) { 
                         const result = await response.json();
-                        window.showCustomAlert(result.message, 'Success'); 
-                        sessionStorage.setItem('lastSubmittedArrest', JSON.stringify(arrestData)); 
-                        window.location.href = 'arrest_display.html'; 
+                        window.showCustomAlert(result.message, 'Success').then(() => {
+                            sessionStorage.setItem('lastSubmittedArrest', JSON.stringify(arrestData)); 
+                            window.location.href = 'arrest_display.html'; 
+                        });
                     } else if (response.status === 401 || response.status === 403) {
                         window.showCustomAlert("Authentication failed. Please log in again.", 'Error').then(() => {
                             sessionStorage.clear(); 
@@ -415,6 +444,4 @@
                 }
             });
         });
-    </script>
-</body>
-</html>
+    </script></body></html>
