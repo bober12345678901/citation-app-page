@@ -29,6 +29,16 @@
         </div>
     </div>
 
+    <div id="customModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div id="customModal" class="theme-lookup-box p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 sm:mx-auto">
+            <h3 id="customModalTitle" class="theme-title text-xl font-bold mb-4"></h3>
+            <p id="customModalMessage" class="theme-label mb-6"></p>
+            <div id="customModalButtons" class="flex justify-end space-x-3">
+                <button id="customModalCancelBtn" class="theme-button-secondary py-2 px-4 rounded-md font-semibold hidden">Cancel</button>
+                <button id="customModalOkBtn" class="theme-button-primary py-2 px-4 rounded-md font-semibold">OK</button>
+            </div>
+        </div>
+    </div>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const storedData = sessionStorage.getItem('lastSubmittedArrest');
@@ -51,21 +61,13 @@
             const incidentDetails = getArrestValue('incidentDetails');
             const totalFines = parseFloat(getArrestValue('totalFines', '0')).toFixed(2);
             const totalJailTimeDisplay = parseFloat(getArrestValue('totalJailTime', '0')).toFixed(0); 
-            
-            // --- FIX: Correctly convert warrantNeeded string to boolean ---
-            let warrantNeededRaw = arrestData.warrantNeeded; // Get the raw value (which is a string "true" or "false")
-            const warrantStatus = (warrantNeededRaw === true || warrantNeededRaw === "true") ? 'YES' : 'NO';
-            // Also explicitly handle 'false' string if it could be "false"
-            // More robust: const warrantStatus = (warrantNeededRaw === "true") ? 'YES' : 'NO';
-            // Or even better: const warrantStatus = (warrantNeededRaw === true || (typeof warrantNeededRaw === 'string' && warrantNeededRaw.toLowerCase() === 'true')) ? 'YES' : 'NO';
-            // The simplest safe way is:
-            // const warrantStatus = String(warrantNeededRaw).toLowerCase() === 'true' ? 'YES' : 'NO';
-            // Or directly JSON.parse if the value is always a valid JSON boolean string:
-            // const warrantStatus = (typeof warrantNeededRaw === 'string' ? JSON.parse(warrantNeededRaw) : warrantNeededRaw) ? 'YES' : 'NO';
-            // Let's use the simplest robust check:
-            const isWarrantNeeded = (typeof warrantNeededRaw === 'string' && warrantNeededRaw.toLowerCase() === 'true') || warrantNeededRaw === true;
-            const finalWarrantStatus = isWarrantNeeded ? 'YES' : 'NO';
+            const warrantNeeded = getArrestValue('warrantNeeded'); // This is a boolean (true/false)
 
+            // Convert boolean warrantNeeded to YES/NO string
+            // We expect warrantNeeded to be a boolean, but handle string "true"/"false" if session storage stringifies it
+            const isWarrantNeeded = (typeof warrantNeeded === 'string' && warrantNeeded.toLowerCase() === 'true') || warrantNeeded === true;
+            const finalWarrantStatus = isWarrantNeeded ? 'YES' : 'NO';
+            
             const appliedCharges = arrestData.appliedCharges || [];
             let chargesListString = 'N/A (No charges applied)';
 
@@ -114,6 +116,7 @@ Please call (262) 785-4700 ext. 7 for further inquiry.
             // Function to copy text
             window.copyArrestText = function() {
                 const textToCopy = document.getElementById('arrestContent').innerText;
+                // Use custom alert
                 window.showCustomAlert('Arrest report text copied to clipboard!', 'Success').catch(err => {
                     console.error('Failed to copy text: ', err);
                     window.showCustomAlert('Failed to copy text. Please try again or copy manually.', 'Error');
