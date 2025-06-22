@@ -51,11 +51,21 @@
             const incidentDetails = getArrestValue('incidentDetails');
             const totalFines = parseFloat(getArrestValue('totalFines', '0')).toFixed(2);
             const totalJailTimeDisplay = parseFloat(getArrestValue('totalJailTime', '0')).toFixed(0); 
-            const warrantNeeded = getArrestValue('warrantNeeded'); // This is a boolean (true/false)
-
-            // --- Convert boolean warrantNeeded to YES/NO string ---
-            const warrantStatus = warrantNeeded ? 'YES' : 'NO';
             
+            // --- FIX: Correctly convert warrantNeeded string to boolean ---
+            let warrantNeededRaw = arrestData.warrantNeeded; // Get the raw value (which is a string "true" or "false")
+            const warrantStatus = (warrantNeededRaw === true || warrantNeededRaw === "true") ? 'YES' : 'NO';
+            // Also explicitly handle 'false' string if it could be "false"
+            // More robust: const warrantStatus = (warrantNeededRaw === "true") ? 'YES' : 'NO';
+            // Or even better: const warrantStatus = (warrantNeededRaw === true || (typeof warrantNeededRaw === 'string' && warrantNeededRaw.toLowerCase() === 'true')) ? 'YES' : 'NO';
+            // The simplest safe way is:
+            // const warrantStatus = String(warrantNeededRaw).toLowerCase() === 'true' ? 'YES' : 'NO';
+            // Or directly JSON.parse if the value is always a valid JSON boolean string:
+            // const warrantStatus = (typeof warrantNeededRaw === 'string' ? JSON.parse(warrantNeededRaw) : warrantNeededRaw) ? 'YES' : 'NO';
+            // Let's use the simplest robust check:
+            const isWarrantNeeded = (typeof warrantNeededRaw === 'string' && warrantNeededRaw.toLowerCase() === 'true') || warrantNeededRaw === true;
+            const finalWarrantStatus = isWarrantNeeded ? 'YES' : 'NO';
+
             const appliedCharges = arrestData.appliedCharges || [];
             let chargesListString = 'N/A (No charges applied)';
 
@@ -70,8 +80,6 @@
             }
 
             const arrestText = `
-ARREST REPORT | WSP
-
 Your username: **@${yourUsername}**
 Law Enforcement username(s): **@${leoUsernames}**
 Ranks: **${ranks}**
@@ -88,7 +96,7 @@ __Offense:__
 ${chargesListString}
 Total: **$${totalFines}** + **${totalJailTimeDisplay}s Jail Time**
 
-Warrant needed: ${warrantStatus}
+Warrant needed: ${finalWarrantStatus}
 
 Sign at the X:
 X @${yourUsername}
