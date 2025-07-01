@@ -168,6 +168,19 @@
             const citationForm = document.getElementById('citationForm');
             const clearFormBtn = document.getElementById('clearFormBtn');
             const mainViolationTypeInput = document.getElementById('violationType'); // The main Violation Type field
+            const officerBadgeInput = document.getElementById('officerBadge'); // Get the officer badge input
+
+            // Get logged in user info for auto-fill
+            const loggedInUserString = sessionStorage.getItem('loggedInUser');
+            let loggedInUser = null;
+            if (loggedInUserString) {
+                loggedInUser = JSON.parse(loggedInUserString);
+                // Auto-fill officer badge number if available
+                if (loggedInUser.badgeNumber) {
+                    officerBadgeInput.value = loggedInUser.badgeNumber;
+                }
+            }
+
 
             // --- Fetch Penal Codes on Load ---
             try {
@@ -356,7 +369,7 @@
                         document.querySelectorAll('.penal-code-group[data-group-id]:not([data-group-id="0"])').forEach(group => group.remove());
                         document.getElementById('penalCode_0').value = '';
                         document.getElementById('amountDue_0').value = '0.00';
-                        document.getElementById('officerBadge').value = '';
+                        document.getElementById('officerBadge').value = loggedInUser.badgeNumber || ''; // Reset to auto-filled value
                         document.getElementById('officerName').value = '';
                         document.getElementById('officerRank').value = '';
                         document.getElementById('violatorName').value = '';

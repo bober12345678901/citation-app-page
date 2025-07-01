@@ -186,6 +186,23 @@
             const arrestForm = document.getElementById('arrestForm');
             const clearFormBtn = document.getElementById('clearFormBtn');
             const warrantNeededCheckbox = document.getElementById('warrantNeeded'); // Get checkbox element
+            const arrestingOfficerBadgeInput = document.getElementById('arrestingOfficerBadge'); // Get the arresting officer badge input
+            const yourUsernameInput = document.getElementById('yourUsername'); // Get your username input
+
+
+            // Get logged in user info for auto-fill
+            const loggedInUserString = sessionStorage.getItem('loggedInUser');
+            let loggedInUser = null;
+            if (loggedInUserString) {
+                loggedInUser = JSON.parse(loggedInUserString);
+                // Auto-fill officer badge number and username if available
+                if (loggedInUser.badgeNumber) {
+                    arrestingOfficerBadgeInput.value = loggedInUser.badgeNumber;
+                }
+                if (loggedInUser.username) {
+                    yourUsernameInput.value = loggedInUser.username;
+                }
+            }
 
             // --- Fetch Penal Codes (Charges) on Load ---
             try {
@@ -196,7 +213,7 @@
                     }
                 });
                 if (response.ok) {
-                    let allPenalCodes = await response.json(); // Fetch all codes initially
+                    let allPenalCodes = await response.json();
                     console.log("All penal codes (charges) loaded:", allPenalCodes);
 
                     // Filter penal codes immediately after fetching for the Arrest Form
@@ -351,8 +368,8 @@
 
             // --- Initial Setup ---
             setupAutocompleteForChargeInput(0); // Setup for the first (initial) charge group
-            addChargeBtn.addEventListener('click', () => addChargeGroup()); // Add new charge group on button click
-            calculateTotalJailTime(); // Calculate initial total jail time
+            addChargeBtn.addEventListener('click', () => addChargeGroup());
+            calculateTotalJailTime();
             calculateTotalFines(); // Calculate initial total fines
 
             // --- Form Clear Logic ---
@@ -362,8 +379,8 @@
                         document.querySelectorAll('.charge-group[data-group-id]:not([data-group-id="0"])').forEach(group => group.remove());
                         document.getElementById('chargeCode_0').value = '';
                         document.getElementById('jailTime_0').value = '0';
-                        document.getElementById('arrestingOfficerBadge').value = '';
-                        document.getElementById('yourUsername').value = '';
+                        document.getElementById('arrestingOfficerBadge').value = loggedInUser.badgeNumber || ''; // Reset to auto-filled value
+                        document.getElementById('yourUsername').value = loggedInUser.username || ''; // Reset to auto-filled value
                         document.getElementById('leoUsernames').value = '';
                         document.getElementById('ranks').value = '';
                         document.getElementById('suspectName').value = '';
