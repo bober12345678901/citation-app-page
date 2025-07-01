@@ -45,7 +45,7 @@
             let arrestData = {};
             if (storedData) {
                 arrestData = JSON.parse(storedData);
-                sessionStorage.removeItem('lastSubmittedArrest'); 
+                sessionStorage.removeItem('lastSubmittedArrest');
             } else {
                 console.warn("No 'lastSubmittedArrest' found in sessionStorage. Displaying default values.");
             }
@@ -60,8 +60,10 @@
             const arrestingOfficerBadge = getArrestValue('arrestingOfficerBadge');
             const incidentDetails = getArrestValue('incidentDetails');
             const totalFines = parseFloat(getArrestValue('totalFines', '0')).toFixed(2);
-            const totalJailTimeDisplay = parseFloat(getArrestValue('totalJailTime', '0')).toFixed(0); 
+            const totalJailTimeDisplay = parseFloat(getArrestValue('totalJailTime', '0')).toFixed(0);
             const warrantNeeded = getArrestValue('warrantNeeded'); // This is a boolean (true/false)
+            const department = getArrestValue('department'); // Get the department from arrest data
+
 
             // Convert boolean warrantNeeded to YES/NO string
             // We expect warrantNeeded to be a boolean, but handle string "true"/"false" if session storage stringifies it
@@ -81,8 +83,14 @@
                 }).join('\n');
             }
 
+            // Conditional Department Name
+            let departmentNameDisplay = '';
+            if (department) {
+                departmentNameDisplay = `Department: **${department}**\n`;
+            }
+
             const arrestText = `
-Your username: ** @${yourUsername}**
+${departmentNameDisplay}Your username: ** @${yourUsername}**
 Law Enforcement username(s): ** @${leoUsernames}**
 Ranks: **${ranks}**
 Badge Number: **${arrestingOfficerBadge}**
@@ -108,7 +116,7 @@ X @${leoUsernames}
 4000 Capitol Drive, Greenville, Wisconsin 54942
 
 Court date: XX/XX/XX (Removed from form, placeholder text)
-Please call (262) 785-4700 ext. 7 for further inquiry. 
+Please call (262) 785-4700 ext. 7 for further inquiry.
 `;
             arrestOutputContainer.innerHTML = `<pre id="arrestContent" class="theme-label">${arrestText}</pre>`;
 

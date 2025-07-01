@@ -46,7 +46,7 @@
             let citationData = {};
             if (storedData) {
                 citationData = JSON.parse(storedData);
-                sessionStorage.removeItem('lastSubmittedCitation'); 
+                sessionStorage.removeItem('lastSubmittedCitation');
             } else {
                 console.warn("No 'lastSubmittedCitation' found in sessionStorage. Displaying default values.");
             }
@@ -61,7 +61,9 @@
             const violatorName = getCitationValue('violatorName');
             const totalAmountDue = parseFloat(getCitationValue('totalAmountDue', '0')).toFixed(2);
             const additionalNotes = getCitationValue('violationDetails');
-            
+            const department = getCitationValue('department'); // Get the department from citation data
+
+
             const appliedPenalCodes = citationData.appliedPenalCodes || [];
 
             // --- Determine Main "Type of Ticket" (combined descriptions) ---
@@ -71,9 +73,15 @@
             }
 
             // --- Format "Penal Code" (just codes, comma-separated) ---
-            let penalCodeDisplayString = 'N/A'; 
+            let penalCodeDisplayString = 'N/A';
             if (appliedPenalCodes.length > 0) {
                 penalCodeDisplayString = appliedPenalCodes.map(pc => pc.code || 'N/A').join(', ');
+            }
+
+            // Conditional Department Name
+            let departmentNameDisplay = 'Department Name: **N/A**';
+            if (department) {
+                departmentNameDisplay = `Department Name: **${department}**`;
             }
 
             const citationText = `
@@ -83,19 +91,19 @@ Penal Code: **${penalCodeDisplayString}**
 Total Amount Due: **$${totalAmountDue}**
 Additional Notes: **${additionalNotes}**
 
-Department Name: **WSP**
+${departmentNameDisplay}
 Rank and Signature: **${officerRank}**
 Law Enforcement Name(s): **${officerName}**
 Badge Number: **${officerBadge}**
 
-By signing this citation, you acknowledge that this is NOT an admission of guilt, it is to simply ensure the citation is taken care of. Your court date is shown below, and failure to show will result in a warrant for your arrest. If you have any questions, please contact a Supervisor. 
+By signing this citation, you acknowledge that this is NOT an admission of guilt, it is to simply ensure the citation is taken care of. Your court date is shown below, and failure to show will result in a warrant for your arrest. If you have any questions, please contact a Supervisor.
 
 **You must pay the citation to @sgrticketpayoff**
 
 Sign at the X:
 X @${violatorName.replace(/\s/g, '')}
 
-4000 Capitol Drive, Greenville, Wisconsin 54942 
+4000 Capitol Drive, Greenville, Wisconsin 54942
 
 Court date: XX/XX/XX
 Please contact a Supervisor for further inquiry.
@@ -106,10 +114,10 @@ Please contact a Supervisor for further inquiry.
             window.copyCitationText = function() {
                 const textToCopy = document.getElementById('citationContent').innerText;
                 navigator.clipboard.writeText(textToCopy).then(() => {
-                    window.showCustomAlert('Citation text copied to clipboard!', 'Success'); // Custom alert
+                    window.showCustomAlert('Citation text copied to clipboard!', 'Success');
                 }).catch(err => {
                     console.error('Failed to copy text: ', err);
-                    window.showCustomAlert('Failed to copy text. Please try again or copy manually.', 'Error'); // Custom alert
+                    window.showCustomAlert('Failed to copy text. Please try again or copy manually.', 'Error');
                 });
             };
         });
