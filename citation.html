@@ -152,11 +152,14 @@
             // Check if user is logged in
             const token = sessionStorage.getItem('authToken');
             if (!token) {
-                window.showCustomAlert("You must be logged in to submit a citation.", "Authentication Error").then(() => {
-                    sessionStorage.clear();
-                    window.location.href = 'index.html';
-                });
-                return;
+                // Use custom alert and wrap in setTimeout to ensure theme.js modal elements are ready
+                setTimeout(() => {
+                    window.showCustomAlert("You must be logged in to submit a citation.", "Authentication Error").then(() => {
+                        sessionStorage.clear();
+                        window.location.href = 'index.html';
+                    });
+                }, 50); // Small delay to allow theme.js to initialize the modal
+                return; // Important: return here to stop further script execution for unauthenticated users
             }
 
             const penalCodeInputsContainer = document.getElementById('penalCodeInputsContainer');
@@ -175,16 +178,23 @@
                     }
                 });
                 if (response.ok) {
-                    penalCodesData = await response.json();
-                    console.log("Penal codes loaded:", penalCodesData);
+                    let allPenalCodes = await response.json(); // Fetch all codes initially
+                    console.log("All penal codes loaded:", allPenalCodes);
+
+                    // Filter penal codes immediately after fetching for this form
+                    penalCodesData = allPenalCodes.filter(pc => 
+                        pc.type === 'Traffic Violation' || pc.type === 'Citation'
+                    );
+                    console.log("Filtered penal codes for Citation Form:", penalCodesData);
+
                 } else {
                     const errorData = await response.json();
                     console.error('Failed to load penal codes:', errorData.message);
-                    window.showCustomAlert('Warning: Could not load penal codes for auto-fill. ' + (errorData.message || response.statusText), 'Warning'); // Updated to use custom alert
+                    window.showCustomAlert('Warning: Could not load penal codes for auto-fill. ' + (errorData.message || response.statusText), 'Warning');
                 }
             } catch (error) {
                 console.error('Network error loading penal codes:', error);
-                window.showCustomAlert('Network error: Could not load penal codes for auto-fill.', 'Error'); // Updated to use custom alert
+                window.showCustomAlert('Network error: Could not load penal codes for auto-fill.', 'Error');
             }
 
             // --- Function to Add a New Penal Code Input Group ---
@@ -204,7 +214,7 @@
                     </div>
                     <div class="amount-due-wrapper">
                         <label for="amountDue_${newGroupId}" class="theme-label block mb-2 font-medium">Amount Due:</label>
-                        <input type="number" id="amountDue_${newGroupId}" name="amountDue_${newGroupId}" step="0.01" min="0" value="${initialAmount}" class="theme-input w-full p-2 border rounded-md amount-due-input" readonly>
+                        <input type="number" id="amountDue_${newGroupId}" name="amountDue_${newGroupId}" step="0.01" min="0" value="0.00" class="theme-input w-full p-2 border rounded-md amount-due-input" readonly>
                     </div>
                     <button type="button" class="theme-button-danger py-2 px-6 rounded-md font-semibold button-remove">Remove</button>
                 `;
@@ -233,6 +243,8 @@
                     suggestionsDiv.style.display = 'none';
 
                     if (query.length > 0) {
+                        // Filtered penalCodesData is already specific to Citation types,
+                        // so no further type filtering is needed here.
                         const filteredCodes = penalCodesData.filter(pc =>
                             pc.code.toLowerCase().includes(query) || (pc.description && pc.description.toLowerCase().includes(query))
                         );
@@ -261,7 +273,10 @@
                         }
                     }
                     
-                    const matchedCode = penalCodesData.find(pc => pc.code.toLowerCase() === query);
+                    // This part now also searches within the already filtered penalCodesData
+                    const matchedCode = penalCodesData.find(pc =>
+                        pc.code.toLowerCase() === query
+                    );
                     if (!matchedCode) {
                         amountDueInput.value = '0.00';
                     } else {
@@ -275,7 +290,10 @@
                     setTimeout(() => {
                         suggestionsDiv.style.display = 'none';
                     }, 100);
-                    const exactMatch = penalCodesData.find(pc => pc.code.toLowerCase() === penalCodeInput.value.toLowerCase());
+                    // This also searches within the already filtered penalCodesData
+                    const exactMatch = penalCodesData.find(pc =>
+                        pc.code.toLowerCase() === penalCodeInput.value.toLowerCase()
+                    );
                     if (exactMatch) {
                         amountDueInput.value = parseFloat(exactMatch.amount_due).toFixed(2);
                     } else {
@@ -309,8 +327,9 @@
                 document.querySelectorAll('.penal-code-input').forEach(input => {
                     const code = input.value.trim();
                     if (code) {
+                        // Match against the already filtered penalCodesData
                         const matchedCode = penalCodesData.find(pc => pc.code.toLowerCase() === code.toLowerCase());
-                        if (matchedCode && matchedCode.description) {
+                        if (matchedCode && matchedCode.description) { // No need for additional type check here, as penalCodesData is already filtered
                             selectedDescriptions.push(matchedCode.description);
                         }
                     }
@@ -337,6 +356,11 @@
                         document.querySelectorAll('.penal-code-group[data-group-id]:not([data-group-id="0"])').forEach(group => group.remove());
                         document.getElementById('penalCode_0').value = '';
                         document.getElementById('amountDue_0').value = '0.00';
+                        document.getElementById('officerBadge').value = '';
+                        document.getElementById('officerName').value = '';
+                        document.getElementById('officerRank').value = '';
+                        document.getElementById('violatorName').value = '';
+                        document.getElementById('violationDetails').value = '';
                         mainViolationTypeInput.value = '';
                         calculateTotalAmountDue();
                         updateMainViolationType(); // Update after clear
@@ -369,15 +393,18 @@
                     const amount = parseFloat(amountDueInput.value);
                     
                     if (code && !isNaN(amount)) {
+                        // Match against the already filtered penalCodesData
                         const matchedCode = penalCodesData.find(pc => pc.code.toLowerCase() === code.toLowerCase());
-                        appliedPenalCodes.push({
-                            code: code,
-                            description: matchedCode ? (matchedCode.description || 'N/A') : 'N/A',
-                            amount: amount,
-                            type: matchedCode ? (matchedCode.type || 'N/A') : 'N/A',
-                            jail_time_seconds: matchedCode ? (matchedCode.jail_time_seconds || 0) : 0
-                        });
-                        overallTotalAmount += amount;
+                        if (matchedCode) { // No need for additional type check here, as penalCodesData is already filtered
+                            appliedPenalCodes.push({
+                                code: code,
+                                description: matchedCode.description || 'N/A',
+                                amount: amount,
+                                type: matchedCode.type || 'N/A',
+                                jail_time_seconds: matchedCode.jail_time_seconds || 0
+                            });
+                            overallTotalAmount += amount;
+                        }
                     }
                 });
 
@@ -398,7 +425,7 @@
 
                     if (response.ok) {
                         const result = await response.json();
-                        window.showCustomAlert(result.message, 'Success'); // Updated to use custom alert
+                        window.showCustomAlert(result.message, 'Success');
 
                         sessionStorage.setItem('lastSubmittedCitation', JSON.stringify(citationData));
                         window.location.href = 'citation_display.html';
@@ -410,11 +437,11 @@
                     }
                     else {
                         const errorData = await response.json();
-                        window.showCustomAlert('Submission failed: ' + (errorData.message || response.statusText), 'Error'); // Updated to use custom alert
+                        window.showCustomAlert('Submission failed: ' + (errorData.message || response.statusText), 'Error');
                     }
                 } catch (error) {
                     console.error('Error:', error);
-                    window.showCustomAlert('An error occurred. Check console for details.', 'Error'); // Updated to use custom alert
+                    window.showCustomAlert('An error occurred. Check console for details.', 'Error');
                 }
             });
         });
