@@ -80,7 +80,7 @@
                         <input type="text" id="officerBadge" name="officerBadge" required class="theme-input w-full p-2 border rounded-md">
                     </div>
                     <div>
-                        <label for="officerName" class="theme-label block mb-2 font-medium">Officer Username(s):</label>
+                        <label for="officerName" class="theme-label block mb-2 font-medium">Officer Name(s):</label>
                         <input type="text" id="officerName" name="officerName" required class="theme-input w-full p-2 border rounded-md">
                     </div>
                     <div>
@@ -88,7 +88,7 @@
                         <input type="text" id="officerRank" name="officerRank" required class="theme-input w-full p-2 border rounded-md">
                     </div>
                     <div>
-                        <label for="violatorName" class="theme-label block mb-2 font-medium">Violator's Full Username:</label>
+                        <label for="violatorName" class="theme-label block mb-2 font-medium">Violator's Full Name:</label>
                         <input type="text" id="violatorName" name="violatorName" required class="theme-input w-full p-2 border rounded-md">
                     </div>
                     
@@ -170,6 +170,7 @@
             const mainViolationTypeInput = document.getElementById('violationType'); // The main Violation Type field
             const officerBadgeInput = document.getElementById('officerBadge'); // Get the officer badge input
 
+
             // Get logged in user info for auto-fill
             const loggedInUserString = sessionStorage.getItem('loggedInUser');
             let loggedInUser = null;
@@ -195,9 +196,19 @@
                     console.log("All penal codes loaded:", allPenalCodes);
 
                     // Filter penal codes immediately after fetching for this form
-                    penalCodesData = allPenalCodes.filter(pc => 
-                        pc.type === 'Traffic Violation' || pc.type === 'Citation'
-                    );
+                    // This is the updated filter logic
+                    penalCodesData = allPenalCodes.filter(pc => {
+                        // Allow Traffic Violation or Citation types
+                        if (pc.type === 'Traffic Violation' || pc.type === 'Citation') {
+                            return true;
+                        }
+                        // Allow Misdemeanor or Felony types ONLY if jail_time_seconds is 0 or null/undefined/falsy
+                        if ((pc.type === 'Misdemeanor' || pc.type === 'Felony') && (!pc.jail_time_seconds || pc.jail_time_seconds === 0)) {
+                            return true;
+                        }
+                        // Otherwise, filter it out
+                        return false;
+                    });
                     console.log("Filtered penal codes for Citation Form:", penalCodesData);
 
                 } else {
