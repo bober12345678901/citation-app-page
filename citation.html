@@ -169,6 +169,7 @@
             const clearFormBtn = document.getElementById('clearFormBtn');
             const mainViolationTypeInput = document.getElementById('violationType'); // The main Violation Type field
             const officerBadgeInput = document.getElementById('officerBadge'); // Get the officer badge input
+            const officerNameInput = document.getElementById('officerName'); // Get the officer name input
 
 
             // Get logged in user info for auto-fill
@@ -179,6 +180,10 @@
                 // Auto-fill officer badge number if available
                 if (loggedInUser.badgeNumber) {
                     officerBadgeInput.value = loggedInUser.badgeNumber;
+                }
+                // Auto-fill officer name if available
+                if (loggedInUser.username) {
+                    officerNameInput.value = loggedInUser.username;
                 }
             }
 
@@ -381,7 +386,7 @@
                         document.getElementById('penalCode_0').value = '';
                         document.getElementById('amountDue_0').value = '0.00';
                         document.getElementById('officerBadge').value = loggedInUser.badgeNumber || ''; // Reset to auto-filled value
-                        document.getElementById('officerName').value = '';
+                        document.getElementById('officerName').value = loggedInUser.username || ''; // Reset officer name
                         document.getElementById('officerRank').value = '';
                         document.getElementById('violatorName').value = '';
                         document.getElementById('violationDetails').value = '';
@@ -469,6 +474,5 @@
                 }
             });
         });
-    </script>
-</body>
+    </script></body>
 </html>
