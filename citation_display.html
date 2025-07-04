@@ -62,8 +62,7 @@
             const totalAmountDue = parseFloat(getCitationValue('totalAmountDue', '0')).toFixed(2);
             const additionalNotes = getCitationValue('violationDetails');
             const department = getCitationValue('department'); // Get the department from citation data
-
-
+            
             const appliedPenalCodes = citationData.appliedPenalCodes || [];
 
             // --- Determine Main "Type of Ticket" (combined descriptions) ---
@@ -78,10 +77,16 @@
                 penalCodeDisplayString = appliedPenalCodes.map(pc => pc.code || 'N/A').join(', ');
             }
 
-            // Conditional Department Name
-            let departmentNameDisplay = 'Department Name: **N/A**';
-            if (department) {
-                departmentNameDisplay = `Department Name: **${department}**`;
+            // Department-specific formatting
+            let address = '4000 Capitol Drive, Greenville, Wisconsin 54942'; // Default WSP address
+            let contactInfo = 'Please contact a Supervisor for further inquiry.'; // Default WSP contact
+            let payTo = '**You must pay the citation to @sgrticketpayoff **'; // Default WSP pay to
+            let departmentLine = `Department Name: **${department || 'N/A'}**`; // Ensure department is displayed even if N/A
+
+            if (department === "Outagamie County Sheriff's Office") {
+                address = '3030 Goodland Dr, Appleton, Wisconsin 54911'; // Outagamie address
+                contactInfo = 'Please contact a Supervisor for further inquiry.'; // Same contact for now
+                payTo = '**You must pay the citation to @sgrticketpayoff **'; // Same pay to for now
             }
 
             const citationText = `
@@ -91,22 +96,22 @@ Penal Code: **${penalCodeDisplayString}**
 Total Amount Due: **$${totalAmountDue}**
 Additional Notes: **${additionalNotes}**
 
-${departmentNameDisplay}
+${departmentLine}
 Rank and Signature: **${officerRank}**
 Law Enforcement Name(s): **${officerName}**
 Badge Number: **${officerBadge}**
 
 By signing this citation, you acknowledge that this is NOT an admission of guilt, it is to simply ensure the citation is taken care of. Your court date is shown below, and failure to show will result in a warrant for your arrest. If you have any questions, please contact a Supervisor.
 
-**You must pay the citation to @sgrticketpayoff**
+${payTo}
 
 Sign at the X:
-X @${violatorName.replace(/\s/g, '')}
+X ${violatorName}
 
-4000 Capitol Drive, Greenville, Wisconsin 54942
+${address}
 
 Court date: XX/XX/XX
-Please contact a Supervisor for further inquiry.
+${contactInfo}
 `;
             citationOutputContainer.innerHTML = `<pre id="citationContent" class="theme-label">${citationText}</pre>`;
 
