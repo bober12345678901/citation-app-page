@@ -187,10 +187,10 @@
                 if (loggedInUser.badgeNumber) {
                     officerBadgeInput.value = loggedInUser.badgeNumber;
                 }
-                // Auto-fill officer name if available
-                if (loggedInUser.username) {
-                    officerNameInput.value = loggedInUser.username;
-                }
+                // REMOVED: Auto-fill officer name if available
+                // if (loggedInUser.username) {
+                //    officerNameInput.value = loggedInUser.username;
+                // }
                 // Get and display department
                 if (loggedInUser.department) {
                     userDepartment = loggedInUser.department;
@@ -400,7 +400,7 @@
                         document.getElementById('penalCode_0').value = '';
                         document.getElementById('amountDue_0').value = '0.00';
                         document.getElementById('officerBadge').value = loggedInUser.badgeNumber || ''; // Reset to auto-filled value
-                        document.getElementById('officerName').value = loggedInUser.username || ''; // Reset officer name
+                        document.getElementById('officerName').value = ''; // Reset officer name
                         document.getElementById('officerRank').value = '';
                         document.getElementById('violatorName').value = '';
                         document.getElementById('violationDetails').value = '';
