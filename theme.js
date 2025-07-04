@@ -184,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 else effectiveTitle = 'Information';
             }
             _customModalTitle.textContent = effectiveTitle;
-            _customModalTitle.classList.add(type); // Add type class for styling
+            _customModalTitle.classList.add(type.replace(/\s+/g, '-')); // Replace spaces with hyphens for valid class name
 
             _customModalCancelBtn.classList.add('hidden'); // Hide cancel button for alerts
             _customModalOkBtn.classList.remove('hidden'); // Ensure OK button is visible
