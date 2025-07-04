@@ -91,11 +91,11 @@
                         <input type="text" id="arrestingOfficerBadge" name="arrestingOfficerBadge" required class="theme-input w-full p-2 border rounded-md">
                     </div>
                     <div>
-                        <label for="yourUsername" class="theme-label block mb-2 font-medium">Officer Username(s):</label>
+                        <label for="yourUsername" class="theme-label block mb-2 font-medium">Your Username:</label>
                         <input type="text" id="yourUsername" name="yourUsername" required class="theme-input w-full p-2 border rounded-md">
                     </div>
                     <div>
-                        <label for="leoUsernames" class="theme-label block mb-2 font-medium">Officer Name(s):</label>
+                        <label for="leoUsernames" class="theme-label block mb-2 font-medium">Law Enforcement Username(s):</label>
                         <input type="text" id="leoUsernames" name="leoUsernames" placeholder="Comma-separated if multiple" class="theme-input w-full p-2 border rounded-md">
                     </div>
                     <div>
@@ -103,8 +103,12 @@
                         <input type="text" id="ranks" name="ranks" placeholder="Comma-separated if multiple" class="theme-input w-full p-2 border rounded-md">
                     </div>
                     <div>
-                        <label for="suspectName" class="theme-label block mb-2 font-medium">Suspect's Full Username:</label>
+                        <label for="suspectName" class="theme-label block mb-2 font-medium">Suspect's Full Name:</label>
                         <input type="text" id="suspectName" name="suspectName" required class="theme-input w-full p-2 border rounded-md">
+                    </div>
+                    <div>
+                        <label for="officerDepartmentDisplay" class="theme-label block mb-2 font-medium">Department:</label>
+                        <input type="text" id="officerDepartmentDisplay" name="officerDepartmentDisplay" class="theme-input w-full p-2 border rounded-md" readonly>
                     </div>
                 </div>
 
@@ -188,20 +192,31 @@
             const warrantNeededCheckbox = document.getElementById('warrantNeeded'); // Get checkbox element
             const arrestingOfficerBadgeInput = document.getElementById('arrestingOfficerBadge'); // Get the arresting officer badge input
             const yourUsernameInput = document.getElementById('yourUsername'); // Get your username input
+            const officerDepartmentDisplayInput = document.getElementById('officerDepartmentDisplay'); // Get the department display input
 
 
             // Get logged in user info for auto-fill
             const loggedInUserString = sessionStorage.getItem('loggedInUser');
             let loggedInUser = null;
+            let userDepartment = 'N/A'; // Default value if department is not found
             if (loggedInUserString) {
                 loggedInUser = JSON.parse(loggedInUserString);
-                // Auto-fill officer badge number and username if available
+                // Auto-fill officer badge number if available
                 if (loggedInUser.badgeNumber) {
                     arrestingOfficerBadgeInput.value = loggedInUser.badgeNumber;
                 }
+                // Auto-fill officer name if available
                 if (loggedInUser.username) {
                     yourUsernameInput.value = loggedInUser.username;
                 }
+                // Get and display department
+                if (loggedInUser.department) {
+                    userDepartment = loggedInUser.department;
+                    officerDepartmentDisplayInput.value = userDepartment; // Set the value of the display input
+                } else {
+                    officerDepartmentDisplayInput.value = 'N/A'; // Explicitly set N/A if not found
+                }
+                console.log("Logged-in Officer Department:", userDepartment); // For debugging
             }
 
             // --- Fetch Penal Codes (Charges) on Load ---
@@ -216,12 +231,9 @@
                     let allPenalCodes = await response.json();
                     console.log("All penal codes (charges) loaded:", allPenalCodes);
 
-                    // Filter penal codes immediately after fetching for the Arrest Form
-                    penalCodesData = allPenalCodes.filter(pc =>
-                        pc.type === 'Misdemeanor' || pc.type === 'Felony'
-                    );
-                    console.log("Filtered penal codes for Arrest Form:", penalCodesData);
-
+                    // REMOVED FILTERING HERE - all types will be available for selection
+                    penalCodesData = allPenalCodes; // No filter applied here
+                    
                 } else {
                     const errorData = await response.json();
                     console.error('Failed to load charges:', errorData.message);
@@ -249,7 +261,7 @@
                     </div>
                     <div class="jail-time-wrapper">
                         <label for="jailTime_${newGroupId}" class="theme-label block mb-2 font-medium">Jail Time (Sec):</label>
-                        <input type="number" id="jailTime_${newGroupId}" name="jailTime_${newGroupId}" step="1" min="0" value="${initialJailTime}" class="theme-input w-full p-2 border rounded-md jail-time-input" readonly>
+                        <input type="number" id="jailTime_${newGroupId}" name="jailTime_${newGroupId}" step="1" min="0" value="0" class="theme-input w-full p-2 border rounded-md jail-time-input" readonly>
                     </div>
                     <button type="button" class="theme-button-danger py-2 px-6 rounded-md font-semibold button-remove">Remove</button>
                 `;
@@ -262,7 +274,7 @@
                     calculateTotalFines(); // Recalculate total fines after removal
                 });
 
-                calculateTotalJailTime(); // Recalculate total after adding
+                calculateTotalJailTime();
                 calculateTotalFines(); // Recalculate total fines after adding
             }
 
@@ -278,7 +290,7 @@
                     suggestionsDiv.style.display = 'none';
 
                     if (query.length > 0) {
-                        // penalCodesData is already filtered for Misdemeanor/Felony
+                        // No filtering by type here, all penalCodesData will be searched
                         const filteredCodes = penalCodesData.filter(pc =>
                             pc.code.toLowerCase().includes(query) || (pc.description && pc.description.toLowerCase().includes(query))
                         );
@@ -306,7 +318,7 @@
                         }
                     }
                     
-                    // Match against the already filtered penalCodesData
+                    // Match against the all penalCodesData
                     const matchedCode = penalCodesData.find(pc => pc.code.toLowerCase() === query);
                     if (!matchedCode) {
                         jailTimeInput.value = '0';
@@ -321,7 +333,7 @@
                     setTimeout(() => {
                         suggestionsDiv.style.display = 'none';
                     }, 100);
-                    // Match against the already filtered penalCodesData
+                    // Match against the all penalCodesData
                     const exactMatch = penalCodesData.find(pc => pc.code.toLowerCase() === chargeCodeInput.value.toLowerCase());
                     if (exactMatch) {
                         jailTimeInput.value = parseFloat(exactMatch.jail_time_seconds || 0).toFixed(0);
@@ -356,7 +368,7 @@
                 document.querySelectorAll('.charge-code-input').forEach(input => {
                     const code = input.value.trim();
                     if (code) {
-                        // Match against the already filtered penalCodesData
+                        // Match against the all penalCodesData
                         const matchedCode = penalCodesData.find(pc => pc.code.toLowerCase() === code.toLowerCase());
                         if (matchedCode && !isNaN(matchedCode.amount_due)) {
                             totalFines += parseFloat(matchedCode.amount_due);
@@ -386,6 +398,7 @@
                         document.getElementById('suspectName').value = '';
                         document.getElementById('incidentDetails').value = '';
                         warrantNeededCheckbox.checked = false; // Clear checkbox
+                        officerDepartmentDisplayInput.value = userDepartment; // Reset department display
                         calculateTotalJailTime();
                         calculateTotalFines();
                     }
@@ -406,7 +419,8 @@
                 arrestData.suspectName = document.getElementById('suspectName').value;
                 arrestData.incidentDetails = document.getElementById('incidentDetails').value;
                 arrestData.warrantNeeded = warrantNeededCheckbox.checked; // Capture checkbox value
-                
+                arrestData.department = userDepartment; // Pass department to the submission data
+
                 const appliedCharges = [];
                 let overallTotalJailTime = 0;
                 let overallTotalFines = 0;
@@ -419,7 +433,7 @@
                     const jailTime = parseFloat(jailTimeInput.value);
                     
                     if (code && !isNaN(jailTime)) {
-                        // Match against the already filtered penalCodesData
+                        // Match against the all penalCodesData
                         const matchedCode = penalCodesData.find(pc => pc.code.toLowerCase() === code.toLowerCase());
                         if (matchedCode) {
                             appliedCharges.push({
@@ -434,6 +448,19 @@
                         }
                     }
                 });
+
+                // NEW VALIDATION: Check for jail time
+                const hasNoJailTimeCharge = appliedCharges.some(charge => 
+                    !charge.jail_time_seconds || charge.jail_time_seconds === 0
+                );
+
+                if (hasNoJailTimeCharge) {
+                    window.showCustomAlert(
+                        "Arrest reports require charges with jail time. For charges with no jail time, please use the Citation Form.",
+                        "Input Error"
+                    );
+                    return; // Prevent form submission
+                }
 
                 arrestData.appliedCharges = appliedCharges;
                 arrestData.totalJailTime = overallTotalJailTime;

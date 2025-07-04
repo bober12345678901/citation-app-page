@@ -63,6 +63,7 @@
             const totalJailTimeDisplay = parseFloat(getArrestValue('totalJailTime', '0')).toFixed(0);
             const warrantNeeded = getArrestValue('warrantNeeded'); // This is a boolean (true/false)
             const department = getArrestValue('department'); // Get the department from arrest data
+            const suspectName = getArrestValue('suspectName'); // Get the suspect's full name
 
 
             // Convert boolean warrantNeeded to YES/NO string
@@ -83,15 +84,17 @@
                 }).join('\n');
             }
 
-            // Conditional Department Name
+            // Conditional Department Name display (Department: **WSP**)
             let departmentNameDisplay = '';
-            if (department) {
+            if (department && department !== 'N/A') { // Check if department is valid
                 departmentNameDisplay = `Department: **${department}**\n`;
+            } else {
+                departmentNameDisplay = 'Department: **N/A**\n'; // Ensure N/A is explicit if not set
             }
 
             const arrestText = `
-${departmentNameDisplay}Your username: ** @${yourUsername}**
-Law Enforcement username(s): ** @${leoUsernames}**
+${departmentNameDisplay}Your username: **${yourUsername}**
+Law Enforcement username(s): **${leoUsernames}**
 Ranks: **${ranks}**
 Badge Number: **${arrestingOfficerBadge}**
 
@@ -108,25 +111,27 @@ Total: **$${totalFines}** + **${totalJailTimeDisplay}s Jail Time**
 Warrant needed: **${finalWarrantStatus}**
 
 Sign at the X:
-X @${yourUsername}
+X ${suspectName}
 
 Arresting officer signature X:
-X @${leoUsernames}
+X ${yourUsername}
 
 4000 Capitol Drive, Greenville, Wisconsin 54942
 
 Court date: XX/XX/XX (Removed from form, placeholder text)
-Please call (262) 785-4700 ext. 7 for further inquiry.
+Please call (262) 785-4700 ext. 7 for further inquiry. 
 `;
             arrestOutputContainer.innerHTML = `<pre id="arrestContent" class="theme-label">${arrestText}</pre>`;
 
             // Function to copy text
             window.copyArrestText = function() {
                 const textToCopy = document.getElementById('arrestContent').innerText;
-                // Use custom alert
-                window.showCustomAlert('Arrest report text copied to clipboard!', 'Success').catch(err => {
+                // Use custom alert system for feedback
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    window.showCustomAlert('Arrest report text copied to clipboard!', 'Success'); // Custom alert
+                }).catch(err => {
                     console.error('Failed to copy text: ', err);
-                    window.showCustomAlert('Failed to copy text. Please try again or copy manually.', 'Error');
+                    window.showCustomAlert('Failed to copy text. Please try again or copy manually.', 'Error'); // Custom alert
                 });
             };
         });
