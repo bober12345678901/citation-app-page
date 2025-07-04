@@ -82,12 +82,18 @@
             let contactInfo = 'Please contact a Supervisor for further inquiry.'; // Default WSP contact
             let payTo = '**You must pay the citation to @sgrticketpayoff **'; // Default WSP pay to
             let departmentLine = `Department Name: **${department || 'N/A'}**`; // Ensure department is displayed even if N/A
+            
+            // This is the common phone number used in Arrests, adding it for Citations
+            const commonPhoneNumber = '(262) 785-4700 ext. 7';
 
             if (department === "Outagamie County Sheriff's Office") {
                 address = '3030 Goodland Dr, Appleton, Wisconsin 54911'; // Outagamie address
-                contactInfo = 'Please contact a Supervisor for further inquiry.'; // Same contact for now
+                contactInfo = `Please call ${commonPhoneNumber} for further inquiry.`; // Use phone number for OCSO
                 payTo = '**You must pay the citation to @sgrticketpayoff **'; // Same pay to for now
+            } else { // Default to WSP if not OCSO or department is N/A
+                contactInfo = `Please call ${commonPhoneNumber} for further inquiry.`; // Also use phone number for WSP
             }
+
 
             const citationText = `
 Ping User Receiving Ticket: ** @${violatorName.replace(/\s/g, '')}**
