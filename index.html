@@ -103,21 +103,30 @@
                     body: JSON.stringify(loginData),
                 });
 
-                const result = await response.json();
+                // --- FIX STARTS HERE ---
+                // Read the response body once, store it, then use it.
+                const result = await response.json(); // Read the JSON response body
 
                 if (response.ok) {
                     window.showCustomAlert('Login successful! Welcome, ' + result.username + ' (Badge: ' + result.badgeNumber + ')', 'Success').then(() => {
                         sessionStorage.setItem('authToken', result.token);
-                        sessionStorage.setItem('loggedInUser', JSON.stringify({ username: result.username, badgeNumber: result.badgeNumber, role: result.role }));
+                        // Ensure department is included when saving loggedInUser to sessionStorage
+                        sessionStorage.setItem('loggedInUser', JSON.stringify({
+                            username: result.username,
+                            badgeNumber: result.badgeNumber,
+                            role: result.role,
+                            department: result.department // Ensure department is passed from result
+                        }));
                         window.location.href = 'selection.html'; // Redirect after OK is clicked
                     });
                 } else {
-                    const errorData = await response.json();
-                    window.showCustomAlert('Login failed: ' + (errorData.message || response.statusText), 'Error'); // Custom alert
+                    // Use the 'result' object obtained from the single response.json() call
+                    window.showCustomAlert('Login failed: ' + (result.message || response.statusText), 'Error');
                 }
+                // --- FIX ENDS HERE ---
             } catch (error) {
                 console.error('Error during login:', error);
-                window.showCustomAlert('An error occurred during login. Check console for details.', 'Error'); // Custom alert
+                window.showCustomAlert('An error occurred during login. Check console for details.', 'Error');
             }
         });
     </script>
