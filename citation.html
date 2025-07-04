@@ -8,7 +8,64 @@
     <link rel="stylesheet" href="styles.css">
     <script src="theme.js"></script>
     <style>
-        /* ... (existing styles) ... */
+        /* Autocomplete suggestions dropdown styles */
+        .autocomplete-suggestions {
+            border: 1px solid var(--border-color);
+            background: var(--box-bg-color);
+            max-height: 150px;
+            overflow-y: auto;
+            position: absolute;
+            z-index: 100;
+            width: calc(100% - 22px); /* Adjust based on input padding */
+            left: 11px; /* Align with input field */
+        }
+        .autocomplete-suggestions div {
+            padding: 8px 10px;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+        .autocomplete-suggestions div:hover {
+            background-color: var(--button-secondary-hover-bg);
+            color: var(--button-text-color);
+        }
+        /* Style for dynamically added penal code groups */
+        .penal-code-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+            align-items: end;
+        }
+        .penal-code-group .input-wrapper {
+            position: relative;
+            grid-column: span 1;
+        }
+        .penal-code-group .amount-due-wrapper {
+             grid-column: span 1;
+        }
+        .penal-code-group .button-remove {
+            grid-column: span 1;
+            justify-self: end;
+            width: auto;
+            min-width: 80px;
+        }
+        @media (max-width: 767px) {
+            .penal-code-group {
+                grid-template-columns: 1fr;
+            }
+            .penal-code-group .input-wrapper,
+            .penal-code-group .amount-due-wrapper {
+                grid-column: span 1;
+            }
+            .penal-code-group .button-remove {
+                grid-column: span 1;
+                width: 100%;
+                justify-self: stretch;
+            }
+        }
+        .text-right {
+            text-align: right;
+        }
     </style>
 </head>
 <body class="min-h-screen theme-app-container">
