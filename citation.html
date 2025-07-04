@@ -8,64 +8,7 @@
     <link rel="stylesheet" href="styles.css">
     <script src="theme.js"></script>
     <style>
-        /* Autocomplete suggestions dropdown styles */
-        .autocomplete-suggestions {
-            border: 1px solid var(--border-color);
-            background: var(--box-bg-color);
-            max-height: 150px;
-            overflow-y: auto;
-            position: absolute;
-            z-index: 100;
-            width: calc(100% - 22px); /* Adjust based on input padding */
-            left: 11px; /* Align with input field */
-        }
-        .autocomplete-suggestions div {
-            padding: 8px 10px;
-            cursor: pointer;
-            color: var(--text-color);
-        }
-        .autocomplete-suggestions div:hover {
-            background-color: var(--button-secondary-hover-bg);
-            color: var(--button-text-color);
-        }
-        /* Style for dynamically added penal code groups */
-        .penal-code-group {
-            display: grid;
-            grid-template-columns: 1fr 1fr auto;
-            gap: 1.5rem;
-            margin-bottom: 1rem;
-            align-items: end;
-        }
-        .penal-code-group .input-wrapper {
-            position: relative;
-            grid-column: span 1;
-        }
-        .penal-code-group .amount-due-wrapper {
-             grid-column: span 1;
-        }
-        .penal-code-group .button-remove {
-            grid-column: span 1;
-            justify-self: end;
-            width: auto;
-            min-width: 80px;
-        }
-        @media (max-width: 767px) {
-            .penal-code-group {
-                grid-template-columns: 1fr;
-            }
-            .penal-code-group .input-wrapper,
-            .penal-code-group .amount-due-wrapper {
-                grid-column: span 1;
-            }
-            .penal-code-group .button-remove {
-                grid-column: span 1;
-                width: 100%;
-                justify-self: stretch;
-            }
-        }
-        .text-right {
-            text-align: right;
-        }
+        /* ... (existing styles) ... */
     </style>
 </head>
 <body class="min-h-screen theme-app-container">
@@ -92,6 +35,10 @@
                         <input type="text" id="violatorName" name="violatorName" required class="theme-input w-full p-2 border rounded-md">
                     </div>
                     
+                    <div>
+                        <label for="officerDepartmentDisplay" class="theme-label block mb-2 font-medium">Department:</label>
+                        <input type="text" id="officerDepartmentDisplay" name="officerDepartmentDisplay" class="theme-input w-full p-2 border rounded-md" readonly>
+                    </div>
                     <div>
                         <label for="violationType" class="theme-label block mb-2 font-medium">Type of Violation:</label>
                         <input type="text" id="violationType" name="violationType" required class="theme-input w-full p-2 border rounded-md" placeholder="Auto-filled from Penal Code(s)" readonly>
@@ -170,11 +117,13 @@
             const mainViolationTypeInput = document.getElementById('violationType'); // The main Violation Type field
             const officerBadgeInput = document.getElementById('officerBadge'); // Get the officer badge input
             const officerNameInput = document.getElementById('officerName'); // Get the officer name input
+            const officerDepartmentDisplayInput = document.getElementById('officerDepartmentDisplay'); // Get the department display input
 
 
             // Get logged in user info for auto-fill
             const loggedInUserString = sessionStorage.getItem('loggedInUser');
             let loggedInUser = null;
+            let userDepartment = 'N/A'; // Default value if department is not found
             if (loggedInUserString) {
                 loggedInUser = JSON.parse(loggedInUserString);
                 // Auto-fill officer badge number if available
@@ -185,6 +134,14 @@
                 if (loggedInUser.username) {
                     officerNameInput.value = loggedInUser.username;
                 }
+                // Get and display department
+                if (loggedInUser.department) {
+                    userDepartment = loggedInUser.department;
+                    officerDepartmentDisplayInput.value = userDepartment; // Set the value of the display input
+                } else {
+                    officerDepartmentDisplayInput.value = 'N/A'; // Explicitly set N/A if not found
+                }
+                console.log("Logged-in Officer Department:", userDepartment); // For debugging
             }
 
 
@@ -197,7 +154,7 @@
                     }
                 });
                 if (response.ok) {
-                    let allPenalCodes = await response.json(); // Fetch all codes initially
+                    let allPenalCodes = await response.json();
                     console.log("All penal codes loaded:", allPenalCodes);
 
                     // Filter penal codes immediately after fetching for this form
@@ -391,6 +348,7 @@
                         document.getElementById('violatorName').value = '';
                         document.getElementById('violationDetails').value = '';
                         mainViolationTypeInput.value = '';
+                        officerDepartmentDisplayInput.value = userDepartment; // Reset department display
                         calculateTotalAmountDue();
                         updateMainViolationType(); // Update after clear
                     }
@@ -410,7 +368,8 @@
                 citationData.violatorName = document.getElementById('violatorName').value;
                 citationData.violationDetails = document.getElementById('violationDetails').value;
                 citationData.violationType = mainViolationTypeInput.value;
-                
+                citationData.department = userDepartment; // Pass department to the submission data
+
                 const appliedPenalCodes = [];
                 let overallTotalAmount = 0;
 
@@ -474,5 +433,6 @@
                 }
             });
         });
-    </script></body>
+    </script>
+</body>
 </html>
