@@ -80,7 +80,7 @@
             // Department-specific formatting
             let address = '4000 Capitol Drive, Greenville, Wisconsin 54942'; // Default WSP address
             let contactInfo = 'Please contact a Supervisor for further inquiry.'; // Default WSP contact
-            let payTo = '**You must pay the citation to @sgrticketpayoff **'; // Default WSP pay to
+            let payTo = '**You must pay the citation to <@1387636113123966986> **'; // Default WSP pay to
             let departmentLine = `Department Name: **${department || 'N/A'}**`; // Ensure department is displayed even if N/A
             
             // This is the common phone number used in Arrests, adding it for Citations
@@ -89,7 +89,7 @@
             if (department === "Outagamie County Sheriff's Office") {
                 address = '3030 Goodland Dr, Appleton, Wisconsin 54911'; // Outagamie address
                 contactInfo = `Please call ${commonPhoneNumber} for further inquiry.`; // Use phone number for OCSO
-                payTo = '**You must pay the citation to @sgrticketpayoff **'; // Same pay to for now
+                payTo = '**You must pay the citation to <@1387636113123966986> **'; // Same pay to for now
             } else { // Default to WSP if not OCSO or department is N/A
                 contactInfo = `Please call ${commonPhoneNumber} for further inquiry.`; // Also use phone number for WSP
             }
