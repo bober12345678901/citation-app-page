@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // Load saved theme on page load (if themeSelector is present)
-    const savedTheme = sessionStorage.getItem('selectedTheme') || 'light'; 
+    const savedTheme = sessionStorage.getItem('selectedTheme') || 'dark'; 
     if (themeSelector) {
         themeSelector.value = savedTheme;
     }
