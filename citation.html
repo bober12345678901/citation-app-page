@@ -80,7 +80,7 @@
                         <input type="text" id="officerBadge" name="officerBadge" required class="theme-input w-full p-2 border rounded-md">
                     </div>
                     <div>
-                        <label for="officerName" class="theme-label block mb-2 font-medium">Officer RP Name(s):</label>
+                        <label for="officerName" class="theme-label block mb-2 font-medium">Officer Name(s):</label>
                         <input type="text" id="officerName" name="officerName" required class="theme-input w-full p-2 border rounded-md">
                     </div>
                     <div>
@@ -88,7 +88,7 @@
                         <input type="text" id="officerRank" name="officerRank" required class="theme-input w-full p-2 border rounded-md">
                     </div>
                     <div>
-                        <label for="violatorName" class="theme-label block mb-2 font-medium">Violator's USER ID:</label>
+                        <label for="violatorName" class="theme-label block mb-2 font-medium">Violator's Full Name:</label>
                         <input type="text" id="violatorName" name="violatorName" required class="theme-input w-full p-2 border rounded-md">
                     </div>
                     
@@ -217,6 +217,10 @@
                     // Filter penal codes immediately after fetching for this form
                     // This is the updated filter logic
                     penalCodesData = allPenalCodes.filter(pc => {
+                        // Always include "Reckless Driving" by its description
+                        if (pc.description && pc.description.toLowerCase() === 'reckless driving') {
+                            return true;
+                        }
                         // Allow Traffic Violation or Citation types
                         if (pc.type === 'Traffic Violation' || pc.type === 'Citation') {
                             return true;
@@ -469,27 +473,4 @@
                     });
 
                     if (response.ok) {
-                        const result = await response.json();
-                        window.showCustomAlert(result.message, 'Success');
-
-                        sessionStorage.setItem('lastSubmittedCitation', JSON.stringify(citationData));
-                        window.location.href = 'citation_display.html';
-                    } else if (response.status === 401 || response.status === 403) {
-                        window.showCustomAlert("Authentication failed. Please log in again.", 'Error').then(() => {
-                            sessionStorage.clear();
-                            window.location.href = 'index.html';
-                        });
-                    }
-                    else {
-                        const errorData = await response.json();
-                        window.showCustomAlert('Submission failed: ' + (errorData.message || response.statusText), 'Error');
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    window.showCustomAlert('An error occurred. Check console for details.', 'Error');
-                }
-            });
-        });
-    </script>
-</body>
-</html>
+                        const result = await response.json
