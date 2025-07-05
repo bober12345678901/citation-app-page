@@ -1,84 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arrest Form</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="styles.css">
-    <script src="theme.js"></script>
-    <style>
-        /* Autocomplete suggestions dropdown styles (similar to citation.html) */
-        .autocomplete-suggestions {
-            border: 1px solid var(--border-color);
-            background: var(--box-bg-color);
-            max-height: 150px;
-            overflow-y: auto;
-            position: absolute;
-            z-index: 100;
-            width: calc(100% - 22px); /* Adjust based on input padding */
-            left: 11px; /* Align with input field */
-        }
-        .autocomplete-suggestions div {
-            padding: 8px 10px;
-            cursor: pointer;
-            color: var(--text-color);
-        }
-        .autocomplete-suggestions div:hover {
-            background-color: var(--button-secondary-hover-bg);
-            color: var(--button-text-color);
-        }
-        /* Style for dynamically added charge groups (similar to penal-code-group) */
-        .charge-group {
-            display: grid;
-            grid-template-columns: 1fr 1fr auto; /* Charge, Jail Time, Remove Button */
-            gap: 1.5rem; /* Tailwind's gap-x-6 gap-y-4 */
-            margin-bottom: 1rem; /* Tailwind's mb-4 */
-            align-items: end; /* Align buttons to bottom of input */
-        }
-        .charge-group .input-wrapper {
-            position: relative;
-            grid-column: span 1;
-        }
-        .charge-group .jail-time-wrapper {
-             grid-column: span 1;
-        }
-        .charge-group .button-remove {
-            grid-column: span 1;
-            justify-self: end;
-            width: auto;
-            min-width: 80px;
-        }
-        @media (max-width: 767px) { /* On smaller screens, stack buttons below inputs */
-            .charge-group {
-                grid-template-columns: 1fr;
-            }
-            .charge-group .input-wrapper,
-            .charge-group .jail-time-wrapper {
-                grid-column: span 1;
-            }
-            .charge-group .button-remove {
-                grid-column: span 1;
-                width: 100%;
-                justify-self: stretch;
-            }
-        }
-        .text-right {
-            text-align: right;
-        }
-        /* Style for checkbox label to align checkbox visually */
-        .checkbox-container {
-            display: flex;
-            align-items: center;
-            gap: 8px; /* Space between checkbox and label */
-        }
-        .checkbox-container input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            accent-color: var(--accent-color); /* Colors the checkbox itself */
-        }
-    </style>
-</head>
+    </head>
 <body class="min-h-screen theme-app-container">
     <div class="flex items-center justify-center min-h-screen w-full py-8">
         <div class="theme-lookup-box p-8 rounded-xl shadow-lg w-full max-w-2xl mx-4 sm:mx-auto transition-colors duration-300 border border-solid my-auto">
@@ -380,7 +303,7 @@
             }
 
             // --- Initial Setup ---
-            setupAutocompleteForChargeInput(0); // Setup for the first (initial) charge group
+            setupAutocompleteForChargeInput(0); // <--- THIS LINE IS CRUCIAL FOR THE FIRST AUTOCOMPLETE INPUT
             addChargeBtn.addEventListener('click', () => addChargeGroup());
             calculateTotalJailTime();
             calculateTotalFines(); // Calculate initial total fines
@@ -395,7 +318,7 @@
                         document.getElementById('arrestingOfficerBadge').value = loggedInUser.badgeNumber || ''; // Reset to auto-filled value
                         document.getElementById('yourUsername').value = loggedInUser.username || ''; // Reset to auto-filled value
                         document.getElementById('leoUsernames').value = '';
-                        document.getElementById('ranks').value = '';
+                        document.getElementById('ranks').value = ''; // Reset ranks to empty
                         document.getElementById('suspectName').value = '';
                         document.getElementById('incidentDetails').value = '';
                         warrantNeededCheckbox.checked = false; // Clear checkbox
