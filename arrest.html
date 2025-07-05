@@ -193,6 +193,7 @@
             const arrestingOfficerBadgeInput = document.getElementById('arrestingOfficerBadge'); // Get the arresting officer badge input
             const yourUsernameInput = document.getElementById('yourUsername'); // Get your username input
             const officerDepartmentDisplayInput = document.getElementById('officerDepartmentDisplay'); // Get the department display input
+            const ranksInput = document.getElementById('ranks'); // Get the ranks input element here
 
 
             // Get logged in user info for auto-fill
@@ -412,16 +413,14 @@
                 const form = event.target;
                 
                 const arrestData = {};
-				arrestData.arrestingOfficerBadge = document.getElementById('arrestingOfficerBadge').value;
-				arrestData.yourUsername = document.getElementById('yourUsername').value;
-				arrestData.leoUsernames = document.getElementById('leoUsernames').value;
-            
-				arrestData.ranks = ranksInput.value; // <-- EXPLICITLY ADD THIS LINE: Get value from input
-            
-				arrestData.suspectName = document.getElementById('suspectName').value;
-				arrestData.incidentDetails = document.getElementById('incidentDetails').value;
-				arrestData.warrantNeeded = warrantNeededCheckbox.checked;
-				arrestData.department = userDepartment;
+                arrestData.arrestingOfficerBadge = document.getElementById('arrestingOfficerBadge').value;
+                arrestData.yourUsername = document.getElementById('yourUsername').value;
+                arrestData.leoUsernames = document.getElementById('leoUsernames').value;
+                arrestData.ranks = ranksInput.value; // Explicitly get value from ranksInput
+                arrestData.suspectName = document.getElementById('suspectName').value;
+                arrestData.incidentDetails = document.getElementById('incidentDetails').value;
+                arrestData.warrantNeeded = warrantNeededCheckbox.checked; // Capture checkbox value
+                arrestData.department = userDepartment; // Pass department to the submission data
 
                 const appliedCharges = [];
                 let overallTotalJailTime = 0;
