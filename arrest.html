@@ -380,7 +380,7 @@
             }
 
             // --- Initial Setup ---
-            setupAutocompleteForChargeInput(0); // Setup for the first (initial) charge group
+            setupAutocompleteForChargeInput(0); // <--- THIS LINE IS CRUCIAL FOR THE FIRST AUTOCOMPLETE INPUT
             addChargeBtn.addEventListener('click', () => addChargeGroup());
             calculateTotalJailTime();
             calculateTotalFines(); // Calculate initial total fines
@@ -395,7 +395,7 @@
                         document.getElementById('arrestingOfficerBadge').value = loggedInUser.badgeNumber || ''; // Reset to auto-filled value
                         document.getElementById('yourUsername').value = loggedInUser.username || ''; // Reset to auto-filled value
                         document.getElementById('leoUsernames').value = '';
-                        document.getElementById('ranks').value = '';
+                        document.getElementById('ranks').value = ''; // Reset ranks to empty
                         document.getElementById('suspectName').value = '';
                         document.getElementById('incidentDetails').value = '';
                         warrantNeededCheckbox.checked = false; // Clear checkbox
@@ -451,11 +451,8 @@
                 });
 
                 // NEW VALIDATION: Check for jail time
-                const hasNoJailTimeCharge = appliedCharges.some(charge => 
-                    !charge.jail_time_seconds || charge.jail_time_seconds === 0
-                );
-
-                if (hasNoJailTimeCharge) {
+                // Changed to check if TOTAL jail time is 0
+                if (overallTotalJailTime === 0) { // Check if the total jail time is 0
                     window.showCustomAlert(
                         "Arrest reports require charges with jail time. For charges with no jail time, please use the Citation Form.",
                         "Input Error"
