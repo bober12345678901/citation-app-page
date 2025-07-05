@@ -412,14 +412,16 @@
                 const form = event.target;
                 
                 const arrestData = {};
-                arrestData.arrestingOfficerBadge = document.getElementById('arrestingOfficerBadge').value;
-                arrestData.yourUsername = document.getElementById('yourUsername').value;
-                arrestData.leoUsernames = document.getElementById('leoUsernames').value;
-                arrestData.ranks = document.getElementById('ranks').value;
-                arrestData.suspectName = document.getElementById('suspectName').value;
-                arrestData.incidentDetails = document.getElementById('incidentDetails').value;
-                arrestData.warrantNeeded = warrantNeededCheckbox.checked; // Capture checkbox value
-                arrestData.department = userDepartment; // Pass department to the submission data
+				arrestData.arrestingOfficerBadge = document.getElementById('arrestingOfficerBadge').value;
+				arrestData.yourUsername = document.getElementById('yourUsername').value;
+				arrestData.leoUsernames = document.getElementById('leoUsernames').value;
+            
+				arrestData.ranks = ranksInput.value; // <-- EXPLICITLY ADD THIS LINE: Get value from input
+            
+				arrestData.suspectName = document.getElementById('suspectName').value;
+				arrestData.incidentDetails = document.getElementById('incidentDetails').value;
+				arrestData.warrantNeeded = warrantNeededCheckbox.checked;
+				arrestData.department = userDepartment;
 
                 const appliedCharges = [];
                 let overallTotalJailTime = 0;
