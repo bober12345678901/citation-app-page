@@ -177,6 +177,7 @@
             async function fetchAndDisplayCitations() {
                 adminInfoDisplay.textContent = 'Loading citations...';
                 citationsTableBody.innerHTML = '<tr><td colspan="9" class="text-center theme-label">Loading data...</td></tr>'; // 9 columns now
+
                 deleteSelectedCitationsBtn.disabled = true; // Disable delete button on load
 
                 try {
@@ -288,13 +289,13 @@
                         await fetchAndDisplayCitations(); // Refresh the table
                     } else if (response.status === 401 || response.status === 403) {
                         const errorData = await response.json();
-                        window.showCustomAlert("Authentication/Authorization Error: " + (errorData.message || 'Access denied. Please log in as administrator.'), 'Error').then(() => {
+                        window.showCustomAlert("Authentication/Authorization Error: " + (errorData.message || 'Access denied. Please log in as an administrator.'), 'Error').then(() => {
                             sessionStorage.clear();
                             window.location.href = 'index.html';
                         });
                     } else {
                         const errorData = await response.json();
-                        window.showCustomAlert('Deletion failed: ' + (errorData.message || response.statusText), 'Error');
+                        window.showCustomAlert(`Error: ${errorData.message || response.statusText}. Please check Worker logs.`, 'Error');
                     }
                 } catch (error) {
                     console.error('Error during deletion:', error);
@@ -339,7 +340,7 @@
                         const description = String(row[descriptionColIndex] || '').trim();
                         let amount_due_raw = String(row[amountDueColIndex] || '').trim();
                         let type_val = (typeColIndex !== -1) ? String(row[typeColIndex] || '').trim() : null; // Get type value
-                        let jail_time_raw = (jailTimeColIndex !== -1) ? String(row[jailTimeColIndex] || '').trim() : null; // Get jail time value
+                        let jail_time_raw = (jailTimeColIndex !== -1) ? String(row[jailTimeColIndex] || '').trim() : null; // Get raw jail time value
 
                         // Clean and parse amount_due
                         amount_due_raw = amount_due_raw.replace(/\$/g, '').replace(/,/g, '');
@@ -357,7 +358,7 @@
 
                         // Validate required fields for the worker
                         if (!code || !description || isNaN(amount_due)) {
-                            console.warn(`Skipping row ${i + 1} due to missing/invalid data: Code='${code}', Desc='${description}', Amount='${amount_due}'`);
+                            console.warn(`Skipping row ${i + 1} due to missing/invalid data: Code='${code}', Desc='${description}', Final Amount Parse: '${amount_due}' (isNaN: ${isNaN(amount_due)})`);
                             continue; // Skip this problematic row
                         }
                         penalCodesToImport.push({ 
@@ -440,4 +441,5 @@
             // --- Initial Load ---
             fetchAndDisplayCitations(); // Load citations on page load
         });
-    </script></body></html>
+    </script></body>
+</html>

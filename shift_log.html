@@ -40,7 +40,7 @@
                     </div>
                     <div>
                         <label for="rankDisplay" class="theme-label block mb-2 font-medium">Rank:</label>
-                        <input type="text" id="rankDisplay" name="rankDisplay" class="theme-input w-full p-2 border rounded-md" readonly>
+                        <input type="text" id="rankDisplay" name="rankDisplay" class="theme-input w-full p-2 border rounded-md">
                     </div>
                     <div>
                         <label for="trafficStops" class="theme-label block mb-2 font-medium">Traffic Stops:</label>
@@ -95,12 +95,12 @@
             const shiftLogForm = document.getElementById('shiftLogForm');
             const usernameBadgeInput = document.getElementById('usernameBadge');
             const departmentDisplayInput = document.getElementById('departmentDisplay');
-            const rankDisplayInput = document.getElementById('rankDisplay');
+            const rankDisplayInput = document.getElementById('rankDisplay'); // Get the rank input element
 
             const loggedInUserString = sessionStorage.getItem('loggedInUser');
             let loggedInUser = null;
             let userDepartment = 'N/A';
-            let userRole = 'N/A'; // Assuming 'role' directly maps to rank for display
+            let userRole = 'N/A'; // Will still get from userInfo for consistency, but not auto-fill rankDisplayInput
 
             if (loggedInUserString) {
                 loggedInUser = JSON.parse(loggedInUserString);
@@ -113,11 +113,11 @@
                     departmentDisplayInput.value = 'N/A';
                 }
 
-                if (loggedInUser.role) { // Use role from userInfo for Rank
+                if (loggedInUser.role) { // Get role from userInfo for potential use in submittedByRank
                     userRole = loggedInUser.role;
-                    rankDisplayInput.value = userRole.charAt(0).toUpperCase() + userRole.slice(1); // Capitalize first letter
+                    // Removed: rankDisplayInput.value = userRole.charAt(0).toUpperCase() + userRole.slice(1); // STOP AUTO-FILLING RANK
                 } else {
-                    rankDisplayInput.value = 'N/A';
+                    // Removed: rankDisplayInput.value = 'N/A'; // STOP AUTO-FILLING RANK
                 }
             }
 
@@ -129,7 +129,7 @@
                     submittedByUsername: loggedInUser.username,
                     submittedByBadge: loggedInUser.badgeNumber,
                     submittedByDepartment: userDepartment, // Use auto-filled department
-                    submittedByRank: userRole, // Use auto-filled rank
+                    submittedByRank: rankDisplayInput.value, // Use the value ACTUALLY TYPED by the user for Rank
                     hostOfTheSession: document.getElementById('hostSession').value,
                     callsign: document.getElementById('callsign').value,
                     shiftDuration: document.getElementById('shiftDuration').value,
@@ -176,6 +176,16 @@
                     console.error('Error:', error);
                     window.showCustomAlert('An error occurred. Check console for details.', 'Error');
                 }
+            });
+            
+            // Clear form button functionality (ensure rankDisplayInput is cleared)
+            document.querySelector('button[type="reset"]').addEventListener('click', function(event) {
+                // Let the form reset normally, then manually clear readonly/display fields
+                setTimeout(() => { // Small delay to allow native reset to occur
+                    usernameBadgeInput.value = `${loggedInUser.username || 'N/A'} (Badge: ${loggedInUser.badgeNumber || 'N/A'})`;
+                    departmentDisplayInput.value = userDepartment;
+                    rankDisplayInput.value = ''; // Ensure rank is explicitly cleared
+                }, 0);
             });
         });
     </script>
