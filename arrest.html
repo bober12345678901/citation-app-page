@@ -95,7 +95,7 @@
                         <input type="text" id="yourUsername" name="yourUsername" required class="theme-input w-full p-2 border rounded-md">
                     </div>
                     <div>
-                        <label for="leoUsernames" class="theme-label block mb-2 font-medium">Law Enforcement RP Name(s):</label>
+                        <label for="leoUsernames" class="theme-label block mb-2 font-medium">Law Enforcement Username(s):</label>
                         <input type="text" id="leoUsernames" name="leoUsernames" placeholder="Comma-separated if multiple" class="theme-input w-full p-2 border rounded-md">
                     </div>
                     <div>
@@ -103,7 +103,7 @@
                         <input type="text" id="ranks" name="ranks" placeholder="Comma-separated if multiple" class="theme-input w-full p-2 border rounded-md">
                     </div>
                     <div>
-                        <label for="suspectName" class="theme-label block mb-2 font-medium">Suspect's USER ID:</label>
+                        <label for="suspectName" class="theme-label block mb-2 font-medium">Suspect's Full Name:</label>
                         <input type="text" id="suspectName" name="suspectName" required class="theme-input w-full p-2 border rounded-md">
                     </div>
                     <div>
@@ -307,7 +307,7 @@
 
                                 suggestionItem.addEventListener('click', function() {
                                     chargeCodeInput.value = this.dataset.code;
-                                    jailTimeInput.value = parseFloat(this.dataset.jailTime).toFixed(0); // Convert to integer seconds
+                                    jailTimeInput.value = parseFloat(this.dataset.jailTime).toFixed(0);
                                     suggestionsDiv.innerHTML = '';
                                     suggestionsDiv.style.display = 'none';
                                     calculateTotalJailTime();
