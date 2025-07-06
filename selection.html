@@ -24,7 +24,7 @@
         <a href="citation.html" class="theme-button-primary block w-full p-3 mb-4 rounded-md font-semibold">Go to Citation Form</a>
         <a href="arrest.html" class="theme-button-primary block w-full p-3 mb-4 rounded-md font-semibold">Go to Arrest Form</a>
         
-        <a href="shift_log.html" id="shiftLogLink" class="theme-button-primary block w-full p-3 mb-4 rounded-md font-semibold hidden">Submit Shift Log (ADMIN ONLY EXPERIMENTAL FEATURE)</a>
+        <a href="shift_log.html" id="shiftLogLink" class="theme-button-primary block w-full p-3 mb-4 rounded-md font-semibold">Submit Shift Log</a>
         <a href="admin.html" id="adminPanelLink" class="theme-button-secondary block w-full p-3 mb-4 rounded-md font-semibold hidden">Admin Panel</a>
         
         <button id="logoutButton" class="theme-button-secondary w-full p-3 mt-4 rounded-md font-semibold">Logout</button>
@@ -53,7 +53,7 @@
             const userInfoDisplay = document.getElementById('userInfo');
             const logoutButton = document.getElementById('logoutButton');
             const adminPanelLink = document.getElementById('adminPanelLink');
-            const shiftLogLink = document.getElementById('shiftLogLink'); // Get the new shift log link
+            // No longer need to get shiftLogLink as it will always be visible
 
             // Authentication check
             if (!token || !userInfo) {
@@ -68,10 +68,10 @@
                 // Show Admin Panel link only if user role is 'admin'
                 if (userInfo.role === 'admin') {
                     adminPanelLink.classList.remove('hidden');
-                    shiftLogLink.classList.remove('hidden'); // Also show Shift Log button for admins
+                    // Removed: shiftLogLink.classList.remove('hidden'); // This line is now removed
                 } else {
                     adminPanelLink.classList.add('hidden'); // Ensure hidden if not admin
-                    shiftLogLink.classList.add('hidden'); // Hide Shift Log button for non-admins
+                    // Removed: shiftLogLink.classList.add('hidden'); // This line is now removed
                 }
             }
 
