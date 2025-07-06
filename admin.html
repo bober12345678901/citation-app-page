@@ -41,8 +41,9 @@
             border: 1px solid var(--border-color);
             border-radius: 8px;
         }
+        /* The .hidden class is key for toggling visibility */
         .hidden {
-            display: none;
+            display: none !important; /* Use !important to ensure it overrides other display properties */
         }
         .action-buttons-group {
             display: flex;
@@ -59,7 +60,7 @@
             margin-bottom: 15px;
         }
 
-        /* New styles for fullscreen image modal */
+        /* Styles for fullscreen image modal */
         #fullscreenImageModal {
             position: fixed;
             top: 0;
@@ -67,10 +68,12 @@
             width: 100vw;
             height: 100vh;
             background-color: rgba(0, 0, 0, 0.9); /* Dark overlay */
-            display: flex;
+            display: flex; /* Use flex for centering content */
             align-items: center;
             justify-content: center;
             z-index: 1000; /* High z-index to be on top */
+            /* Start hidden by default, JS will toggle 'hidden' class */
+            /* The 'display: none !important;' in .hidden class will control visibility */
         }
         #fullscreenImageModal img {
             max-width: 90%;
@@ -410,7 +413,7 @@
                             document.querySelectorAll('.screenshot-thumbnail').forEach(img => {
                                 img.addEventListener('click', function() {
                                     fullscreenImage.src = this.src;
-                                    fullscreenImageModal.classList.remove('hidden');
+                                    fullscreenImageModal.classList.remove('hidden'); // REMOVE 'hidden' to show
                                 });
                             });
                         }
@@ -716,7 +719,6 @@
 
             // --- Filter Event Listeners ---
             applyFilterBtn.addEventListener('click', function() {
-                // When applying filter, reload both tables with current filter values
                 fetchAndDisplayCitations();
                 fetchAndDisplayShiftLogs();
             });
@@ -724,20 +726,18 @@
             clearFilterBtn.addEventListener('click', function() {
                 filterUsernameInput.value = '';
                 filterDepartmentInput.value = '';
-                // Reload both tables without filters
                 fetchAndDisplayCitations();
                 fetchAndDisplayShiftLogs();
             });
 
             refreshButton.addEventListener('click', function() {
-                // Preserve existing filters on refresh
                 fetchAndDisplayCitations();
                 fetchAndDisplayShiftLogs();
             });
 
             // --- Fullscreen Image Modal Event Listeners ---
             closeFullscreenBtn.addEventListener('click', function() {
-                fullscreenImageModal.classList.add('hidden');
+                fullscreenImageModal.classList.add('hidden'); // ADD 'hidden' to hide
                 fullscreenImage.src = ''; // Clear the image source
             });
 
