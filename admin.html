@@ -58,6 +58,41 @@
         .admin-section h3 {
             margin-bottom: 15px;
         }
+
+        /* New styles for fullscreen image modal */
+        #fullscreenImageModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.9); /* Dark overlay */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000; /* High z-index to be on top */
+        }
+        #fullscreenImageModal img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain; /* Ensure entire image is visible */
+        }
+        #closeFullscreenBtn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 2em;
+            color: white;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 5px;
+            background-color: rgba(0,0,0,0.5);
+        }
+        #closeFullscreenBtn:hover {
+            background-color: rgba(0,0,0,0.7);
+        }
     </style>
 </head>
 <body class="min-h-screen theme-app-container flex justify-center py-8">
@@ -128,7 +163,8 @@
                 <table class="admin-table" id="shiftLogsTable">
                     <thead>
                         <tr>
-                            <th><input type="checkbox" id="selectAllShiftLogs"></th> <th>ID</th>
+                            <th><input type="checkbox" id="selectAllShiftLogs"></th>
+                            <th>ID</th>
                             <th>Timestamp</th>
                             <th>Submitted By</th>
                             <th>Badge #</th>
@@ -141,7 +177,8 @@
                             <th>Citations</th>
                             <th>Arrests</th>
                             <th>Notes</th>
-                            <th>Screenshot</th> </tr>
+                            <th>Screenshot</th>
+                        </tr>
                     </thead>
                     <tbody>
                         </tbody>
@@ -177,6 +214,12 @@
             </div>
         </div>
     </div>
+
+    <div id="fullscreenImageModal" class="hidden">
+        <button id="closeFullscreenBtn">X</button>
+        <img id="fullscreenImage" src="" alt="Full Screen Screenshot">
+    </div>
+
     <script>
         // Store the authentication token (global for this script)
         let authToken = sessionStorage.getItem('authToken');
@@ -199,8 +242,8 @@
             const deleteSelectedCitationsBtn = document.getElementById('deleteSelectedCitationsBtn');
 
             // Shift Log specific elements
-            const selectAllShiftLogsCheckbox = document.getElementById('selectAllShiftLogs'); // New checkbox for shift logs
-            const deleteSelectedShiftLogsBtn = document.getElementById('deleteSelectedShiftLogsBtn'); // New button for shift logs
+            const selectAllShiftLogsCheckbox = document.getElementById('selectAllShiftLogs');
+            const deleteSelectedShiftLogsBtn = document.getElementById('deleteSelectedShiftLogsBtn');
 
             // Filter elements
             const filterUsernameInput = document.getElementById('filterUsername');
@@ -216,6 +259,11 @@
             const importCsvBtn = document.getElementById('importCsvBtn');
             const penalCodeCsvText = document.getElementById('penalCodeCsvText');
             const pasteImportCsvBtn = document.getElementById('pasteImportCsvBtn');
+
+            // NEW: Fullscreen image modal elements
+            const fullscreenImageModal = document.getElementById('fullscreenImageModal');
+            const fullscreenImage = document.getElementById('fullscreenImage');
+            const closeFullscreenBtn = document.getElementById('closeFullscreenBtn');
 
             // --- Authentication and Authorization Check ---
             if (!authToken || !loggedInUser || loggedInUser.role !== 'admin') {
@@ -353,9 +401,17 @@
                                     <td>${log.arrests || 0}</td>
                                     <td>${log.additionalNotes || 'N/A'}</td>
                                     <td>
-                                        ${log.screenshot ? `<img src="${log.screenshot}" alt="Screenshot" style="max-width: 100px; max-height: 100px;">` : 'N/A'}
+                                        ${log.screenshot ? `<img src="${log.screenshot}" alt="Screenshot" class="screenshot-thumbnail" style="max-width: 100px; max-height: 100px; cursor: pointer;">` : 'N/A'}
                                     </td>
                                 `;
+                            });
+
+                            // Attach click listeners to new screenshot thumbnails after they are added
+                            document.querySelectorAll('.screenshot-thumbnail').forEach(img => {
+                                img.addEventListener('click', function() {
+                                    fullscreenImage.src = this.src;
+                                    fullscreenImageModal.classList.remove('hidden');
+                                });
                             });
                         }
                         shiftLogCountDisplay.textContent = shiftLogs.length;
@@ -661,7 +717,7 @@
             // --- Filter Event Listeners ---
             applyFilterBtn.addEventListener('click', function() {
                 // When applying filter, reload both tables with current filter values
-                fetchAndDisplayCitations(); // Citations don't filter on frontend, so this just refreshes
+                fetchAndDisplayCitations();
                 fetchAndDisplayShiftLogs();
             });
 
@@ -677,6 +733,27 @@
                 // Preserve existing filters on refresh
                 fetchAndDisplayCitations();
                 fetchAndDisplayShiftLogs();
+            });
+
+            // --- Fullscreen Image Modal Event Listeners ---
+            closeFullscreenBtn.addEventListener('click', function() {
+                fullscreenImageModal.classList.add('hidden');
+                fullscreenImage.src = ''; // Clear the image source
+            });
+
+            fullscreenImageModal.addEventListener('click', function(event) {
+                // Close modal if clicked outside the image itself
+                if (event.target === fullscreenImageModal) {
+                    fullscreenImageModal.classList.add('hidden');
+                    fullscreenImage.src = '';
+                }
+            });
+            // Listen for Escape key to close the modal
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' && !fullscreenImageModal.classList.contains('hidden')) {
+                    fullscreenImageModal.classList.add('hidden');
+                    fullscreenImage.src = '';
+                }
             });
 
             // --- Initial Load ---
