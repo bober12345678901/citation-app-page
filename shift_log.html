@@ -30,6 +30,23 @@
         .image-preview-container p {
             color: var(--text-color);
         }
+        /* Style for the paste target area */
+        #pasteTarget {
+            border: 1px dashed var(--border-color);
+            min-height: 50px;
+            padding: 10px;
+            text-align: center;
+            line-height: 30px;
+            cursor: pointer;
+            color: var(--text-color);
+            background-color: color-mix(in srgb, var(--input-bg-color) 90%, var(--border-color));
+            border-radius: 0.375rem;
+            margin-top: 0.5rem;
+        }
+        #pasteTarget:focus {
+            outline: 2px solid var(--accent-color);
+            border-color: var(--accent-color);
+        }
     </style>
 </head>
 <body class="min-h-screen theme-app-container">
@@ -80,6 +97,10 @@
                 <div class="mb-4">
                     <label for="screenshotUpload" class="theme-label block mb-2 font-medium">Upload Screenshot (Optional):</label>
                     <input type="file" id="screenshotUpload" name="screenshotUpload" accept="image/*" class="theme-input w-full p-2 border rounded-md">
+                    <p class="theme-label-small mt-2 text-center">OR</p>
+                    <div id="pasteTarget" tabindex="0" class="theme-input">
+                        Paste image here (Ctrl+V or Cmd+V)
+                    </div>
                     <div id="imagePreview" class="image-preview-container">
                         <p class="theme-label-small text-gray-500">No image selected</p>
                     </div>
@@ -125,10 +146,11 @@
             const usernameBadgeInput = document.getElementById('usernameBadge');
             const departmentDisplayInput = document.getElementById('departmentDisplay');
             const rankDisplayInput = document.getElementById('rankDisplay');
-            const screenshotUploadInput = document.getElementById('screenshotUpload'); // New: screenshot input
-            const imagePreviewDiv = document.getElementById('imagePreview'); // New: preview div
+            const screenshotUploadInput = document.getElementById('screenshotUpload');
+            const pasteTargetDiv = document.getElementById('pasteTarget'); // New: paste target div
+            const imagePreviewDiv = document.getElementById('imagePreview');
 
-            let screenshotBase64 = null; // Variable to store Base64 string
+            let screenshotBase64 = null;
 
             const loggedInUserString = sessionStorage.getItem('loggedInUser');
             let loggedInUser = null;
@@ -151,27 +173,67 @@
                 }
             }
 
-            // New: Handle screenshot file selection and preview
+            // Function to handle image processing and preview display
+            function processImageFile(file) {
+                if (!file.type.startsWith('image/')) {
+                    window.showCustomAlert('Please select an image file (e.g., JPG, PNG, GIF).', 'Invalid File Type');
+                    screenshotUploadInput.value = ''; // Clear file input if it was used
+                    imagePreviewDiv.innerHTML = '<p class="theme-label-small text-gray-500">No image selected</p>';
+                    screenshotBase64 = null;
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    screenshotBase64 = e.target.result;
+                    imagePreviewDiv.innerHTML = `<img src="${screenshotBase64}" alt="Screenshot Preview">`;
+                    // Clear file input so only one source (upload or paste) is active
+                    screenshotUploadInput.value = ''; 
+                };
+                reader.readAsDataURL(file);
+            }
+
+
+            // Handle screenshot file selection and preview
             screenshotUploadInput.addEventListener('change', function(event) {
                 const file = event.target.files[0];
                 if (file) {
-                    if (!file.type.startsWith('image/')) {
-                        window.showCustomAlert('Please select an image file (e.g., JPG, PNG, GIF).', 'Invalid File Type');
-                        screenshotUploadInput.value = ''; // Clear the input
-                        imagePreviewDiv.innerHTML = '<p class="theme-label-small text-gray-500">No image selected</p>';
-                        screenshotBase64 = null;
-                        return;
-                    }
-
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        screenshotBase64 = e.target.result; // Store Base64 string
-                        imagePreviewDiv.innerHTML = `<img src="${screenshotBase64}" alt="Screenshot Preview">`;
-                    };
-                    reader.readAsDataURL(file); // Read file as Data URL (Base64)
+                    processImageFile(file);
                 } else {
+                    // If user clears file input, also clear paste data and preview
                     imagePreviewDiv.innerHTML = '<p class="theme-label-small text-gray-500">No image selected</p>';
                     screenshotBase64 = null;
+                }
+            });
+
+            // Handle paste event
+            pasteTargetDiv.addEventListener('paste', function(event) {
+                event.preventDefault(); // Prevent default paste behavior (e.g., pasting text)
+
+                const items = event.clipboardData.items;
+                for (let i = 0; i < items.length; i++) {
+                    if (items[i].type.indexOf('image') !== -1) {
+                        const file = items[i].getAsFile();
+                        if (file) {
+                            processImageFile(file);
+                            return; // Stop after finding the first image
+                        }
+                    }
+                }
+                // If no image found in clipboard, show a message
+                window.showCustomAlert('No image found in clipboard to paste.', 'Paste Error');
+                imagePreviewDiv.innerHTML = '<p class="theme-label-small text-gray-500">No image selected</p>';
+                screenshotBase64 = null;
+            });
+
+            // Make the pasteTarget div focusable and give it a hint
+            pasteTargetDiv.setAttribute('tabindex', '0');
+            pasteTargetDiv.addEventListener('focus', () => {
+                pasteTargetDiv.textContent = 'Ready to paste...';
+            });
+            pasteTargetDiv.addEventListener('blur', () => {
+                if (!screenshotBase64) { // Only reset if no image is loaded
+                    pasteTargetDiv.textContent = 'Paste image here (Ctrl+V or Cmd+V)';
                 }
             });
 
@@ -191,18 +253,15 @@
                     citations: parseInt(document.getElementById('citations').value, 10),
                     arrests: parseInt(document.getElementById('arrests').value, 10),
                     additionalNotes: document.getElementById('additionalNotes').value,
-                    screenshot: screenshotBase64 // New: Include screenshot Base64
+                    screenshot: screenshotBase64
                 };
 
-                // Basic validation for numbers
                 if (isNaN(shiftLogData.trafficStops) || isNaN(shiftLogData.citations) || isNaN(shiftLogData.arrests)) {
                     window.showCustomAlert("Traffic Stops, Citations Issued, and Arrests Made must be valid numbers.", "Input Error");
                     return;
                 }
 
-                // Add a check for screenshot size if you anticipate very large images
-                // Roughly 20MB limit for KV value (25MB total value size, leave some for other data)
-                if (screenshotBase64 && screenshotBase64.length * 0.75 > 20 * 1024 * 1024) { 
+                if (screenshotBase64 && screenshotBase64.length * 0.75 > 20 * 1024 * 1024) {
                     window.showCustomAlert("Screenshot file is too large. Please upload an image smaller than ~20MB.", "File Size Error");
                     return;
                 }
@@ -221,13 +280,13 @@
 
                     if (response.ok) {
                         window.showCustomAlert(result.message, 'Success').then(() => {
-                            shiftLogForm.reset(); // Clear form on successful submission
-                            imagePreviewDiv.innerHTML = '<p class="theme-label-small text-gray-500">No image selected</p>'; // Clear preview
-                            screenshotBase64 = null; // Clear Base64 data
-                            // Reset readonly fields manually
+                            shiftLogForm.reset();
+                            imagePreviewDiv.innerHTML = '<p class="theme-label-small text-gray-500">No image selected</p>';
+                            pasteTargetDiv.textContent = 'Paste image here (Ctrl+V or Cmd+V)'; // Reset paste hint
+                            screenshotBase64 = null;
                             usernameBadgeInput.value = `${loggedInUser.username || 'N/A'} (Badge: ${loggedInUser.badgeNumber || 'N/A'})`;
                             departmentDisplayInput.value = userDepartment;
-                            rankDisplayInput.value = ''; // Ensure rank is explicitly cleared
+                            rankDisplayInput.value = '';
                         });
                     } else if (response.status === 401 || response.status === 403) {
                         window.showCustomAlert("Authentication failed. Please log in again.", 'Error').then(() => {
@@ -243,14 +302,14 @@
                 }
             });
             
-            // Clear form button functionality (ensure rankDisplayInput and screenshot are cleared)
+            // Clear form button functionality
             document.querySelector('button[type="reset"]').addEventListener('click', function(event) {
-                // Let the form reset normally, then manually clear readonly/display fields and screenshot
                 setTimeout(() => {
                     usernameBadgeInput.value = `${loggedInUser.username || 'N/A'} (Badge: ${loggedInUser.badgeNumber || 'N/A'})`;
                     departmentDisplayInput.value = userDepartment;
-                    rankDisplayInput.value = ''; // Ensure rank is explicitly cleared
+                    rankDisplayInput.value = '';
                     imagePreviewDiv.innerHTML = '<p class="theme-label-small text-gray-500">No image selected</p>';
+                    pasteTargetDiv.textContent = 'Paste image here (Ctrl+V or Cmd+V)'; // Reset paste hint
                     screenshotBase64 = null;
                 }, 0);
             });
