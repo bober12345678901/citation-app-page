@@ -141,7 +141,7 @@
                             <th>Citations</th>
                             <th>Arrests</th>
                             <th>Notes</th>
-                        </tr>
+                            <th>Screenshot</th> </tr>
                     </thead>
                     <tbody>
                         </tbody>
@@ -299,7 +299,8 @@
 
             // --- Fetch & Display Shift Logs Function with Filtering ---
             async function fetchAndDisplayShiftLogs() {
-                shiftLogsTableBody.innerHTML = '<tr><td colspan="14" class="text-center theme-label">Loading shift logs...</td></tr>'; // Updated colspan
+                // Updated colspan to 15 (checkbox + existing 13 + screenshot)
+                shiftLogsTableBody.innerHTML = '<tr><td colspan="15" class="text-center theme-label">Loading shift logs...</td></tr>'; 
                 adminInfoDisplay.textContent = 'Loading shift logs...';
 
                 const username = filterUsernameInput.value.trim();
@@ -331,7 +332,8 @@
                         shiftLogsTableBody.innerHTML = '';
 
                         if (shiftLogs.length === 0) {
-                            shiftLogsTableBody.innerHTML = '<tr><td colspan="14" class="text-center theme-label">No shift logs found matching criteria.</td></tr>'; // Updated colspan
+                            // Updated colspan to 15
+                            shiftLogsTableBody.innerHTML = '<tr><td colspan="15" class="text-center theme-label">No shift logs found matching criteria.</td></tr>'; 
                         } else {
                             shiftLogs.forEach(log => {
                                 const row = shiftLogsTableBody.insertRow();
@@ -350,6 +352,9 @@
                                     <td>${log.citations || 0}</td>
                                     <td>${log.arrests || 0}</td>
                                     <td>${log.additionalNotes || 'N/A'}</td>
+                                    <td>
+                                        ${log.screenshot ? `<img src="${log.screenshot}" alt="Screenshot" style="max-width: 100px; max-height: 100px;">` : 'N/A'}
+                                    </td>
                                 `;
                             });
                         }
@@ -370,12 +375,14 @@
                     } else {
                         const errorData = await response.json();
                         window.showCustomAlert(`Error loading shift logs: ${errorData.message || response.statusText}. Please check Worker logs.`, 'Error');
-                        shiftLogsTableBody.innerHTML = `<tr><td colspan="14" class="text-center theme-label text-red-500">Error loading shift logs.</td></tr>`; // Updated colspan
+                        // Updated colspan to 15
+                        shiftLogsTableBody.innerHTML = `<tr><td colspan="15" class="text-center theme-label text-red-500">Error loading shift logs.</td></tr>`; 
                     }
                 } catch (error) {
                     console.error('Error fetching shift logs:', error);
                     window.showCustomAlert('Network error: Could not connect to the Worker to fetch shift logs.', 'Error');
-                    shiftLogsTableBody.innerHTML = `<tr><td colspan="14" class="text-center theme-label text-red-500">Network Error. Check console.</td></tr>`; // Updated colspan
+                    // Updated colspan to 15
+                    shiftLogsTableBody.innerHTML = `<tr><td colspan="15" class="text-center theme-label text-red-500">Network Error. Check console.</td></tr>`; 
                 } finally {
                     adminInfoDisplay.textContent = `Welcome, Admin ${loggedInUser.username} (Badge: ${loggedInUser.badgeNumber})!`;
                 }
