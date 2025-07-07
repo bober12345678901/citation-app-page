@@ -73,13 +73,12 @@
             const userInfoDisplay = document.getElementById('userInfo');
             const logoutButton = document.getElementById('logoutButton');
             const adminPanelLink = document.getElementById('adminPanelLink');
-            // No longer need to get shiftLogLink as it will always be visible
 
             // Authentication check
             if (!token || !userInfo) {
                 window.showCustomAlert("You must be logged in to access this page.", "Authentication Error").then(() => {
                     sessionStorage.clear();
-                    window.location.href = 'index.html'; // Redirect after OK is clicked
+                    window.location.href = 'index.html';
                 });
                 return;
             } else {
@@ -89,15 +88,15 @@
                 if (userInfo.role === 'admin') {
                     adminPanelLink.classList.remove('hidden');
                 } else {
-                    adminPanelLink.classList.add('hidden'); // Ensure hidden if not admin
+                    adminPanelLink.classList.add('hidden');
                 }
             }
 
             // Logout Functionality
             logoutButton.addEventListener('click', function() {
-                window.showCustomAlert("You have been logged out.", "Information").then(() => { // Custom alert
-                    sessionStorage.clear(); // Clear all session data
-                    window.location.href = 'index.html'; // Redirect after OK is clicked
+                window.showCustomAlert("You have been logged out.", "Information").then(() => {
+                    sessionStorage.clear();
+                    window.location.href = 'index.html';
                 });
             });
         });
