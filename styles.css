@@ -19,6 +19,8 @@
 
     /* Add a secondary text color for credits */
     --text-color-secondary: #6b7280; /* Tailwind gray-500 */
+    /* NEW: Footer background color variable */
+    --footer-bg-color: color-mix(in srgb, var(--bg-color) 95%, white); /* Slightly lighter than main bg */
 }
 
 /* Tailwind's dark mode specific variables - adjust if needed for your dark theme */
@@ -39,6 +41,8 @@ html.dark {
 
     /* Dark mode secondary text color */
     --text-color-secondary: #9ca3af; /* Tailwind gray-400 */
+    /* NEW: Footer background color variable for dark mode */
+    --footer-bg-color: color-mix(in srgb, var(--bg-color) 90%, black); /* Slightly darker for dark theme contrast */
 }
 
 /* Custom theme classes based on your themePresets.
@@ -61,6 +65,7 @@ html.dark {
     --button-danger-hover-bg: #b91c1c;
 
     --text-color-secondary: #6b7280;
+    --footer-bg-color: color-mix(in srgb, var(--bg-color) 95%, white);
 }
 
 /* Dark Theme */
@@ -80,6 +85,7 @@ html.dark {
     --button-danger-hover-bg: #991b1b;
 
     --text-color-secondary: #9ca3af;
+    --footer-bg-color: color-mix(in srgb, var(--bg-color) 90%, black);
 }
 
 /* Sunset Theme */
@@ -99,6 +105,7 @@ html.dark {
     --button-danger-hover-bg: #9f1239;
 
     --text-color-secondary: #a87e8e; /* Custom for Sunset */
+    --footer-bg-color: color-mix(in srgb, var(--bg-color) 95%, white);
 }
 
 /* Ocean Theme */
@@ -118,6 +125,7 @@ html.dark {
     --button-danger-hover-bg: #dc2626;
 
     --text-color-secondary: #3b82f6; /* Custom for Ocean */
+    --footer-bg-color: color-mix(in srgb, var(--bg-color) 95%, white);
 }
 
 /* Forest Theme */
@@ -137,6 +145,7 @@ html.dark {
     --button-danger-hover-bg: #dc2626;
 
     --text-color-secondary: #3b82f6; /* Custom for Forest - adjust to a green shade if preferred */
+    --footer-bg-color: color-mix(in srgb, var(--bg-color) 95%, white);
 }
 
 /* Midnight Theme */
@@ -156,6 +165,7 @@ html.dark {
     --button-danger-hover-bg: #b91c1c;
 
     --text-color-secondary: #94a3b8; /* Custom for Midnight */
+    --footer-bg-color: color-mix(in srgb, var(--bg-color) 90%, black);
 }
 
 /* Dracula Theme */
@@ -175,6 +185,7 @@ html.dark {
     --button-danger-hover-bg: #ff3333;
 
     --text-color-secondary: #8be9fd; /* Custom for Dracula - cyan */
+    --footer-bg-color: color-mix(in srgb, var(--bg-color) 90%, black);
 }
 
 /* Cyberpunk Theme */
@@ -194,6 +205,7 @@ html.dark {
     --button-danger-hover-bg: #e73030;
 
     --text-color-secondary: #00ffff; /* Custom for Cyberpunk - cyan */
+    --footer-bg-color: color-mix(in srgb, var(--bg-color) 90%, black);
 }
 
 
@@ -346,9 +358,14 @@ pre {
     text-align: center; /* Center content horizontally by default */
     margin-top: 2rem; /* Consistent spacing from content above */
     padding-bottom: 1rem; /* Padding at the bottom */
-    border-top: 1px solid var(--border-color); /* Optional: A separator line */
+    /* MODIFIED: Use footer-specific background and a top border */
+    background-color: var(--footer-bg-color);
+    border-top: 1px solid var(--border-color); /* Faint line */
     padding-top: 1rem; /* Padding above the separator */
     color: var(--text-color); /* Ensure text color from theme */
+    /* Ensure footer stretches full width if body has margin/padding */
+    width: 100%;
+    box-sizing: border-box; /* Include padding/border in width */
 }
 
 .app-footer .footer-content {
