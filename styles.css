@@ -317,3 +317,23 @@ pre {
 .custom-modal-header.error { color: #dc2626; /* red-600 */ }
 .custom-modal-header.info { color: #2563eb; /* blue-600 */ } /* Using accent for info */
 .custom-modal-header.warning { color: #fbbf24; /* amber-400 */ }
+
+/* Credits Footer Styles */
+.credits-footer {
+    padding: 1rem;
+    text-align: center;
+    font-size: 0.875rem; /* Smaller text for footer */
+    color: var(--text-color); /* Inherit main text color */
+    background-color: var(--box-bg-color); /* Use box background for a subtle footer background */
+    border-top: 1px solid var(--border-color); /* A subtle border at the top */
+    margin-top: 2rem; /* Space above the footer */
+}
+
+.credits-footer a {
+    color: var(--accent-color); /* Ensure links in footer use accent color */
+    text-decoration: none; /* No underline by default */
+}
+
+.credits-footer a:hover {
+    text-decoration: underline; /* Underline on hover */
+}
