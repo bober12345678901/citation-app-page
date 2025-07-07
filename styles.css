@@ -318,22 +318,68 @@ pre {
 .custom-modal-header.info { color: #2563eb; /* blue-600 */ } /* Using accent for info */
 .custom-modal-header.warning { color: #fbbf24; /* amber-400 */ }
 
-/* Credits Footer Styles */
-.credits-footer {
-    padding: 1rem;
-    text-align: center;
-    font-size: 0.875rem; /* Smaller text for footer */
-    color: var(--text-color); /* Inherit main text color */
-    background-color: var(--box-bg-color); /* Use box background for a subtle footer background */
-    border-top: 1px solid var(--border-color); /* A subtle border at the top */
+/* App Footer Styles */
+.app-footer {
+    background-color: var(--box-bg-color); /* Use box background for footer */
+    color: var(--text-color); /* Inherit text color from theme */
+    border-top: 1px solid var(--border-color); /* Subtle border at the top */
+    padding: 1rem 0; /* Add padding top/bottom */
     margin-top: 2rem; /* Space above the footer */
+    text-align: center; /* Center align all footer content */
+    font-size: 0.875rem; /* Equivalent to text-sm */
 }
 
-.credits-footer a {
-    color: var(--accent-color); /* Ensure links in footer use accent color */
-    text-decoration: none; /* No underline by default */
+.app-footer .footer-content {
+    display: flex;
+    flex-direction: column; /* Stack content vertically on small screens */
+    align-items: center; /* Center items horizontally */
+    gap: 1.5rem; /* Space between credit and community sections */
+    max-width: 1200px; /* Max width for content */
+    margin: 0 auto; /* Center the content container */
+    padding: 0 1rem; /* Horizontal padding for responsiveness */
 }
 
-.credits-footer a:hover {
-    text-decoration: underline; /* Underline on hover */
+@media (min-width: 768px) { /* Adjust breakpoint as needed, e.g., for md:flex */
+    .app-footer .footer-content {
+        flex-direction: row; /* Layout horizontally on larger screens */
+        justify-content: space-around; /* Distribute space evenly */
+        align-items: flex-start; /* Align items to the top for multi-line content */
+        text-align: left; /* Re-align text to left within each section */
+    }
+}
+
+.app-footer .footer-credits,
+.app-footer .footer-community {
+    /* No specific background or border needed here as they are handled by .app-footer */
+    padding: 0; /* Remove any default padding */
+}
+
+.app-footer p {
+    margin-bottom: 0.5rem; /* Small space between paragraphs */
+}
+
+.app-footer p:last-child {
+    margin-bottom: 0; /* No margin after the last paragraph in a section */
+}
+
+.app-footer strong {
+    color: var(--accent-color); /* Make strong text use accent color */
+    display: block; /* Make strong a block element for better spacing with following paragraphs */
+    margin-bottom: 0.5rem; /* Space below the strong title */
+}
+
+/* Ensure links within the footer use theme colors */
+.app-footer a {
+    color: var(--accent-color);
+    text-decoration: none;
+}
+
+.app-footer a:hover {
+    text-decoration: underline;
+}
+
+/* Specific styling for the theme-link class within footer if you want to keep it */
+.app-footer .theme-link {
+    /* It will inherit from .app-footer a, but you can override here if needed */
+    /* For example, if you want a different accent or hover effect for these specific links */
 }
