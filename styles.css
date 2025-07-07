@@ -318,25 +318,51 @@ pre {
 .custom-modal-header.info { color: #2563eb; /* blue-600 */ } /* Using accent for info */
 .custom-modal-header.warning { color: #fbbf24; /* amber-400 */ }
 
+/* ------------------------------------------------------------------------- */
+/* STICKY FOOTER IMPLEMENTATION & REVISED APP FOOTER STYLES */
+/* ------------------------------------------------------------------------- */
+
+/* HTML and Body for full height */
+html, body {
+    height: 100%; /* Important: Make html and body take full viewport height */
+    margin: 0; /* Remove default margin */
+    padding: 0; /* Remove default padding */
+}
+
+body {
+    display: flex;
+    flex-direction: column; /* Arrange children (header, main, footer) in a column */
+}
+
+/* Main content area to push footer down */
+/* Assuming your main content is inside a <main> tag or similar.
+   If your main content is directly inside body, you might need a wrapper div. */
+main {
+    flex-grow: 1; /* This makes the main content area take up all available space,
+                     pushing the footer to the bottom */
+    /* Add any default padding for your main content here if necessary */
+    padding: 20px; /* Example padding */
+}
+
 /* App Footer Styles */
 .app-footer {
     background-color: var(--box-bg-color); /* Use box background for footer */
     color: var(--text-color); /* Inherit text color from theme */
     border-top: 1px solid var(--border-color); /* Subtle border at the top */
-    padding: 1rem 0; /* Add padding top/bottom */
-    margin-top: 2rem; /* Space above the footer */
-    text-align: center; /* Center align all footer content */
+    padding: 1.5rem 1rem; /* Adjust padding for better look */
+    /* margin-top: 2rem; REMOVED: No longer needed with flex-grow on main */
     font-size: 0.875rem; /* Equivalent to text-sm */
+    flex-shrink: 0; /* Prevents the footer from shrinking */
 }
 
 .app-footer .footer-content {
     display: flex;
     flex-direction: column; /* Stack content vertically on small screens */
     align-items: center; /* Center items horizontally */
-    gap: 1.5rem; /* Space between credit and community sections */
+    gap: 2rem; /* Increased space between credit and community sections */
     max-width: 1200px; /* Max width for content */
     margin: 0 auto; /* Center the content container */
-    padding: 0 1rem; /* Horizontal padding for responsiveness */
+    text-align: center; /* Center all text content within footer */
 }
 
 @media (min-width: 768px) { /* Adjust breakpoint as needed, e.g., for md:flex */
@@ -344,18 +370,20 @@ pre {
         flex-direction: row; /* Layout horizontally on larger screens */
         justify-content: space-around; /* Distribute space evenly */
         align-items: flex-start; /* Align items to the top for multi-line content */
-        text-align: left; /* Re-align text to left within each section */
+        text-align: left; /* Re-align text to left within each section for readability */
     }
 }
 
 .app-footer .footer-credits,
 .app-footer .footer-community {
-    /* No specific background or border needed here as they are handled by .app-footer */
+    /* flex: 1; Uncomment this if you want these sections to grow and take equal width */
     padding: 0; /* Remove any default padding */
+    /* Ensure they stack vertically if needed on small screens, which flex-direction: column handles */
 }
 
 .app-footer p {
-    margin-bottom: 0.5rem; /* Small space between paragraphs */
+    margin-bottom: 0.25rem; /* Reduced space between paragraphs for a tighter list */
+    line-height: 1.4; /* Improve readability */
 }
 
 .app-footer p:last-child {
@@ -364,8 +392,9 @@ pre {
 
 .app-footer strong {
     color: var(--accent-color); /* Make strong text use accent color */
-    display: block; /* Make strong a block element for better spacing with following paragraphs */
+    display: block; /* Make strong a block element for better spacing */
     margin-bottom: 0.5rem; /* Space below the strong title */
+    font-size: 1rem; /* Slightly larger for emphasis, or inherit if preferred */
 }
 
 /* Ensure links within the footer use theme colors */
@@ -381,5 +410,4 @@ pre {
 /* Specific styling for the theme-link class within footer if you want to keep it */
 .app-footer .theme-link {
     /* It will inherit from .app-footer a, but you can override here if needed */
-    /* For example, if you want a different accent or hover effect for these specific links */
 }
