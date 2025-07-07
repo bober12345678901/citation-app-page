@@ -210,21 +210,24 @@ html.dark {
 
 
 /* Apply variables to Tailwind classes */
-/* MODIFIED: Add flexbox properties to theme-app-container to push footer to bottom */
+/* MODIFIED: Ensure the body is a flex column container for sticky footer */
 .theme-app-container {
     background-color: var(--bg-color);
     display: flex; /* Make body a flex container */
     flex-direction: column; /* Stack children vertically */
     min-height: 100vh; /* Ensure it takes at least the full viewport height */
+    /* REMOVED: `items-center` and `justify-center` from the body's direct styling */
+    /* This will allow children to align/justify based on their own rules or default */
 }
 
+/* MODIFIED: Add flex-grow to the main content box to push footer down */
 .theme-lookup-box {
     background-color: var(--box-bg-color);
     border-color: var(--border-color);
-    flex-grow: 1; /* MODIFIED: Allow the main content box to grow and push footer down */
-    /* Add padding-bottom to the theme-lookup-box if it doesn't already have enough,
-       to prevent footer from touching content immediately */
-    padding-bottom: 2rem; /* Example: ensure content doesn't touch footer directly */
+    flex-grow: 1; /* Allow the main content box to grow and push footer down */
+    /* Add padding-bottom to ensure space between content and footer */
+    padding-bottom: 2rem; /* Consistent spacing, adjust if needed */
+    margin: auto; /* This will center the box horizontally and allow vertical centering if content is short */
 }
 
 .theme-title {
@@ -364,18 +367,17 @@ pre {
 .app-footer {
     /* General footer styling */
     text-align: center; /* Center content horizontally by default */
-    margin-top: 2rem; /* Consistent spacing from content above */
+    /* Reset existing margin-top because `margin-top: auto` will handle spacing */
+    margin-top: auto; /* Pushes the footer to the bottom of the flex column */
     padding-bottom: 1rem; /* Padding at the bottom */
-    /* MODIFIED: Use footer-specific background and a top border */
+    
     background-color: var(--footer-bg-color);
     border-top: 1px solid var(--border-color); /* Faint line */
     padding-top: 1rem; /* Padding above the separator */
     color: var(--text-color); /* Ensure text color from theme */
-    /* Ensure footer stretches full width if body has margin/padding */
+    
     width: 100%;
     box-sizing: border-box; /* Include padding/border in width */
-    /* Important for pushing it to the bottom in a flex column layout */
-    margin-top: auto; /* Pushes the footer to the bottom of the flex container */
 }
 
 .app-footer .footer-content {
