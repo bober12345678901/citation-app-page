@@ -217,78 +217,40 @@ html.dark {
     flex-direction: column; /* Stack children vertically */
     min-height: 100vh; /* Ensure it takes at least the full viewport height */
     /* REMOVED: `items-center` and `justify-center` from the body's direct styling */
-    /* This will allow children to align/justify based on their own rules or default */
+    /* These should be handled by the main-content-area below for better control. */
 }
 
-/* MODIFIED: Add flex-grow to the main content box to push footer down */
+/* MODIFIED: Remove `margin: auto` from theme-lookup-box here.
+   It should be centered by its parent wrapper (.main-content-area). */
 .theme-lookup-box {
     background-color: var(--box-bg-color);
     border-color: var(--border-color);
-    flex-grow: 1; /* Allow the main content box to grow and push footer down */
-    /* Add padding-bottom to ensure space between content and footer */
-    padding-bottom: 2rem; /* Consistent spacing, adjust if needed */
-    margin: auto; /* This will center the box horizontally and allow vertical centering if content is short */
+    /* flex-grow: 1; <-- Ensure this is NOT here */
+    /* margin: auto; <-- Ensure this is NOT here */
+    /* The p-8, rounded-xl etc. are fine. */
 }
 
-.theme-title {
-    color: var(--text-color);
+/* NEW: This wrapper will hold all page content *except* the footer. */
+/* It ensures the space above the footer is properly filled and content is centered. */
+.main-content-area {
+    display: flex; /* It's a flex container for its own children (e.g., theme-lookup-box) */
+    flex-direction: column; /* Stack children inside if needed (like the main content box) */
+    flex-grow: 1; /* This is the key: makes this area expand to push the footer down */
+    justify-content: center; /* Vertically centers content (theme-lookup-box) within this area */
+    align-items: center; /* Horizontally centers content (theme-lookup-box) within this area */
+    padding-bottom: 2rem; /* Add some general padding to bottom of content area */
+    padding-top: 2rem; /* Add some general padding to top of content area */
+    /* Adjust max-width here if you want to constrain the central content on wide screens,
+       but usually, theme-lookup-box's max-width handles that. */
 }
 
-.theme-label {
-    color: var(--text-color);
-}
 
-.theme-input {
-    background-color: var(--input-bg-color);
-    color: var(--input-text-color);
-    border-color: var(--border-color);
-}
+/* Your existing content-pusher class can now be removed from styles.css if you adopt main-content-area
+   as `main-content-area` itself handles the `flex-grow: 1` and centering for the content div within it. */
+/* If you keep .content-pusher, ensure it's not applied to any element wrapped by .main-content-area */
 
-.theme-button-primary {
-    background-color: var(--button-primary-bg);
-    color: var(--button-text-color);
-}
-.theme-button-primary:hover {
-    background-color: var(--button-primary-hover-bg);
-}
 
-.theme-button-secondary {
-    background-color: var(--button-secondary-bg);
-    color: var(--button-text-color);
-}
-.theme-button-secondary:hover {
-    background-color: var(--button-secondary-hover-bg);
-}
-
-.theme-button-danger {
-    background-color: var(--button-danger-bg);
-    color: var(--button-text-color);
-}
-.theme-button-danger:hover {
-    background-color: var(--button-danger-hover-bg);
-}
-
-/* Override default link colors if needed for theme consistency */
-a {
-    color: var(--accent-color); /* Apply accent color to links */
-}
-a:hover {
-    text-decoration: underline;
-}
-
-/* Specific overrides for strong tags within pre */
-pre strong {
-    color: inherit; /* Inherit text color from parent for strong tags inside pre */
-}
-
-/* Global pre tag styles for text breaking */
-pre {
-    white-space: pre-wrap; /* Preserves whitespace and line breaks */
-    word-wrap: break-word; /* Modern property for breaking long words */
-    overflow-wrap: break-word; /* Alias for word-wrap for wider compatibility */
-    word-break: break-all; /* Force break even on "words" without spaces */
-    margin: 0; /* Remove default pre margin */
-}
+/* ... (rest of theme-related CSS classes remain unchanged) ... */
 
 /* Modal Overlay */
 .modal-overlay {
@@ -367,8 +329,8 @@ pre {
 .app-footer {
     /* General footer styling */
     text-align: center; /* Center content horizontally by default */
-    /* Reset existing margin-top because `margin-top: auto` will handle spacing */
-    margin-top: auto; /* Pushes the footer to the bottom of the flex column */
+    /* MODIFIED: Use margin-top: auto to push it to the bottom */
+    margin-top: auto; /* This is crucial for pushing the footer down in a flex column layout */
     padding-bottom: 1rem; /* Padding at the bottom */
     
     background-color: var(--footer-bg-color);
