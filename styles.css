@@ -210,13 +210,21 @@ html.dark {
 
 
 /* Apply variables to Tailwind classes */
+/* MODIFIED: Add flexbox properties to theme-app-container to push footer to bottom */
 .theme-app-container {
     background-color: var(--bg-color);
+    display: flex; /* Make body a flex container */
+    flex-direction: column; /* Stack children vertically */
+    min-height: 100vh; /* Ensure it takes at least the full viewport height */
 }
 
 .theme-lookup-box {
     background-color: var(--box-bg-color);
     border-color: var(--border-color);
+    flex-grow: 1; /* MODIFIED: Allow the main content box to grow and push footer down */
+    /* Add padding-bottom to the theme-lookup-box if it doesn't already have enough,
+       to prevent footer from touching content immediately */
+    padding-bottom: 2rem; /* Example: ensure content doesn't touch footer directly */
 }
 
 .theme-title {
@@ -366,6 +374,8 @@ pre {
     /* Ensure footer stretches full width if body has margin/padding */
     width: 100%;
     box-sizing: border-box; /* Include padding/border in width */
+    /* Important for pushing it to the bottom in a flex column layout */
+    margin-top: auto; /* Pushes the footer to the bottom of the flex container */
 }
 
 .app-footer .footer-content {
