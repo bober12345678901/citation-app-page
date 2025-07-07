@@ -75,7 +75,7 @@ html.dark {
     --border-color: #374151;
     --input-bg-color: #374151;
     --input-text-color: #f9fafb;
-    --button-primary-bg: var(--accent-color);
+    --button-primary-bg: #f9fafb;
     --button-primary-hover-bg: #1e40af;
     --button-secondary-bg: #4b5563;
     --button-secondary-hover-bg: #374151;
