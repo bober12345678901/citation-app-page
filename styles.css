@@ -16,6 +16,9 @@
     --button-secondary-hover-bg: #4b5563;
     --button-danger-bg: #dc2626;
     --button-danger-hover-bg: #b91c1c;
+
+    /* Add a secondary text color for credits */
+    --text-color-secondary: #6b7280; /* Tailwind gray-500 */
 }
 
 /* Tailwind's dark mode specific variables - adjust if needed for your dark theme */
@@ -33,6 +36,9 @@ html.dark {
     --button-secondary-hover-bg: #374151;
     --button-danger-bg: #b91c1c;
     --button-danger-hover-bg: #991b1b;
+
+    /* Dark mode secondary text color */
+    --text-color-secondary: #9ca3af; /* Tailwind gray-400 */
 }
 
 /* Custom theme classes based on your themePresets.
@@ -53,6 +59,8 @@ html.dark {
     --button-secondary-hover-bg: #4b5563;
     --button-danger-bg: #dc2626;
     --button-danger-hover-bg: #b91c1c;
+
+    --text-color-secondary: #6b7280;
 }
 
 /* Dark Theme */
@@ -70,6 +78,8 @@ html.dark {
     --button-secondary-hover-bg: #374151;
     --button-danger-bg: #b91c1c;
     --button-danger-hover-bg: #991b1b;
+
+    --text-color-secondary: #9ca3af;
 }
 
 /* Sunset Theme */
@@ -87,6 +97,8 @@ html.dark {
     --button-secondary-hover-bg: #ef4444;
     --button-danger-bg: #be123c;
     --button-danger-hover-bg: #9f1239;
+
+    --text-color-secondary: #a87e8e; /* Custom for Sunset */
 }
 
 /* Ocean Theme */
@@ -104,6 +116,8 @@ html.dark {
     --button-secondary-hover-bg: #0ea5e9;
     --button-danger-bg: #ef4444;
     --button-danger-hover-bg: #dc2626;
+
+    --text-color-secondary: #3b82f6; /* Custom for Ocean */
 }
 
 /* Forest Theme */
@@ -121,6 +135,8 @@ html.dark {
     --button-secondary-hover-bg: #10b981;
     --button-danger-bg: #ef4444;
     --button-danger-hover-bg: #dc2626;
+
+    --text-color-secondary: #3b82f6; /* Custom for Forest - adjust to a green shade if preferred */
 }
 
 /* Midnight Theme */
@@ -138,6 +154,8 @@ html.dark {
     --button-secondary-hover-bg: #475569;
     --button-danger-bg: #dc2626;
     --button-danger-hover-bg: #b91c1c;
+
+    --text-color-secondary: #94a3b8; /* Custom for Midnight */
 }
 
 /* Dracula Theme */
@@ -155,6 +173,8 @@ html.dark {
     --button-secondary-hover-bg: #44475a;
     --button-danger-bg: #ff5555;
     --button-danger-hover-bg: #ff3333;
+
+    --text-color-secondary: #8be9fd; /* Custom for Dracula - cyan */
 }
 
 /* Cyberpunk Theme */
@@ -172,6 +192,8 @@ html.dark {
     --button-secondary-hover-bg: #00cc00;
     --button-danger-bg: #fe4a4a;
     --button-danger-hover-bg: #e73030;
+
+    --text-color-secondary: #00ffff; /* Custom for Cyberpunk - cyan */
 }
 
 
@@ -317,3 +339,78 @@ pre {
 .custom-modal-header.error { color: #dc2626; /* red-600 */ }
 .custom-modal-header.info { color: #2563eb; /* blue-600 */ } /* Using accent for info */
 .custom-modal-header.warning { color: #fbbf24; /* amber-400 */ }
+
+/* --- Footer Credits Styling --- */
+.app-footer {
+    /* General footer styling */
+    text-align: center; /* Center content horizontally by default */
+    margin-top: 2rem; /* Consistent spacing from content above */
+    padding-bottom: 1rem; /* Padding at the bottom */
+    border-top: 1px solid var(--border-color); /* Optional: A separator line */
+    padding-top: 1rem; /* Padding above the separator */
+    color: var(--text-color); /* Ensure text color from theme */
+}
+
+.app-footer .footer-content {
+    display: flex; /* Enable Flexbox */
+    flex-wrap: wrap; /* Allow items to wrap to the next line on small screens */
+    justify-content: center; /* Center items when they wrap or there's extra space */
+    gap: 2rem; /* Space between the two main columns */
+    max-width: 900px; /* Limit width of the content */
+    margin: 0 auto; /* Center the content div itself */
+}
+
+.app-footer .footer-credits,
+.app-footer .footer-community {
+    flex: 1; /* Allow both to grow and shrink */
+    min-width: 280px; /* Minimum width before they stack */
+    text-align: left; /* Align text within their respective columns */
+    padding: 0 1rem; /* Some horizontal padding */
+}
+
+.app-footer .footer-community {
+    text-align: right; /* Align Discord link and text to the right */
+}
+
+@media (max-width: 768px) {
+    .app-footer .footer-credits,
+    .app-footer .footer-community {
+        text-align: center; /* Center text when stacked on small screens */
+        min-width: 100%; /* Take full width when stacked */
+    }
+    .app-footer .footer-community {
+        margin-top: 1rem; /* Add space between stacked sections */
+    }
+}
+
+.app-footer p {
+    margin-bottom: 0.25rem; /* Small vertical spacing between lines of text */
+    line-height: 1.2;
+    color: var(--text-color); /* Inherit from .app-footer, but ensure */
+}
+
+.app-footer p:last-child {
+    margin-bottom: 0; /* No margin on the last paragraph */
+}
+
+.app-footer strong {
+    color: var(--button-primary-text-color); /* Make section titles stand out. Adjust if button text is white on dark bg. */
+}
+
+/* Adjusting strong color for dark themes where primary button text is white */
+html.dark .app-footer strong,
+.theme-dark .app-footer strong,
+.theme-midnight .app-footer strong,
+.theme-dracula .app-footer strong,
+.theme-cyberpunk .app-footer strong {
+    color: var(--accent-color); /* Use accent color as it's typically brighter in dark themes */
+}
+
+
+.app-footer .theme-link {
+    color: var(--accent-color); /* Use your theme's accent color for links */
+    text-decoration: underline;
+}
+.app-footer .theme-link:hover {
+    color: color-mix(in srgb, var(--accent-color) 80%, black); /* Darken on hover */
+}
