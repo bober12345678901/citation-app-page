@@ -176,8 +176,16 @@ html.dark {
 
 
 /* Apply variables to Tailwind classes */
+/* If theme-app-container is the direct child of body and wraps everything EXCEPT the footer,
+   this is the element that needs flex-grow: 1 */
 .theme-app-container {
     background-color: var(--bg-color);
+    flex-grow: 1; /* Make this container take up remaining space */
+    display: flex; /* Assuming you want to center content within it */
+    flex-direction: column; /* Or row, depending on main content layout */
+    align-items: center; /* Center horizontally */
+    justify-content: center; /* Center vertically */
+    padding: 20px; /* Add some padding around your central UI */
 }
 
 .theme-lookup-box {
@@ -322,27 +330,24 @@ pre {
 /* STICKY FOOTER IMPLEMENTATION & REVISED APP FOOTER STYLES */
 /* ------------------------------------------------------------------------- */
 
-/* HTML and Body for full height */
+/* HTML and Body for full height and flex layout */
 html, body {
-    height: 100%; /* Important: Make html and body take full viewport height */
+    height: 100%; /* Make html and body take full viewport height */
     margin: 0; /* Remove default margin */
     padding: 0; /* Remove default padding */
 }
 
 body {
     display: flex;
-    flex-direction: column; /* Arrange children (header, main, footer) in a column */
+    flex-direction: column; /* Arrange children (main content, footer) in a column */
+    /* background-color: var(--bg-color); If you want the body background to be the main theme background */
 }
 
 /* Main content area to push footer down */
-/* Assuming your main content is inside a <main> tag or similar.
-   If your main content is directly inside body, you might need a wrapper div. */
-main {
-    flex-grow: 1; /* This makes the main content area take up all available space,
-                     pushing the footer to the bottom */
-    /* Add any default padding for your main content here if necessary */
-    padding: 20px; /* Example padding */
-}
+/* Based on your screenshot, the central UI (Choose Your Form) is the main content.
+   If this UI is wrapped in theme-app-container, we can use that. */
+/* I've moved flex-grow: 1 and central alignment to .theme-app-container */
+
 
 /* App Footer Styles */
 .app-footer {
@@ -350,9 +355,9 @@ main {
     color: var(--text-color); /* Inherit text color from theme */
     border-top: 1px solid var(--border-color); /* Subtle border at the top */
     padding: 1.5rem 1rem; /* Adjust padding for better look */
-    /* margin-top: 2rem; REMOVED: No longer needed with flex-grow on main */
-    font-size: 0.875rem; /* Equivalent to text-sm */
+    width: 100%; /* Ensure the footer takes full width */
     flex-shrink: 0; /* Prevents the footer from shrinking */
+    box-sizing: border-box; /* Include padding in the width calculation */
 }
 
 .app-footer .footer-content {
@@ -362,7 +367,7 @@ main {
     gap: 2rem; /* Increased space between credit and community sections */
     max-width: 1200px; /* Max width for content */
     margin: 0 auto; /* Center the content container */
-    text-align: center; /* Center all text content within footer */
+    text-align: center; /* Center all text content within footer by default */
 }
 
 @media (min-width: 768px) { /* Adjust breakpoint as needed, e.g., for md:flex */
@@ -376,9 +381,8 @@ main {
 
 .app-footer .footer-credits,
 .app-footer .footer-community {
-    /* flex: 1; Uncomment this if you want these sections to grow and take equal width */
+    /* No specific background or border needed here as they are handled by .app-footer */
     padding: 0; /* Remove any default padding */
-    /* Ensure they stack vertically if needed on small screens, which flex-direction: column handles */
 }
 
 .app-footer p {
