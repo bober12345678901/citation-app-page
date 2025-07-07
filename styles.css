@@ -18,6 +18,7 @@
     --button-danger-hover-bg: #b91c1c;
 
     --text-color-secondary: #6b7280; /* Tailwind gray-500 */
+    /* Ensure color-mix is correctly calculating for light theme default */
     --footer-bg-color: color-mix(in srgb, var(--bg-color) 95%, white);
 }
 
@@ -38,6 +39,7 @@ html.dark {
     --button-danger-hover-bg: #991b1b;
 
     --text-color-secondary: #9ca3af; /* Tailwind gray-400 */
+    /* Ensure color-mix is correctly calculating for dark theme default */
     --footer-bg-color: color-mix(in srgb, var(--bg-color) 90%, black);
 }
 
@@ -236,6 +238,8 @@ html.dark {
     align-items: center; /* Horizontally centers content (theme-lookup-box) within this area */
     padding-bottom: 2rem; /* Add some general padding to bottom of content area */
     padding-top: 2rem; /* Add some general padding to top of content area */
+    /* Adjust max-width here if you want to constrain the central content on wide screens,
+       but usually, theme-lookup-box's max-width handles that. */
 }
 
 
