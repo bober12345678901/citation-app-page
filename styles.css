@@ -23,8 +23,8 @@ html.dark {
     --bg-color: #111827; /* Main dark background */
     --text-color: #f9fafb;
     --accent-color: #2563eb;
-    --box-bg-color: #1f2937; /* Darker box background, used for footer */
-    --border-color: #374151; /* Border color */
+    --box-bg-color: #1f2937; /* Darker box background, used for things like modal/lookup box */
+    --border-color: #374151;
     --input-bg-color: #374151;
     --input-text-color: #f9fafb;
     --button-primary-bg: var(--accent-color);
@@ -35,8 +35,8 @@ html.dark {
     --button-danger-hover-bg: #991b1b;
 }
 
-/* Custom theme classes based on your themePresets.
-   These classes will be added to the <body> element by JavaScript. */
+/* Custom theme classes based on your themePresets. */
+/* These classes will be added to the <body> element by JavaScript. */
 
 /* Light Theme (default) */
 .theme-light {
@@ -332,28 +332,29 @@ pre {
 
 /* HTML and Body for full height and flex layout */
 html, body {
-    height: 100%; /* Crucial: Make html and body take full viewport height */
-    margin: 0; /* REMOVED: browser default margin (usually 8px) */
-    padding: 0; /* REMOVED: browser default padding */
-    overflow-x: hidden; /* Prevent horizontal scroll if elements overflow */
+    height: 100%;
+    margin: 0; /* Ensures no default margins push content inward */
+    padding: 0; /* Ensures no default padding pushes content inward */
+    overflow-x: hidden; /* Prevents horizontal scrollbar from appearing */
 }
 
 body {
     display: flex;
-    flex-direction: column; /* Arrange children (main content, footer) in a column */
-    background-color: var(--bg-color); /* Ensure body's background is correctly set by theme */
+    flex-direction: column; /* Stacks main content and footer vertically */
+    background-color: var(--bg-color); /* Sets the main background for the entire page */
+    min-height: 100vh; /* Ensures body is at least full viewport height */
 }
 
 /* App Footer Styles */
 .app-footer {
-    background-color: var(--box-bg-color); /* This provides the full-width background */
-    color: var(--text-color); /* Inherit text color from theme */
-    /* border-top: 1px solid var(--border-color); -- REMOVED this in previous step for seamless top */
-    padding: 1.5rem 1rem; /* Generous padding for footer content */
-    width: 100%; /* Ensure the footer takes full viewport width */
-    flex-shrink: 0; /* Prevents the footer from shrinking when content is abundant */
-    box-sizing: border-box; /* Include padding in the width calculation to avoid horizontal scrollbar */
-    margin-top: auto; /* PUSHES THE FOOTER TO THE VERY BOTTOM IF theme-app-container isn't the direct flex-grow */
+    background-color: var(--bg-color); /* Use --bg-color for seamless blending with body */
+    color: var(--text-color);
+    /* border-top was removed previously for seamless top transition */
+    padding: 1.5rem 1rem;
+    width: 100%; /* Ensures it spans the full width of the viewport */
+    flex-shrink: 0; /* Prevents the footer from shrinking */
+    box-sizing: border-box; /* Includes padding in width calculation, preventing overflow */
+    /* margin-top: auto; This is useful, but the min-height on body + flex-grow on content should handle it reliably */
 }
 
 .app-footer .footer-content {
@@ -361,8 +362,8 @@ body {
     flex-direction: column;
     align-items: center;
     gap: 2rem;
-    max-width: 1200px;
-    margin: 0 auto; /* Centers the content within the full-width footer */
+    max-width: 1200px; /* Limits content width for readability on large screens */
+    margin: 0 auto; /* Centers the content within the footer */
     text-align: center;
 }
 
