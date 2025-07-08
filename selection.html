@@ -19,6 +19,12 @@
             gap: 1rem; /* Space between buttons */
             margin-bottom: 2rem; /* Space below the grid */
         }
+        /* Rule to make buttons span full width on small screens if they wrap */
+        @media (max-width: 640px) { /* Adjust breakpoint as needed, Tailwind's 'sm' is 640px */
+            .main-button-grid {
+                grid-template-columns: 1fr; /* Stack into a single column on small screens */
+            }
+        }
         .admin-logout-row {
             display: flex;
             justify-content: center; /* Center the buttons within this row */
@@ -37,14 +43,12 @@
             </p>
 
             <div class="main-button-grid">
-                <a href="citation.html" class="theme-button-primary block w-full p-3 rounded-md font-semibold">Citation Form</a>
-                <a href="shift_log.html" id="shiftLogLink" class="theme-button-primary block w-full p-3 rounded-md font-semibold">Shift Log</a>
-                <a href="arrest.html" class="theme-button-primary block w-full p-3 rounded-md font-semibold">Arrest Form</a>
-                <a href="warrant_log.html" class="theme-button-primary block w-full p-3 rounded-md font-semibold">Warrant Log</a> 
-            </div>
+                <a href="citation.html" class="theme-button-primary block w-full p-3 rounded-md font-semibold">Go to Citation Form</a>
+                <a href="shift_log.html" id="shiftLogLink" class="theme-button-primary block w-full p-3 rounded-md font-semibold">Submit Shift Log</a>
+                <a href="arrest.html" class="theme-button-primary block w-full p-3 rounded-md font-semibold">Go to Arrest Form</a>
+                </div>
 
             <div class="admin-logout-row mt-4">
-                <!-- Admin Panel and Logout buttons will be shown/hidden by JavaScript -->
                 <a href="admin.html" id="adminPanelLink" class="theme-button-secondary py-3 px-6 rounded-md font-semibold hidden">Admin Panel</a>
                 <button id="logoutButton" class="theme-button-secondary py-3 px-6 rounded-md font-semibold hidden">Logout</button>
             </div>
@@ -88,13 +92,12 @@
                 
                 // Conditional display for Admin Panel and Logout buttons
                 if (userInfo.role === 'admin') {
-                    // For admin, show Admin Panel and Logout
-                    adminPanelLink.classList.remove('hidden'); 
-                    logoutButton.classList.remove('hidden'); 
+                    adminPanelLink.classList.remove('hidden'); // Show Admin Panel
+                    logoutButton.classList.remove('hidden'); // Show Logout beside it
                 } else {
-                    // For normal user, hide Admin Panel and show only Logout
-                    adminPanelLink.classList.add('hidden'); 
-                    logoutButton.classList.remove('hidden'); 
+                    // If not admin, hide Admin Panel and show Logout button in its place
+                    adminPanelLink.classList.add('hidden'); // Ensure hidden if not admin
+                    logoutButton.classList.remove('hidden'); // Show logout for non-admins
                 }
             }
 
