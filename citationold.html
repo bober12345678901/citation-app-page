@@ -67,21 +67,6 @@
         .text-right {
             text-align: right;
         }
-        /* Styles for radio button container */
-        .radio-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 1rem;
-        }
-        .radio-container input[type="radio"] {
-            width: 18px;
-            height: 18px;
-            accent-color: var(--accent-color);
-        }
-        .radio-container label {
-            margin-bottom: 0; /* Override block mb-2 */
-        }
     </style>
 </head>
 <body class="min-h-screen theme-app-container">
@@ -144,21 +129,6 @@
                     <label for="violationDetails" class="theme-label block mb-2 font-medium">Additional Notes:</label>
                     <textarea id="violationDetails" name="violationDetails" placeholder="Provide details of the violation" class="theme-input w-full p-2 border rounded-md min-h-[80px]"></textarea>
                 </div>
-
-                <div class="mb-4">
-                    <label class="theme-label block mb-2 font-medium">Signed?</label>
-                    <div class="radio-container">
-                        <input type="radio" id="signedYes" name="signedStatus" value="YES" checked>
-                        <label for="signedYes" class="theme-label">YES</label>
-                        <input type="radio" id="signedNo" name="signedStatus" value="NO">
-                        <label for="signedNo" class="theme-label">NO</label>
-                    </div>
-                </div>
-
-                <div id="notSignedReasonContainer" class="mb-4 hidden">
-                    <label for="notSignedReason" class="theme-label block mb-2 font-medium">Signature Override</label>
-                    <textarea id="notSignedReason" name="notSignedReason" placeholder="Ex. User Didn't Sign" class="theme-input w-full p-2 border rounded-md min-h-[60px]"></textarea>
-                </div>
                 
                 <div class="flex flex-wrap justify-center gap-4">
                     <button type="submit" class="theme-button-primary py-2 px-6 rounded-md font-semibold">Submit Citation</button>
@@ -207,12 +177,6 @@
             const officerNameInput = document.getElementById('officerName'); // Get the officer name input
             const officerDepartmentDisplayInput = document.getElementById('officerDepartmentDisplay'); // Get the department display input
 
-            // NEW Signed status elements
-            const signedYesRadio = document.getElementById('signedYes');
-            const signedNoRadio = document.getElementById('signedNo');
-            const notSignedReasonContainer = document.getElementById('notSignedReasonContainer');
-            const notSignedReasonInput = document.getElementById('notSignedReason');
-
 
             // Get logged in user info for auto-fill
             const loggedInUserString = sessionStorage.getItem('loggedInUser');
@@ -224,6 +188,10 @@
                 if (loggedInUser.badgeNumber) {
                     officerBadgeInput.value = loggedInUser.badgeNumber;
                 }
+                // REMOVED: Auto-fill officer name if available
+                // if (loggedInUser.username) {
+                //    officerNameInput.value = loggedInUser.username;
+                // }
                 // Get and display department
                 if (loggedInUser.department) {
                     userDepartment = loggedInUser.department;
@@ -422,23 +390,6 @@
                 }
             }
 
-            // --- NEW: Signed Status Logic ---
-            function toggleSignedReason() {
-                if (signedNoRadio.checked) {
-                    notSignedReasonContainer.classList.remove('hidden');
-                    notSignedReasonInput.setAttribute('required', 'required'); // Make required if 'NO'
-                } else {
-                    notSignedReasonContainer.classList.add('hidden');
-                    notSignedReasonInput.removeAttribute('required'); // Remove required if 'YES'
-                    notSignedReasonInput.value = ''; // Clear content when hidden
-                }
-            }
-
-            signedYesRadio.addEventListener('change', toggleSignedReason);
-            signedNoRadio.addEventListener('change', toggleSignedReason);
-            // Initial call to set correct state on page load
-            toggleSignedReason();
-
 
             // --- Initial Setup ---
             setupAutocompleteForInput(0); // <--- THIS LINE IS CRUCIAL FOR THE FIRST AUTOCOMPLETE INPUT
@@ -462,9 +413,6 @@
                         officerDepartmentDisplayInput.value = userDepartment; // Reset department display
                         calculateTotalAmountDue();
                         updateMainViolationType(); // Update after clear
-                        // Reset signed status
-                        signedYesRadio.checked = true;
-                        toggleSignedReason(); // Ensure reason textbox is hidden and cleared
                     }
                 });
             });
@@ -483,9 +431,6 @@
                 citationData.violationDetails = document.getElementById('violationDetails').value;
                 citationData.violationType = mainViolationTypeInput.value;
                 citationData.department = userDepartment; // Pass department to the submission data
-                citationData.signedStatus = document.querySelector('input[name="signedStatus"]:checked').value; // NEW: Signed Status
-                citationData.notSignedReason = signedNoRadio.checked ? notSignedReasonInput.value : ''; // NEW: Reason if not signed
-
 
                 const appliedPenalCodes = [];
                 let overallTotalAmount = 0;
@@ -545,9 +490,6 @@
                             document.getElementById('amountDue_0').value = '0.00';
                             calculateTotalAmountDue();
                             updateMainViolationType(); // Ensure auto-filled fields are reset/updated correctly
-                            // Reset signed status
-                            signedYesRadio.checked = true;
-                            toggleSignedReason(); // Ensure reason textbox is hidden and cleared
                         });
                     } else if (response.status === 401 || response.status === 403) {
                         window.showCustomAlert("Authentication failed. Please log in again.", 'Error').then(() => {
