@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<link rel="icon" href="favicon.png" type="image/png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel</title>
@@ -42,9 +41,8 @@
             border: 1px solid var(--border-color);
             border-radius: 8px;
         }
-        /* The .hidden class is key for toggling visibility */
         .hidden {
-            display: none !important; /* Use !important to ensure it overrides other display properties */
+            display: none;
         }
         .action-buttons-group {
             display: flex;
@@ -59,43 +57,6 @@
         }
         .admin-section h3 {
             margin-bottom: 15px;
-        }
-
-        /* Styles for fullscreen image modal */
-        #fullscreenImageModal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: rgba(0, 0, 0, 0.9); /* Dark overlay */
-            display: flex; /* Use flex for centering content */
-            align-items: center;
-            justify-content: center;
-            z-index: 1000; /* High z-index to be on top */
-            /* Start hidden by default, JS will toggle 'hidden' class */
-            /* The 'display: none !important;' in .hidden class will control visibility */
-        }
-        #fullscreenImageModal img {
-            max-width: 90%;
-            max-height: 90%;
-            object-fit: contain; /* Ensure entire image is visible */
-        }
-        #closeFullscreenBtn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: none;
-            border: none;
-            font-size: 2em;
-            color: white;
-            cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 5px;
-            background-color: rgba(0,0,0,0.5);
-        }
-        #closeFullscreenBtn:hover {
-            background-color: rgba(0,0,0,0.7);
         }
     </style>
 </head>
@@ -167,8 +128,7 @@
                 <table class="admin-table" id="shiftLogsTable">
                     <thead>
                         <tr>
-                            <th><input type="checkbox" id="selectAllShiftLogs"></th>
-                            <th>ID</th>
+                            <th><input type="checkbox" id="selectAllShiftLogs"></th> <th>ID</th>
                             <th>Timestamp</th>
                             <th>Submitted By</th>
                             <th>Badge #</th>
@@ -181,7 +141,6 @@
                             <th>Citations</th>
                             <th>Arrests</th>
                             <th>Notes</th>
-                            <th>Screenshot</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -218,12 +177,6 @@
             </div>
         </div>
     </div>
-
-    <div id="fullscreenImageModal" class="hidden">
-        <button id="closeFullscreenBtn">X</button>
-        <img id="fullscreenImage" src="" alt="Full Screen Screenshot">
-    </div>
-
     <script>
         // Store the authentication token (global for this script)
         let authToken = sessionStorage.getItem('authToken');
@@ -246,8 +199,8 @@
             const deleteSelectedCitationsBtn = document.getElementById('deleteSelectedCitationsBtn');
 
             // Shift Log specific elements
-            const selectAllShiftLogsCheckbox = document.getElementById('selectAllShiftLogs');
-            const deleteSelectedShiftLogsBtn = document.getElementById('deleteSelectedShiftLogsBtn');
+            const selectAllShiftLogsCheckbox = document.getElementById('selectAllShiftLogs'); // New checkbox for shift logs
+            const deleteSelectedShiftLogsBtn = document.getElementById('deleteSelectedShiftLogsBtn'); // New button for shift logs
 
             // Filter elements
             const filterUsernameInput = document.getElementById('filterUsername');
@@ -263,11 +216,6 @@
             const importCsvBtn = document.getElementById('importCsvBtn');
             const penalCodeCsvText = document.getElementById('penalCodeCsvText');
             const pasteImportCsvBtn = document.getElementById('pasteImportCsvBtn');
-
-            // NEW: Fullscreen image modal elements
-            const fullscreenImageModal = document.getElementById('fullscreenImageModal');
-            const fullscreenImage = document.getElementById('fullscreenImage');
-            const closeFullscreenBtn = document.getElementById('closeFullscreenBtn');
 
             // --- Authentication and Authorization Check ---
             if (!authToken || !loggedInUser || loggedInUser.role !== 'admin') {
@@ -351,8 +299,7 @@
 
             // --- Fetch & Display Shift Logs Function with Filtering ---
             async function fetchAndDisplayShiftLogs() {
-                // Updated colspan to 15 (checkbox + existing 13 + screenshot)
-                shiftLogsTableBody.innerHTML = '<tr><td colspan="15" class="text-center theme-label">Loading shift logs...</td></tr>'; 
+                shiftLogsTableBody.innerHTML = '<tr><td colspan="14" class="text-center theme-label">Loading shift logs...</td></tr>'; // Updated colspan
                 adminInfoDisplay.textContent = 'Loading shift logs...';
 
                 const username = filterUsernameInput.value.trim();
@@ -384,8 +331,7 @@
                         shiftLogsTableBody.innerHTML = '';
 
                         if (shiftLogs.length === 0) {
-                            // Updated colspan to 15
-                            shiftLogsTableBody.innerHTML = '<tr><td colspan="15" class="text-center theme-label">No shift logs found matching criteria.</td></tr>'; 
+                            shiftLogsTableBody.innerHTML = '<tr><td colspan="14" class="text-center theme-label">No shift logs found matching criteria.</td></tr>'; // Updated colspan
                         } else {
                             shiftLogs.forEach(log => {
                                 const row = shiftLogsTableBody.insertRow();
@@ -404,18 +350,7 @@
                                     <td>${log.citations || 0}</td>
                                     <td>${log.arrests || 0}</td>
                                     <td>${log.additionalNotes || 'N/A'}</td>
-                                    <td>
-                                        ${log.screenshot ? `<img src="${log.screenshot}" alt="Screenshot" class="screenshot-thumbnail" style="max-width: 100px; max-height: 100px; cursor: pointer;">` : 'N/A'}
-                                    </td>
                                 `;
-                            });
-
-                            // Attach click listeners to new screenshot thumbnails after they are added
-                            document.querySelectorAll('.screenshot-thumbnail').forEach(img => {
-                                img.addEventListener('click', function() {
-                                    fullscreenImage.src = this.src;
-                                    fullscreenImageModal.classList.remove('hidden'); // REMOVE 'hidden' to show
-                                });
                             });
                         }
                         shiftLogCountDisplay.textContent = shiftLogs.length;
@@ -435,14 +370,12 @@
                     } else {
                         const errorData = await response.json();
                         window.showCustomAlert(`Error loading shift logs: ${errorData.message || response.statusText}. Please check Worker logs.`, 'Error');
-                        // Updated colspan to 15
-                        shiftLogsTableBody.innerHTML = `<tr><td colspan="15" class="text-center theme-label text-red-500">Error loading shift logs.</td></tr>`; 
+                        shiftLogsTableBody.innerHTML = `<tr><td colspan="14" class="text-center theme-label text-red-500">Error loading shift logs.</td></tr>`; // Updated colspan
                     }
                 } catch (error) {
                     console.error('Error fetching shift logs:', error);
                     window.showCustomAlert('Network error: Could not connect to the Worker to fetch shift logs.', 'Error');
-                    // Updated colspan to 15
-                    shiftLogsTableBody.innerHTML = `<tr><td colspan="15" class="text-center theme-label text-red-500">Network Error. Check console.</td></tr>`; 
+                    shiftLogsTableBody.innerHTML = `<tr><td colspan="14" class="text-center theme-label text-red-500">Network Error. Check console.</td></tr>`; // Updated colspan
                 } finally {
                     adminInfoDisplay.textContent = `Welcome, Admin ${loggedInUser.username} (Badge: ${loggedInUser.badgeNumber})!`;
                 }
@@ -720,41 +653,23 @@
 
             // --- Filter Event Listeners ---
             applyFilterBtn.addEventListener('click', function() {
-                fetchAndDisplayCitations();
+                // When applying filter, reload both tables with current filter values
+                fetchAndDisplayCitations(); // Citations don't filter on frontend, so this just refreshes
                 fetchAndDisplayShiftLogs();
             });
 
             clearFilterBtn.addEventListener('click', function() {
                 filterUsernameInput.value = '';
                 filterDepartmentInput.value = '';
+                // Reload both tables without filters
                 fetchAndDisplayCitations();
                 fetchAndDisplayShiftLogs();
             });
 
             refreshButton.addEventListener('click', function() {
+                // Preserve existing filters on refresh
                 fetchAndDisplayCitations();
                 fetchAndDisplayShiftLogs();
-            });
-
-            // --- Fullscreen Image Modal Event Listeners ---
-            closeFullscreenBtn.addEventListener('click', function() {
-                fullscreenImageModal.classList.add('hidden'); // ADD 'hidden' to hide
-                fullscreenImage.src = ''; // Clear the image source
-            });
-
-            fullscreenImageModal.addEventListener('click', function(event) {
-                // Close modal if clicked outside the image itself
-                if (event.target === fullscreenImageModal) {
-                    fullscreenImageModal.classList.add('hidden');
-                    fullscreenImage.src = '';
-                }
-            });
-            // Listen for Escape key to close the modal
-            document.addEventListener('keydown', function(event) {
-                if (event.key === 'Escape' && !fullscreenImageModal.classList.contains('hidden')) {
-                    fullscreenImageModal.classList.add('hidden');
-                    fullscreenImage.src = '';
-                }
             });
 
             // --- Initial Load ---
@@ -762,21 +677,5 @@
             fetchAndDisplayShiftLogs(); // Load shift logs on page load
         });
     </script>
-		<footer class="app-footer theme-label text-sm mt-8 pb-4">
-    <div class="footer-content">
-        <div class="footer-credits">
-            <p><strong>Developed by:</strong></p>
-            <p>Bober (Habibibi_Habibibi) - Main Developer</p>
-            <p>GeoYT2010 - Alpha Tester, Secondary Developer</p>
-            <p class="mt-4"><strong>Special thanks to:</strong></p>
-            <p>Beta Testers - Making the site bug-free</p>
-            <p>Ethan (ethanbegley17awsome) - Configuring the Webhook in LE Database</p>
-        </div>
-        <div class="footer-community">
-            <p><a href="https://discord.gg/sgr" target="_blank" class="theme-link">discord.gg/sgr</a></p>
-            <p>Made for Shadow Greenville Roleplay</p>
-        </div>
-    </div>
-</footer>
 </body>
 </html>
