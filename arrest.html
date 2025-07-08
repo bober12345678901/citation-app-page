@@ -78,6 +78,44 @@
             height: 20px;
             accent-color: var(--accent-color); /* Colors the checkbox itself */
         }
+        /* Styles for the image upload/paste area */
+        .image-preview-container {
+            margin-top: 1rem;
+            border: 1px dashed var(--border-color);
+            padding: 1rem;
+            text-align: center;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: color-mix(in srgb, var(--background-color) 95%, var(--border-color));
+            border-radius: 0.375rem; /* rounded-md */
+        }
+        .image-preview-container img {
+            max-width: 100%;
+            max-height: 200px; /* Limit preview height */
+            object-fit: contain;
+            border-radius: 0.375rem;
+        }
+        .image-preview-container p {
+            color: var(--text-color);
+        }
+        #pasteMugshotTarget {
+            border: 1px dashed var(--border-color);
+            min-height: 50px;
+            padding: 10px;
+            text-align: center;
+            line-height: 30px;
+            cursor: pointer;
+            color: var(--text-color);
+            background-color: color-mix(in srgb, var(--input-bg-color) 90%, var(--border-color));
+            border-radius: 0.375rem;
+            margin-top: 0.5rem;
+        }
+        #pasteMugshotTarget:focus {
+            outline: 2px solid var(--accent-color);
+            border-color: var(--accent-color);
+        }
     </style>
 </head>
 <body class="min-h-screen theme-app-container">
@@ -146,6 +184,17 @@
                         <label for="warrantNeeded" class="theme-label block font-medium">Warrant Needed</label>
                     </div>
                 </div>
+                <div class="mb-4">
+                    <label for="mugshotUpload" class="theme-label block mb-2 font-medium">Upload Mugshot (Optional):</label>
+                    <input type="file" id="mugshotUpload" name="mugshotUpload" accept="image/*" class="theme-input w-full p-2 border rounded-md">
+                    <p class="theme-label-small mt-2 text-center">OR</p>
+                    <div id="pasteMugshotTarget" tabindex="0" class="theme-input">
+                        Paste mugshot image here (Ctrl+V or Cmd+V)
+                    </div>
+                    <div id="mugshotPreview" class="image-preview-container">
+                        <p class="theme-label-small text-gray-500">No image selected</p>
+                    </div>
+                </div>
                 <div class="mb-6">
                     <label for="incidentDetails" class="theme-label block mb-2 font-medium">Description/Mugshot (or just description):</label>
                     <textarea id="incidentDetails" name="incidentDetails" placeholder="Provide detailed account of the incident leading to arrest, or description/mugshot details" required class="theme-input w-full p-2 border rounded-md min-h-[120px]"></textarea>
@@ -195,6 +244,12 @@
             const yourUsernameInput = document.getElementById('yourUsername'); // Get your username input
             const officerDepartmentDisplayInput = document.getElementById('officerDepartmentDisplay'); // Get the department display input
             const ranksInput = document.getElementById('ranks'); // Get the ranks input element here
+
+            // NEW Mugshot elements
+            const mugshotUploadInput = document.getElementById('mugshotUpload');
+            const pasteMugshotTargetDiv = document.getElementById('pasteMugshotTarget');
+            const mugshotPreviewDiv = document.getElementById('mugshotPreview');
+            let mugshotBase64 = null; // Variable to store Base64 string for mugshot
 
 
             // Get logged in user info for auto-fill
@@ -380,6 +435,64 @@
                 totalFinesSumInput.value = `$${totalFines.toFixed(2)}`;
             }
 
+            // --- NEW Mugshot Image Handling ---
+            function processMugshotFile(file) {
+                if (!file.type.startsWith('image/')) {
+                    window.showCustomAlert('Please select an image file (e.g., JPG, PNG, GIF).', 'Invalid File Type');
+                    mugshotUploadInput.value = '';
+                    mugshotPreviewDiv.innerHTML = '<p class="theme-label-small text-gray-500">No image selected</p>';
+                    mugshotBase64 = null;
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    mugshotBase64 = e.target.result; // Store Base64 string
+                    mugshotPreviewDiv.innerHTML = `<img src="${mugshotBase64}" alt="Mugshot Preview">`;
+                    mugshotUploadInput.value = ''; // Clear file input
+                };
+                reader.readAsDataURL(file); // Read file as Data URL (Base64)
+            }
+
+            mugshotUploadInput.addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    processMugshotFile(file);
+                } else {
+                    mugshotPreviewDiv.innerHTML = '<p class="theme-label-small text-gray-500">No image selected</p>';
+                    mugshotBase64 = null;
+                }
+            });
+
+            pasteMugshotTargetDiv.addEventListener('paste', function(event) {
+                event.preventDefault(); // Prevent default paste behavior
+
+                const items = event.clipboardData.items;
+                for (let i = 0; i < items.length; i++) {
+                    if (items[i].type.indexOf('image') !== -1) {
+                        const file = items[i].getAsFile();
+                        if (file) {
+                            processMugshotFile(file);
+                            return; // Stop after finding the first image
+                        }
+                    }
+                }
+                window.showCustomAlert('No image found in clipboard to paste.', 'Paste Error');
+                mugshotPreviewDiv.innerHTML = '<p class="theme-label-small text-gray-500">No image selected</p>';
+                mugshotBase64 = null;
+            });
+
+            // Make the paste target div focusable and give it a hint
+            pasteMugshotTargetDiv.setAttribute('tabindex', '0');
+            pasteMugshotTargetDiv.addEventListener('focus', () => {
+                pasteMugshotTargetDiv.textContent = 'Ready to paste...';
+            });
+            pasteMugshotTargetDiv.addEventListener('blur', () => {
+                if (!mugshotBase64) {
+                    pasteMugshotTargetDiv.textContent = 'Paste mugshot image here (Ctrl+V or Cmd+V)';
+                }
+            });
+
             // --- Initial Setup ---
             setupAutocompleteForChargeInput(0); // <--- THIS LINE IS CRUCIAL FOR THE FIRST AUTOCOMPLETE INPUT
             addChargeBtn.addEventListener('click', () => addChargeGroup());
@@ -403,6 +516,11 @@
                         officerDepartmentDisplayInput.value = userDepartment; // Reset department display
                         calculateTotalJailTime();
                         calculateTotalFines();
+                        // Clear mugshot
+                        mugshotUploadInput.value = '';
+                        mugshotPreviewDiv.innerHTML = '<p class="theme-label-small text-gray-500">No image selected</p>';
+                        pasteMugshotTargetDiv.textContent = 'Paste mugshot image here (Ctrl+V or Cmd+V)';
+                        mugshotBase64 = null;
                     }
                 });
             });
@@ -422,6 +540,7 @@
                 arrestData.incidentDetails = document.getElementById('incidentDetails').value;
                 arrestData.warrantNeeded = warrantNeededCheckbox.checked; // Capture checkbox value
                 arrestData.department = userDepartment; // Pass department to the submission data
+                arrestData.mugshot = mugshotBase64; // NEW: Include mugshot Base64
 
                 const appliedCharges = [];
                 let overallTotalJailTime = 0;
@@ -460,6 +579,13 @@
                     );
                     return; // Prevent form submission
                 }
+
+                // Mugshot size validation
+                if (mugshotBase64 && mugshotBase64.length * 0.75 > 20 * 1024 * 1024) { // Roughly 20MB limit for KV value
+                    window.showCustomAlert("Mugshot file is too large. Please upload an image smaller than 20MB.", "File Size Error");
+                    return;
+                }
+
 
                 arrestData.appliedCharges = appliedCharges;
                 arrestData.totalJailTime = overallTotalJailTime;
@@ -509,6 +635,11 @@
                                 document.getElementById('jailTime_0').value = '0';
                                 calculateTotalJailTime();
                                 calculateTotalFines(); // Ensure auto-filled fields are reset/updated correctly
+                                // Clear mugshot
+                                mugshotUploadInput.value = '';
+                                mugshotPreviewDiv.innerHTML = '<p class="theme-label-small text-gray-500">No image selected</p>';
+                                pasteMugshotTargetDiv.textContent = 'Paste mugshot image here (Ctrl+V or Cmd+V)';
+                                mugshotBase64 = null;
                             }
                         });
                     } else if (response.status === 401 || response.status === 403) {
