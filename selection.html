@@ -37,12 +37,14 @@
             </p>
 
             <div class="main-button-grid">
-                <a href="citation.html" class="theme-button-primary block w-full p-3 rounded-md font-semibold">Go to Citation Form</a>
-                <a href="arrest.html" class="theme-button-primary block w-full p-3 rounded-md font-semibold">Go to Arrest Form</a>
-                <a href="shift_log.html" id="shiftLogLink" class="theme-button-primary block w-full p-3 rounded-md font-semibold">Submit Shift Log</a>
-                <a href="warrant_log.html" class="theme-button-primary block w-full p-3 rounded-md font-semibold">Warrant Log</a> </div>
+                <a href="citation.html" class="theme-button-primary block w-full p-3 rounded-md font-semibold">Citation Form</a>
+                <a href="shift_log.html" id="shiftLogLink" class="theme-button-primary block w-full p-3 rounded-md font-semibold">Shift Log</a>
+                <a href="arrest.html" class="theme-button-primary block w-full p-3 rounded-md font-semibold">Arrest Form</a>
+                <a href="warrant_log.html" class="theme-button-primary block w-full p-3 rounded-md font-semibold">Warrant Log</a> 
+            </div>
 
             <div class="admin-logout-row mt-4">
+                <!-- Admin Panel and Logout buttons will be shown/hidden by JavaScript -->
                 <a href="admin.html" id="adminPanelLink" class="theme-button-secondary py-3 px-6 rounded-md font-semibold hidden">Admin Panel</a>
                 <button id="logoutButton" class="theme-button-secondary py-3 px-6 rounded-md font-semibold hidden">Logout</button>
             </div>
@@ -84,14 +86,15 @@
             } else {
                 userInfoDisplay.textContent = `Welcome, Officer ${userInfo.username} (Badge: ${userInfo.badgeNumber})!`;
                 
-                // NEW: Conditional display for Admin Panel and Logout buttons
+                // Conditional display for Admin Panel and Logout buttons
                 if (userInfo.role === 'admin') {
-                    adminPanelLink.classList.remove('hidden'); // Show Admin Panel
-                    logoutButton.classList.remove('hidden'); // Show Logout beside it
+                    // For admin, show Admin Panel and Logout
+                    adminPanelLink.classList.remove('hidden'); 
+                    logoutButton.classList.remove('hidden'); 
                 } else {
-                    // If not admin, hide Admin Panel and show Logout button in its place
-                    adminPanelLink.classList.add('hidden'); // Ensure hidden if not admin
-                    logoutButton.classList.remove('hidden'); // Show logout for non-admins
+                    // For normal user, hide Admin Panel and show only Logout
+                    adminPanelLink.classList.add('hidden'); 
+                    logoutButton.classList.remove('hidden'); 
                 }
             }
 
