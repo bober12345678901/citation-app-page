@@ -178,24 +178,56 @@ html.dark {
 /* Apply variables to Tailwind classes */
 .theme-app-container {
     background-color: var(--bg-color);
-    flex-grow: 1;
+    flex-grow: 1; /* Allows this container to stretch and push footer down */
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
+    flex-direction: column; /* Stack content within this container */
+    align-items: center; /* Center content horizontally */
+    /* REMOVED: justify-content: center; - This was causing the vertical centering that pushes up content */
+    padding-top: 2rem; /* ADDED: Global top padding for all pages using this container */
+    padding-bottom: 2rem; /* ADDED: Global bottom padding for all pages using this container */
+    box-sizing: border-box; /* Ensure padding is included in the element's total height/width */
+    width: 100%; /* Ensure it takes full width */
 }
 
 .theme-lookup-box {
-    background-color: var(--box-bg-color); /* This is correct for the central box */
+    background-color: var(--box-bg-color);
     border-color: var(--border-color);
-    max-width: 500px;
+    max-width: 500px; /* Default max-width for smaller forms/UIs like selection */
     width: 100%;
     box-sizing: border-box;
     padding: 2rem;
     border-radius: 0.5rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    margin-bottom: 2rem;
+    margin-top: 0; /* Ensures it doesn't add extra margin above */
+    margin-bottom: 0; /* Ensures it doesn't add extra margin below */
+    /* Removed explicit margins here as padding on theme-app-container or specific wrapper will handle spacing */
+}
+
+/* Specific styling for the Shift Log Form's main content wrapper */
+/* This targets the div with classes "flex items-center justify-center min-h-screen w-full py-8"
+   in your shift_log.html, or if you apply a custom class to it. */
+/* If you added `shift-log-form-wrapper` class to your HTML, use that selector. */
+/* Example: .shift-log-form-wrapper { ... } */
+/* Otherwise, this selector targets the first direct div child within theme-app-container */
+.theme-app-container > div:first-child { /* Using first-child for generality, but a specific class is better */
+    min-height: unset !important; /* Override Tailwind's min-h-screen to prevent vertical overflow */
+    /* REMOVED: padding-top: 2rem !important; and padding-bottom: 2rem !important; */
+    /* The padding is now handled by .theme-app-container */
+    width: 100%; /* Ensure it takes full width within its flex parent */
+    display: flex; /* Keep flex for horizontal centering of the lookup box */
+    align-items: center; /* Keep for vertical alignment of its content */
+    justify-content: center; /* Keep for horizontal centering of its content */
+    box-sizing: border-box;
+    /* Optional: If you want more space specifically above/below the form on LONG forms, use margin-top/bottom here */
+    /* margin-top: 1rem; */
+    /* margin-bottom: 1rem; */
+}
+
+
+/* IMPORTANT: Override the max-width for the shift log form specifically */
+/* Apply this to the .theme-lookup-box when it's inside the shift log wrapper */
+.theme-app-container > div:first-child .theme-lookup-box {
+    max-width: 600px; /* Increased max-width for wider forms like shift log */
 }
 
 
@@ -333,33 +365,33 @@ pre {
 /* HTML and Body for full height and flex layout */
 html, body {
     height: 100%;
-    margin: 0 !important; /* Force remove all margins */
-    padding: 0 !important; /* Force remove all paddings */
-    overflow-x: hidden; /* Prevents horizontal scrollbar from appearing */
-    border: none !important; /* No borders on html/body */
-    outline: none !important; /* No outlines on html/body */
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow-x: hidden;
+    border: none !important;
+    outline: none !important;
 }
 
 body {
     display: flex;
-    flex-direction: column; /* Stacks main content and footer vertically */
-    background-color: var(--bg-color); /* Sets the main background for the entire page */
-    min-height: 100vh; /* Ensures body is at least full viewport height */
+    flex-direction: column;
+    background-color: var(--bg-color);
+    min-height: 100vh;
 }
 
 /* App Footer Styles */
 .app-footer {
     background-color: var(--box-bg-color); /* Use --box-bg-color for the slightly darker background */
     color: var(--text-color);
-    /* border-top was removed previously for seamless top transition */
-    border: none !important; /* Ensure no borders on the footer itself */
-    outline: none !important; /* Ensure no outlines on the footer itself */
+    border: none !important;
+    outline: none !important;
     padding: 1.5rem 1rem;
-    width: 100vw; /* Use 100vw to guarantee full viewport width */
+    width: 100vw;
     flex-shrink: 0;
-    box-sizing: border-box; /* Includes padding in width calculation, preventing overflow */
-    margin-top: auto; /* PUSHES THE FOOTER TO THE VERY BOTTOM */
-    position: relative; /* Sometimes helps with rendering issues at edges */
+    box-sizing: border-box;
+    margin-top: auto;
+    position: relative;
+    z-index: 10;
 }
 
 .app-footer .footer-content {
