@@ -76,6 +76,7 @@
             </div>
         </div>
     </div>
+
     <script>
         document.getElementById('loginForm').addEventListener('submit', async function(event) {
             event.preventDefault(); // Prevent default form submission
@@ -125,8 +126,6 @@
                 window.showCustomAlert('An error occurred during login. Check console for details.', 'Error');
             }
         });
-
-        // REMOVED: The event listener for forgotPasswordBtn is no longer needed as it's a direct link.
     </script>
 </body>
 </html>
