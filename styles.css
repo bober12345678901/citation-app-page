@@ -182,12 +182,13 @@ html.dark {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 20px;
+    /* justify-content: center; REMOVED: This was causing the vertical centering that pushes up the content */
+    padding: 20px; /* Base padding for the container */
+    padding-top: 40px; /* ADDED: More specific padding for the top of the page content */
 }
 
 .theme-lookup-box {
-    background-color: var(--box-bg-color); /* This is correct for the central box */
+    background-color: var(--box-bg-color);
     border-color: var(--border-color);
     max-width: 500px;
     width: 100%;
@@ -195,7 +196,21 @@ html.dark {
     padding: 2rem;
     border-radius: 0.5rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    margin-bottom: 2rem;
+    /* margin-bottom: 2rem; This is okay, or can be removed if footer's margin-top: auto is sufficient */
+}
+
+/* Specific styling for the Shift Log Form's main content wrapper to ensure spacing */
+/* This targets the div with classes "flex items-center justify-center min-h-screen w-full py-8"
+   in your shift_log.html. We want to remove the min-h-screen and py-8 from HTML and manage spacing here. */
+.theme-app-container > div:first-of-type { /* Adjust this selector if it doesn't precisely target your main content wrapper */
+    /* If this div still has min-h-screen from HTML, override it here */
+    min-height: unset !important; /* Important to stop it from forcing its own height */
+    padding-top: 2rem !important; /* Ensure ample space from the top, overrides py-8 from Tailwind */
+    padding-bottom: 2rem !important; /* Ensure ample space from the bottom */
+    width: 100%; /* Ensure it takes full width */
+    display: flex; /* Keep flex for horizontal centering of the lookup box */
+    align-items: center; /* Align items for vertical centering if needed */
+    justify-content: center; /* Center horizontally */
 }
 
 
@@ -256,7 +271,7 @@ pre {
     margin: 0;
 }
 
-/* Modal styles */
+/* Modal styles (no change needed here) */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -333,33 +348,33 @@ pre {
 /* HTML and Body for full height and flex layout */
 html, body {
     height: 100%;
-    margin: 0 !important; /* Force remove all margins */
-    padding: 0 !important; /* Force remove all paddings */
-    overflow-x: hidden; /* Prevents horizontal scrollbar from appearing */
-    border: none !important; /* No borders on html/body */
-    outline: none !important; /* No outlines on html/body */
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow-x: hidden;
+    border: none !important;
+    outline: none !important;
 }
 
 body {
     display: flex;
-    flex-direction: column; /* Stacks main content and footer vertically */
-    background-color: var(--bg-color); /* Sets the main background for the entire page */
-    min-height: 100vh; /* Ensures body is at least full viewport height */
+    flex-direction: column;
+    background-color: var(--bg-color);
+    min-height: 100vh;
 }
 
 /* App Footer Styles */
 .app-footer {
-    background-color: var(--box-bg-color); /* Use --box-bg-color for the slightly darker background */
+    background-color: var(--box-bg-color); /* Retained: Slightly darker background */
     color: var(--text-color);
-    /* border-top was removed previously for seamless top transition */
     border: none !important; /* Ensure no borders on the footer itself */
     outline: none !important; /* Ensure no outlines on the footer itself */
     padding: 1.5rem 1rem;
     width: 100vw; /* Use 100vw to guarantee full viewport width */
     flex-shrink: 0;
-    box-sizing: border-box; /* Includes padding in width calculation, preventing overflow */
+    box-sizing: border-box;
     margin-top: auto; /* PUSHES THE FOOTER TO THE VERY BOTTOM */
-    position: relative; /* Sometimes helps with rendering issues at edges */
+    position: relative;
+    z-index: 10; /* Give footer a z-index to ensure it's on top if something overlaps at the bottom */
 }
 
 .app-footer .footer-content {
