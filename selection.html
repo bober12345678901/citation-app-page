@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="icon" href="favicon.png" type="image/png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Select Form</title>
@@ -11,24 +12,42 @@
         a {
             text-decoration: none;
         }
+        /* Additional styling for the button grid if default Tailwind isn't enough */
+        .main-button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Responsive 2-column grid */
+            gap: 1rem; /* Space between buttons */
+            margin-bottom: 2rem; /* Space below the grid */
+        }
+        .admin-logout-row {
+            display: flex;
+            justify-content: center; /* Center the buttons within this row */
+            gap: 1rem; /* Space between Admin and Logout buttons */
+            flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+        }
     </style>
 </head>
-<body class="min-h-screen theme-app-container flex items-center justify-center">
-    <div class="theme-lookup-box p-8 rounded-xl shadow-lg w-full max-w-md mx-4 sm:mx-auto text-center transition-colors duration-300 border border-solid my-auto">
-        <h2 class="theme-title text-3xl font-bold mb-8">Choose Your Form</h2>
-        
-        <p class="theme-label mb-4" id="userInfo">
-            Welcome, Officer!
-        </p>
+<body class="min-h-screen theme-app-container">
+    <div class="main-content-area">
+        <div class="theme-lookup-box p-8 rounded-xl shadow-lg w-full max-w-md mx-4 sm:mx-auto text-center transition-colors duration-300 border border-solid">
+            <h2 class="theme-title text-3xl font-bold mb-8">Choose Your Form</h2>
+            
+            <p class="theme-label mb-4" id="userInfo">
+                Welcome, Officer!
+            </p>
 
-        <a href="citation.html" class="theme-button-primary block w-full p-3 mb-4 rounded-md font-semibold">Go to Citation Form</a>
-        <a href="arrest.html" class="theme-button-primary block w-full p-3 mb-4 rounded-md font-semibold">Go to Arrest Form</a>
-        
-        <a href="shift_log.html" id="shiftLogLink" class="theme-button-primary block w-full p-3 mb-4 rounded-md font-semibold">Submit Shift Log</a>
-        <a href="admin.html" id="adminPanelLink" class="theme-button-secondary block w-full p-3 mb-4 rounded-md font-semibold hidden">Admin Panel</a>
-        
-        <button id="logoutButton" class="theme-button-secondary w-full p-3 mt-4 rounded-md font-semibold">Logout</button>
-        <a href="index.html" class="theme-label inline-block text-sm mt-4 hover:underline hidden" id="backToLoginLink">Back to Login</a>
+            <div class="main-button-grid">
+                <a href="citation.html" class="theme-button-primary block w-full p-3 rounded-md font-semibold">Go to Citation Form</a>
+                <a href="arrest.html" class="theme-button-primary block w-full p-3 rounded-md font-semibold">Go to Arrest Form</a>
+                <a href="shift_log.html" id="shiftLogLink" class="theme-button-primary block w-full p-3 rounded-md font-semibold">Submit Shift Log</a>
+                <a href="warrant_log.html" class="theme-button-primary block w-full p-3 rounded-md font-semibold">Warrant Log</a> </div>
+
+            <div class="admin-logout-row mt-4">
+                <a href="admin.html" id="adminPanelLink" class="theme-button-secondary py-3 px-6 rounded-md font-semibold hidden">Admin Panel</a>
+                <button id="logoutButton" class="theme-button-secondary py-3 px-6 rounded-md font-semibold hidden">Logout</button>
+            </div>
+
+        </div>
     </div>
 
     <div id="customModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
@@ -41,6 +60,7 @@
             </div>
         </div>
     </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const token = sessionStorage.getItem('authToken');
@@ -53,33 +73,33 @@
             const userInfoDisplay = document.getElementById('userInfo');
             const logoutButton = document.getElementById('logoutButton');
             const adminPanelLink = document.getElementById('adminPanelLink');
-            // No longer need to get shiftLogLink as it will always be visible
-
+            
             // Authentication check
             if (!token || !userInfo) {
                 window.showCustomAlert("You must be logged in to access this page.", "Authentication Error").then(() => {
                     sessionStorage.clear();
-                    window.location.href = 'index.html'; // Redirect after OK is clicked
+                    window.location.href = 'index.html';
                 });
                 return;
             } else {
                 userInfoDisplay.textContent = `Welcome, Officer ${userInfo.username} (Badge: ${userInfo.badgeNumber})!`;
                 
-                // Show Admin Panel link only if user role is 'admin'
+                // NEW: Conditional display for Admin Panel and Logout buttons
                 if (userInfo.role === 'admin') {
-                    adminPanelLink.classList.remove('hidden');
-                    // Removed: shiftLogLink.classList.remove('hidden'); // This line is now removed
+                    adminPanelLink.classList.remove('hidden'); // Show Admin Panel
+                    logoutButton.classList.remove('hidden'); // Show Logout beside it
                 } else {
+                    // If not admin, hide Admin Panel and show Logout button in its place
                     adminPanelLink.classList.add('hidden'); // Ensure hidden if not admin
-                    // Removed: shiftLogLink.classList.add('hidden'); // This line is now removed
+                    logoutButton.classList.remove('hidden'); // Show logout for non-admins
                 }
             }
 
             // Logout Functionality
             logoutButton.addEventListener('click', function() {
-                window.showCustomAlert("You have been logged out.", "Information").then(() => { // Custom alert
-                    sessionStorage.clear(); // Clear all session data
-                    window.location.href = 'index.html'; // Redirect after OK is clicked
+                window.showCustomAlert("You have been logged out.", "Information").then(() => {
+                    sessionStorage.clear();
+                    window.location.href = 'index.html';
                 });
             });
         });
