@@ -23,7 +23,7 @@ html.dark {
     --bg-color: #111827; /* Main dark background */
     --text-color: #f9fafb;
     --accent-color: #2563eb;
-    --box-bg-color: #1f2937; /* Darker box background, used for things like modal/lookup box */
+    --box-bg-color: #1f2937; /* This is the slightly darker background for boxes/footer */
     --border-color: #374151;
     --input-bg-color: #374151;
     --input-text-color: #f9fafb;
@@ -35,8 +35,8 @@ html.dark {
     --button-danger-hover-bg: #991b1b;
 }
 
-/* Custom theme classes based on your themePresets. */
-/* These classes will be added to the <body> element by JavaScript. */
+/* Custom theme classes based on your themePresets.
+   These classes will be added to the <body> element by JavaScript. */
 
 /* Light Theme (default) */
 .theme-light {
@@ -187,7 +187,7 @@ html.dark {
 }
 
 .theme-lookup-box {
-    background-color: var(--box-bg-color);
+    background-color: var(--box-bg-color); /* This is correct for the central box */
     border-color: var(--border-color);
     max-width: 500px;
     width: 100%;
@@ -347,14 +347,16 @@ body {
 
 /* App Footer Styles */
 .app-footer {
-    background-color: var(--bg-color); /* Use --bg-color for seamless blending with body */
+    background-color: var(--box-bg-color); /* RESTORED: Use --box-bg-color for slightly darker background */
     color: var(--text-color);
     /* border-top was removed previously for seamless top transition */
     padding: 1.5rem 1rem;
     width: 100%; /* Ensures it spans the full width of the viewport */
     flex-shrink: 0; /* Prevents the footer from shrinking */
     box-sizing: border-box; /* Includes padding in width calculation, preventing overflow */
-    /* margin-top: auto; This is useful, but the min-height on body + flex-grow on content should handle it reliably */
+    margin-top: auto; /* PUSHES THE FOOTER TO THE VERY BOTTOM */
+    /* Add a subtle shadow if desired to enhance the 'box' but without a visible border line */
+    /* box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2); Uncomment for a subtle top shadow */
 }
 
 .app-footer .footer-content {
