@@ -23,7 +23,7 @@
             /* Fill will be set by JS using SVG gradient */
         }
         .axis text {
-            font-size: 1rem; /* Made text bigger: from 0.9rem to 1rem */
+            font-size: 1.1rem; /* Made text bigger: from 1rem to 1.1rem */
             fill: var(--text-color); /* Ensured it uses theme text color */
         }
         .axis line, .axis path {
@@ -208,7 +208,7 @@
                     // Fetch Shift Logs
                     const shiftLogsResponse = await fetch('https://citation-app-worker.pnbober.workers.dev/shift-logs', { headers });
                     if (shiftLogsResponse.ok) {
-                        const shiftLogs = await shiftLogsResponse.json();
+                        const shiftLogs = await shiftLogs.json();
                         shiftCount = shiftLogs.length;
                     } else {
                         const errorData = await shiftLogsResponse.json();
