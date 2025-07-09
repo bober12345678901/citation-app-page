@@ -39,9 +39,9 @@
         }
         /* Style for the numerical labels below the bars */
         .bar-value-label {
-            font-size: 1rem; /* Smaller font size for numbers below bars */
+            font-size: 1.25rem; /* Made text bigger: from 1rem to 1.25rem */
             font-weight: bold;
-            fill: var(--text-color); /* Use theme text color */
+            fill: var(--text-color); /* Ensured it uses theme text color */
         }
     </style>
 </head>
@@ -50,20 +50,6 @@
         <div class="theme-lookup-box p-8 rounded-xl shadow-lg w-full max-w-2xl mx-4 sm:mx-auto transition-colors duration-300 border border-solid">
             <h2 class="theme-title text-3xl font-bold text-center mb-6">My Statistics</h2>
             <p class="theme-label text-center mb-6" id="loggedInUserDisplay">Loading user data...</p>
-
-            <!-- Removed the individual stat-card divs -->
-            <!--
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <div class="stat-card">
-                    <div class="stat-value" id="citationCount">0</div>
-                    <div class="stat-label">Citations Filed</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="shiftCount">0</div>
-                    <div class="stat-label">Shift Logs Filed</div>
-                </div>
-            </div>
-            -->
 
             <div class="mb-8">
                 <h3 class="theme-label font-bold text-lg mb-4 text-center">Activity Overview</h3>
@@ -94,7 +80,6 @@
             const token = sessionStorage.getItem('authToken');
             const loggedInUserString = sessionStorage.getItem('loggedInUser');
             const loggedInUserDisplay = document.getElementById('loggedInUserDisplay');
-            // Removed references to citationCountElement and shiftCountElement
             const chartContainer = document.getElementById('chart');
 
             if (!token || !loggedInUserString) {
@@ -214,12 +199,10 @@
                     if (citationsResponse.ok) {
                         const citations = await citationsResponse.json();
                         citationCount = citations.length;
-                        // citationCountElement.textContent = citationCount; // Removed
                     } else {
                         const errorData = await citationsResponse.json();
                         console.error('Failed to fetch citations:', errorData);
                         window.showCustomAlert('Failed to load citation data: ' + (errorData.message || citationsResponse.statusText), 'Error');
-                        // citationCountElement.textContent = 'N/A'; // Removed
                     }
 
                     // Fetch Shift Logs
@@ -227,12 +210,10 @@
                     if (shiftLogsResponse.ok) {
                         const shiftLogs = await shiftLogsResponse.json();
                         shiftCount = shiftLogs.length;
-                        // shiftCountElement.textContent = shiftCount; // Removed
                     } else {
                         const errorData = await shiftLogsResponse.json();
                         console.error('Failed to fetch shift logs:', errorData);
                         window.showCustomAlert('Failed to load shift log data: ' + (errorData.message || shiftLogsResponse.statusText), 'Error');
-                        // shiftCountElement.textContent = 'N/A'; // Removed
                     }
 
                     // Prepare data for the chart
@@ -245,7 +226,6 @@
                 } catch (error) {
                     console.error('Network error fetching statistics:', error);
                     window.showCustomAlert('Network error: Could not load statistics.', 'Error');
-                    // Removed setting N/A for individual counters
                 }
             }
 
