@@ -81,9 +81,11 @@
             const loggedInUserDisplay = document.getElementById('loggedInUserDisplay');
             const citationCountElement = document.getElementById('citationCount');
             const shiftCountElement = document.getElementById('shiftCount');
-            // const chartContainer = document.getElementById('chart'); // Removed
+
+            console.log("[Statistics Page Debug] DOMContentLoaded fired.");
 
             if (!token || !loggedInUserString) {
+                console.log("[Statistics Page Debug] No token or loggedInUserString found. Redirecting to login.");
                 window.showCustomAlert("You must be logged in to view statistics.", "Authentication Error").then(() => {
                     sessionStorage.clear();
                     window.location.href = 'index.html';
@@ -92,14 +94,13 @@
             }
 
             const loggedInUser = JSON.parse(loggedInUserString);
+            console.log("[Statistics Page Debug] LoggedInUser:", loggedInUser);
             loggedInUserDisplay.textContent = `Statistics for: ${loggedInUser.username} (Badge: ${loggedInUser.badgeNumber})`;
 
             const headers = {
                 'Authorization': `Bearer ${token}`
             };
 
-            // The drawChart function has been removed
-            
             // Function to fetch and display counts
             async function fetchAndDisplayCounts() {
                 let citationCount = 0;
@@ -108,51 +109,57 @@
                 let shiftLogs = [];
 
                 try {
+                    console.log("[Statistics Page Debug] Attempting to fetch citations...");
                     // Fetch Citations
                     const citationsResponse = await fetch('https://citation-app-worker.pnbober.workers.dev/citations', { headers });
+                    console.log("[Statistics Page Debug] Citations response status:", citationsResponse.status);
+
                     if (citationsResponse.ok) {
                         citations = await citationsResponse.json();
+                        console.log("[Statistics Page Debug] Raw citations data fetched:", citations);
                         // Client-side filter for logged-in user's citations
                         const loggedInUsernameLower = loggedInUser.username.toLowerCase();
                         citations = citations.filter(c => c.submittedBy && c.submittedBy.toLowerCase() === loggedInUsernameLower);
                         citationCount = citations.length;
                         citationCountElement.textContent = citationCount; // Update prominent counter
+                        console.log(`[Statistics Page Debug] Filtered citation count for ${loggedInUser.username}: ${citationCount}`);
                     } else {
-                        const errorData = await citationsResponse.json();
-                        console.error('Failed to fetch citations:', errorData);
+                        const errorData = await citationsResponse.json().catch(() => ({ message: 'Could not parse error response.' }));
+                        console.error('[Statistics Page Debug] Failed to fetch citations (response not ok):', citationsResponse.status, errorData);
                         window.showCustomAlert('Failed to load citation data: ' + (errorData.message || citationsResponse.statusText), 'Error');
                         citationCountElement.textContent = 'N/A'; // Update prominent counter
                     }
 
+                    console.log("[Statistics Page Debug] Attempting to fetch shift logs...");
                     // Fetch Shift Logs
                     const shiftLogsResponse = await fetch('https://citation-app-worker.pnbober.workers.dev/shift-logs', { headers });
+                    console.log("[Statistics Page Debug] Shift logs response status:", shiftLogsResponse.status);
+
                     if (shiftLogsResponse.ok) {
                         shiftLogs = await shiftLogsResponse.json();
+                        console.log("[Statistics Page Debug] Raw shift logs data fetched:", shiftLogs);
                         // Client-side filter for logged-in user's shift logs
                         const loggedInUsernameLower = loggedInUser.username.toLowerCase();
                         shiftLogs = shiftLogs.filter(s => s.submittedByUsername && s.submittedByUsername.toLowerCase() === loggedInUsernameLower);
                         shiftCount = shiftLogs.length;
                         shiftCountElement.textContent = shiftCount; // Update prominent counter
+                        console.log(`[Statistics Page Debug] Filtered shift log count for ${loggedInUser.username}: ${shiftCount}`);
                     } else {
-                        const errorData = await shiftLogsResponse.json();
-                        console.error('Failed to fetch shift logs:', errorData);
+                        const errorData = await shiftLogsResponse.json().catch(() => ({ message: 'Could not parse error response.' }));
+                        console.error('[Statistics Page Debug] Failed to fetch shift logs (response not ok):', shiftLogsResponse.status, errorData);
                         window.showCustomAlert('Failed to load shift log data: ' + (errorData.message || shiftLogsResponse.statusText), 'Error');
                         shiftCountElement.textContent = 'N/A'; // Update prominent counter
                     }
 
-                    // The chartData preparation and drawChart call have been removed
-
                 } catch (error) {
-                    console.error('Network error fetching statistics:', error);
-                    window.showCustomAlert('Network error: Could not load statistics.', 'Error');
-                    citationCountElement.textContent = 'N/A'; // Update prominent counter
-                    shiftCountElement.textContent = 'N/A';     // Update prominent counter
+                    console.error('[Statistics Page Debug] Network error fetching statistics (catch block):', error);
+                    window.showCustomAlert('Network error: Could not load statistics. Check console for details.', 'Error'); // Added instruction to check console
+                    citationCountElement.textContent = 'N/A';
+                    shiftCountElement.textContent = 'N/A';
                 }
             }
 
             fetchAndDisplayCounts();
-
-            // The resize event listener for the chart has been removed
         });
     </script>
 </body>
