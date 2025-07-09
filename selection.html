@@ -28,7 +28,7 @@
         .admin-logout-row {
             display: flex;
             justify-content: center; /* Center the buttons within this row */
-            gap: 1rem; /* Space between Admin and Logout buttons */
+            gap: 1rem; /* Space between Admin, Statistics, and Logout buttons */
             flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
         }
     </style>
@@ -44,12 +44,13 @@
 
             <div class="main-button-grid">
                 <a href="citation.html" class="theme-button-primary block w-full p-3 rounded-md font-semibold">Go to Citation Form</a>
-                <a href="shift_log.html" id="shiftLogLink" class="theme-button-primary block w-full p-3 rounded-md font-semibold">Submit Shift Log</a>
                 <a href="arrest.html" class="theme-button-primary block w-full p-3 rounded-md font-semibold">Go to Arrest Form</a>
-                </div>
+                <a href="shift_log.html" id="shiftLogLink" class="theme-button-primary block w-full p-3 rounded-md font-semibold">Submit Shift Log</a>
+            </div>
 
             <div class="admin-logout-row mt-4">
                 <a href="admin.html" id="adminPanelLink" class="theme-button-secondary py-3 px-6 rounded-md font-semibold hidden">Admin Panel</a>
+                <a href="statistics.html" id="statisticsLink" class="theme-button-secondary py-3 px-6 rounded-md font-semibold">My Statistics</a>
                 <button id="logoutButton" class="theme-button-secondary py-3 px-6 rounded-md font-semibold hidden">Logout</button>
             </div>
 
@@ -79,7 +80,8 @@
             const userInfoDisplay = document.getElementById('userInfo');
             const logoutButton = document.getElementById('logoutButton');
             const adminPanelLink = document.getElementById('adminPanelLink');
-            
+            const statisticsLink = document.getElementById('statisticsLink'); // Get the new statistics link
+
             // Authentication check
             if (!token || !userInfo) {
                 window.showCustomAlert("You must be logged in to access this page.", "Authentication Error").then(() => {
@@ -90,13 +92,15 @@
             } else {
                 userInfoDisplay.textContent = `Welcome, Officer ${userInfo.username} (Badge: ${userInfo.badgeNumber})!`;
                 
-                // Conditional display for Admin Panel and Logout buttons
+                // Conditional display for Admin Panel, Statistics, and Logout buttons
                 if (userInfo.role === 'admin') {
                     adminPanelLink.classList.remove('hidden'); // Show Admin Panel
-                    logoutButton.classList.remove('hidden'); // Show Logout beside it
+                    statisticsLink.classList.remove('hidden'); // Show Statistics
+                    logoutButton.classList.remove('hidden'); // Show Logout
                 } else {
-                    // If not admin, hide Admin Panel and show Logout button in its place
+                    // If not admin, hide Admin Panel and show Logout and Statistics buttons
                     adminPanelLink.classList.add('hidden'); // Ensure hidden if not admin
+                    statisticsLink.classList.remove('hidden'); // Show Statistics for regular users
                     logoutButton.classList.remove('hidden'); // Show logout for non-admins
                 }
             }
