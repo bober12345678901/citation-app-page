@@ -192,28 +192,33 @@
             async function fetchAndDisplayCounts() {
                 let citationCount = 0;
                 let shiftCount = 0;
+                // Declare citations and shiftLogs with 'let' at this scope
+                let citations = [];
+                let shiftLogs = [];
 
                 try {
                     // Fetch Citations
                     const citationsResponse = await fetch('https://citation-app-worker.pnbober.workers.dev/citations', { headers });
                     if (citationsResponse.ok) {
-                        const citations = await citationsResponse.json();
+                        citations = await citationsResponse.json(); // Assign to 'citations' declared above
                         citationCount = citations.length;
                     } else {
                         const errorData = await citationsResponse.json();
                         console.error('Failed to fetch citations:', errorData);
                         window.showCustomAlert('Failed to load citation data: ' + (errorData.message || citationsResponse.statusText), 'Error');
+                        // citations remains an empty array, so citationCount will be 0, which is correct.
                     }
 
                     // Fetch Shift Logs
                     const shiftLogsResponse = await fetch('https://citation-app-worker.pnbober.workers.dev/shift-logs', { headers });
                     if (shiftLogsResponse.ok) {
-                        const shiftLogs = await shiftLogs.json();
+                        shiftLogs = await shiftLogsResponse.json(); // Assign to 'shiftLogs' declared above
                         shiftCount = shiftLogs.length;
                     } else {
                         const errorData = await shiftLogsResponse.json();
                         console.error('Failed to fetch shift logs:', errorData);
                         window.showCustomAlert('Failed to load shift log data: ' + (errorData.message || shiftLogsResponse.statusText), 'Error');
+                        // shiftLogs remains an empty array, so shiftCount will be 0, which is correct.
                     }
 
                     // Prepare data for the chart
