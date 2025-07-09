@@ -23,8 +23,8 @@
             /* Fill will be set by JS using SVG gradient */
         }
         .axis text {
-            font-size: 1.2rem; /* Made text bigger: from 1.1rem to 1.2rem */
-            fill: var(--text-color); /* Ensured it uses theme text color */
+            font-size: 1.35rem; /* Made text bigger: from 1.2rem to 1.35rem */
+            fill: var(--accent-color); /* Changed to accent-color for consistency with bar values */
         }
         .axis line, .axis path {
             stroke: var(--border-color);
@@ -37,11 +37,11 @@
         .grid path {
             stroke-width: 0;
         }
-        /* Style for the numerical labels below the bars */
+        /* Style for the numerical labels below the bars (now on top) */
         .bar-value-label {
-            font-size: 1.35rem; /* Made text bigger: from 1.25rem to 1.35rem */
+            font-size: 1.35rem; /* Consistent with axis text size */
             font-weight: bold;
-            fill: var(--text-color); /* Ensured it uses theme text color */
+            fill: var(--accent-color); /* Ensured it uses theme accent color */
         }
     </style>
 </head>
