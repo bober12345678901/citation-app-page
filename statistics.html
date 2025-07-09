@@ -34,7 +34,14 @@
             color: var(--text-color);
         }
 
-        /* All D3.js related chart styles have been removed */
+        /* Loading indicator styling */
+        #loadingIndicator {
+            text-align: center;
+            padding: 2rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent-color);
+        }
     </style>
 </head>
 <body class="min-h-screen theme-app-container">
@@ -43,8 +50,11 @@
             <h2 class="theme-title text-3xl font-bold text-center mb-6">My Statistics</h2>
             <p class="theme-label text-center mb-6" id="loggedInUserDisplay">Loading user data...</p>
 
-            <!-- Prominent Counters -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <!-- Loading Indicator -->
+            <div id="loadingIndicator" class="theme-label">Loading statistics...</div>
+
+            <!-- Prominent Counters (Hidden by default, shown after loading) -->
+            <div id="statsContent" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 hidden">
                 <div class="stat-card">
                     <div class="stat-value" id="citationCount">0</div>
                     <div class="stat-label">Citations Filed</div>
@@ -55,8 +65,6 @@
                 </div>
             </div>
 
-            <!-- The chart section has been removed -->
-            
             <div class="flex justify-center">
                 <button type="button" onclick="window.location.href='selection.html'" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">Back to Selection</button>
             </div>
@@ -81,6 +89,8 @@
             const loggedInUserDisplay = document.getElementById('loggedInUserDisplay');
             const citationCountElement = document.getElementById('citationCount');
             const shiftCountElement = document.getElementById('shiftCount');
+            const loadingIndicator = document.getElementById('loadingIndicator'); // New
+            const statsContent = document.getElementById('statsContent');         // New
 
             console.log("[Statistics Page Debug] DOMContentLoaded fired.");
 
@@ -103,6 +113,10 @@
 
             // Function to fetch and display counts
             async function fetchAndDisplayCounts() {
+                // Show loading indicator, hide content
+                loadingIndicator.classList.remove('hidden');
+                statsContent.classList.add('hidden');
+
                 let citationCount = 0;
                 let shiftCount = 0;
                 let citations = [];
@@ -153,9 +167,13 @@
 
                 } catch (error) {
                     console.error('[Statistics Page Debug] Network error fetching statistics (catch block):', error);
-                    window.showCustomAlert('Network error: Could not load statistics. Check console for details.', 'Error'); // Added instruction to check console
+                    window.showCustomAlert('Network error: Could not load statistics. Check console for details.', 'Error');
                     citationCountElement.textContent = 'N/A';
                     shiftCountElement.textContent = 'N/A';
+                } finally {
+                    // Always hide loading indicator and show content, regardless of success or failure
+                    loadingIndicator.classList.add('hidden');
+                    statsContent.classList.remove('hidden');
                 }
             }
 
