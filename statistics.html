@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" href="favicon.png" type="image/png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Statistics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+    <script src="theme.js"></script>
+    <!-- D3.js for charting -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        /* Removed .stat-card specific styles as they are no longer used for large counters */
+
+        /* Styles for the D3 chart */
+        .chart-container {
+            width: 100%;
+            overflow-x: auto; /* Allow horizontal scrolling if chart is too wide */
+            margin-top: 2rem; /* Add some space above the chart */
+        }
+        .bar {
+            /* Fill will be set by JS using SVG gradient */
+        }
+        .axis text {
+            font-size: 0.9rem;
+            fill: var(--text-color);
+        }
+        .axis line, .axis path {
+            stroke: var(--border-color);
+        }
+        .grid line {
+            stroke: var(--border-color);
+            stroke-opacity: 0.7;
+            shape-rendering: crispEdges;
+        }
+        .grid path {
+            stroke-width: 0;
+        }
+        /* Style for the numerical labels below the bars */
+        .bar-value-label {
+            font-size: 1rem; /* Smaller font size for numbers below bars */
+            font-weight: bold;
+            fill: var(--text-color); /* Use theme text color */
+        }
+    </style>
+</head>
+<body class="min-h-screen theme-app-container">
+    <div class="main-content-area">
+        <div class="theme-lookup-box p-8 rounded-xl shadow-lg w-full max-w-2xl mx-4 sm:mx-auto transition-colors duration-300 border border-solid">
+            <h2 class="theme-title text-3xl font-bold text-center mb-6">My Statistics</h2>
+            <p class="theme-label text-center mb-6" id="loggedInUserDisplay">Loading user data...</p>
+
+            <!-- Removed the individual stat-card divs -->
+            <!--
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="stat-card">
+                    <div class="stat-value" id="citationCount">0</div>
+                    <div class="stat-label">Citations Filed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="shiftCount">0</div>
+                    <div class="stat-label">Shift Logs Filed</div>
+                </div>
+            </div>
+            -->
+
+            <div class="mb-8">
+                <h3 class="theme-label font-bold text-lg mb-4 text-center">Activity Overview</h3>
+                <div id="chart" class="chart-container">
+                    <!-- D3.js chart will be rendered here -->
+                </div>
+            </div>
+
+            <div class="flex justify-center">
+                <button type="button" onclick="window.location.href='selection.html'" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">Back to Selection</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="customModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div id="customModal" class="theme-lookup-box p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 sm:mx-auto">
+            <h3 id="customModalTitle" class="theme-title text-xl font-bold mb-4"></h3>
+            <p id="customModalMessage" class="theme-label mb-6"></p>
+            <div id="customModalButtons" class="flex justify-end space-x-3">
+                <button id="customModalCancelBtn" class="theme-button-secondary py-2 px-4 rounded-md font-semibold hidden">Cancel</button>
+                <button id="customModalOkBtn" class="theme-button-primary py-2 px-4 rounded-md font-semibold">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            const token = sessionStorage.getItem('authToken');
+            const loggedInUserString = sessionStorage.getItem('loggedInUser');
+            const loggedInUserDisplay = document.getElementById('loggedInUserDisplay');
+            // Removed references to citationCountElement and shiftCountElement
+            const chartContainer = document.getElementById('chart');
+
+            if (!token || !loggedInUserString) {
+                window.showCustomAlert("You must be logged in to view statistics.", "Authentication Error").then(() => {
+                    sessionStorage.clear();
+                    window.location.href = 'index.html';
+                });
+                return;
+            }
+
+            const loggedInUser = JSON.parse(loggedInUserString);
+            loggedInUserDisplay.textContent = `Statistics for: ${loggedInUser.username} (Badge: ${loggedInUser.badgeNumber})`;
+
+            const headers = {
+                'Authorization': `Bearer ${token}`
+            };
+
+            // Function to draw the bar chart
+            function drawChart(data) {
+                // Clear any existing chart
+                d3.select(chartContainer).selectAll("*").remove();
+
+                const parentWidth = chartContainer.offsetWidth;
+                const margin = { top: 20, right: 30, bottom: 60, left: 50 }; // Increased bottom margin for labels
+                const width = Math.max(300, parentWidth - margin.left - margin.right); // Ensure min width
+                const height = 300 - margin.top - margin.bottom;
+
+                const svg = d3.select(chartContainer)
+                    .append("svg")
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom)
+                    .append("g")
+                    .attr("transform", `translate(${margin.left},${margin.top})`);
+
+                // Define the gradient
+                const defs = svg.append("defs");
+                const gradient = defs.append("linearGradient")
+                    .attr("id", "barGradient")
+                    .attr("x1", "0%")
+                    .attr("y1", "0%")
+                    .attr("x2", "0%")
+                    .attr("y2", "100%");
+
+                // Get computed styles for theme colors
+                const style = getComputedStyle(document.body);
+                const accentColor = style.getPropertyValue('--accent-color').trim();
+                const darkAccentColor = style.getPropertyValue('--primary-color').trim() || '#3b82f6';
+
+                gradient.append("stop")
+                    .attr("offset", "0%")
+                    .attr("stop-color", accentColor);
+                gradient.append("stop")
+                    .attr("offset", "100%")
+                    .attr("stop-color", darkAccentColor);
+
+                // X axis
+                const x = d3.scaleBand()
+                    .range([0, width])
+                    .domain(data.map(d => d.label))
+                    .padding(0.2);
+
+                svg.append("g")
+                    .attr("transform", `translate(0,${height})`)
+                    .call(d3.axisBottom(x))
+                    .selectAll("text")
+                    .attr("transform", "translate(-10,0)rotate(-45)")
+                    .style("text-anchor", "end");
+
+                // Y axis
+                const y = d3.scaleLinear()
+                    .domain([0, d3.max(data, d => d.value) + 5]) // Add some padding to top
+                    .range([height, 0]);
+
+                svg.append("g")
+                    .call(d3.axisLeft(y));
+
+                // Add Y axis grid lines
+                svg.append("g")
+                    .attr("class", "grid")
+                    .call(d3.axisLeft(y)
+                        .tickSize(-width)
+                        .tickFormat("")
+                    );
+
+                // Bars
+                svg.selectAll(".bar")
+                    .data(data)
+                    .enter()
+                    .append("rect")
+                    .attr("class", "bar")
+                    .attr("x", d => x(d.label))
+                    .attr("y", d => y(d.value))
+                    .attr("width", x.bandwidth())
+                    .attr("height", d => height - y(d.value))
+                    .attr("fill", "url(#barGradient)"); // Apply the gradient
+
+                // Add value labels below the bars (or at the bottom of the bar if value is 0)
+                svg.selectAll(".bar-value-label")
+                    .data(data)
+                    .enter()
+                    .append("text")
+                    .attr("class", "bar-value-label")
+                    .attr("x", d => x(d.label) + x.bandwidth() / 2)
+                    .attr("y", d => y(d.value) + (d.value === 0 ? 15 : 20)) // Position below the bar, or slightly inside if 0
+                    .attr("text-anchor", "middle")
+                    .text(d => d.value);
+            }
+
+            // Function to fetch and display counts
+            async function fetchAndDisplayCounts() {
+                let citationCount = 0;
+                let shiftCount = 0;
+
+                try {
+                    // Fetch Citations
+                    const citationsResponse = await fetch('https://citation-app-worker.pnbober.workers.dev/citations', { headers });
+                    if (citationsResponse.ok) {
+                        const citations = await citationsResponse.json();
+                        citationCount = citations.length;
+                        // citationCountElement.textContent = citationCount; // Removed
+                    } else {
+                        const errorData = await citationsResponse.json();
+                        console.error('Failed to fetch citations:', errorData);
+                        window.showCustomAlert('Failed to load citation data: ' + (errorData.message || citationsResponse.statusText), 'Error');
+                        // citationCountElement.textContent = 'N/A'; // Removed
+                    }
+
+                    // Fetch Shift Logs
+                    const shiftLogsResponse = await fetch('https://citation-app-worker.pnbober.workers.dev/shift-logs', { headers });
+                    if (shiftLogsResponse.ok) {
+                        const shiftLogs = await shiftLogsResponse.json();
+                        shiftCount = shiftLogs.length;
+                        // shiftCountElement.textContent = shiftCount; // Removed
+                    } else {
+                        const errorData = await shiftLogsResponse.json();
+                        console.error('Failed to fetch shift logs:', errorData);
+                        window.showCustomAlert('Failed to load shift log data: ' + (errorData.message || shiftLogsResponse.statusText), 'Error');
+                        // shiftCountElement.textContent = 'N/A'; // Removed
+                    }
+
+                    // Prepare data for the chart
+                    const chartData = [
+                        { label: "Citations", value: citationCount },
+                        { label: "Shift Logs", value: shiftCount }
+                    ];
+                    drawChart(chartData);
+
+                } catch (error) {
+                    console.error('Network error fetching statistics:', error);
+                    window.showCustomAlert('Network error: Could not load statistics.', 'Error');
+                    // Removed setting N/A for individual counters
+                }
+            }
+
+            fetchAndDisplayCounts();
+
+            // Redraw chart on window resize for responsiveness
+            window.addEventListener('resize', () => {
+                // Only redraw if the chart container is visible
+                if (chartContainer.offsetParent !== null) {
+                    fetchAndDisplayCounts(); // Refetch and redraw
+                }
+            });
+        });
+    </script>
+</body>
+</html>
