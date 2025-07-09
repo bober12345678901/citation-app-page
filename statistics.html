@@ -23,25 +23,25 @@
             /* Fill will be set by JS using SVG gradient */
         }
         .axis text {
-            font-size: 1.35rem; /* Made text bigger: from 1.2rem to 1.35rem */
-            fill: var(--text-color); /* Changed to accent-color for consistency with bar values */
+            font-size: 1.35rem; /* Consistent size for all chart text */
+            fill: var(--accent-color); /* Consistent color for all chart text */
         }
         .axis line, .axis path {
-            stroke: var(--text-color);
+            stroke: var(--border-color);
         }
         .grid line {
-            stroke: var(--text-color);
+            stroke: var(--border-color);
             stroke-opacity: 0.7;
             shape-rendering: crispEdges;
         }
         .grid path {
             stroke-width: 0;
         }
-        /* Style for the numerical labels below the bars (now on top) */
+        /* Style for the numerical labels on top of the bars */
         .bar-value-label {
-            font-size: 1.35rem; /* Consistent with axis text size */
+            font-size: 1.35rem; /* Consistent size for all chart text */
             font-weight: bold;
-            fill: var(--text-color); /* Changed to text-color for better visibility on bars */
+            fill: var(--accent-color); /* Consistent color for all chart text */
         }
     </style>
 </head>
@@ -176,14 +176,14 @@
                     .attr("height", d => height - y(d.value))
                     .attr("fill", "url(#barGradient)"); // Apply the gradient
 
-                // Add value labels below the bars (or at the bottom of the bar if value is 0)
+                // Add value labels on top of bars
                 svg.selectAll(".bar-value-label")
                     .data(data)
                     .enter()
                     .append("text")
                     .attr("class", "bar-value-label")
                     .attr("x", d => x(d.label) + x.bandwidth() / 2)
-                    .attr("y", d => y(d.value) + (d.value === 0 ? 15 : 20)) // Position below the bar, or slightly inside if 0
+                    .attr("y", d => y(d.value) - 5) // Position slightly above the bar
                     .attr("text-anchor", "middle")
                     .text(d => d.value);
             }
@@ -200,25 +200,29 @@
                     // Fetch Citations
                     const citationsResponse = await fetch('https://citation-app-worker.pnbober.workers.dev/citations', { headers });
                     if (citationsResponse.ok) {
-                        citations = await citationsResponse.json(); // Assign to 'citations' declared above
+                        citations = await citationsResponse.json();
+                        // Client-side filter for logged-in user's citations
+                        const loggedInUsernameLower = loggedInUser.username.toLowerCase();
+                        citations = citations.filter(c => c.submittedBy && c.submittedBy.toLowerCase() === loggedInUsernameLower);
                         citationCount = citations.length;
                     } else {
                         const errorData = await citationsResponse.json();
                         console.error('Failed to fetch citations:', errorData);
                         window.showCustomAlert('Failed to load citation data: ' + (errorData.message || citationsResponse.statusText), 'Error');
-                        // citations remains an empty array, so citationCount will be 0, which is correct.
                     }
 
                     // Fetch Shift Logs
                     const shiftLogsResponse = await fetch('https://citation-app-worker.pnbober.workers.dev/shift-logs', { headers });
                     if (shiftLogsResponse.ok) {
-                        shiftLogs = await shiftLogsResponse.json(); // Assign to 'shiftLogs' declared above
+                        shiftLogs = await shiftLogsResponse.json();
+                        // Client-side filter for logged-in user's shift logs
+                        const loggedInUsernameLower = loggedInUser.username.toLowerCase();
+                        shiftLogs = shiftLogs.filter(s => s.submittedByUsername && s.submittedByUsername.toLowerCase() === loggedInUsernameLower);
                         shiftCount = shiftLogs.length;
                     } else {
                         const errorData = await shiftLogsResponse.json();
                         console.error('Failed to fetch shift logs:', errorData);
                         window.showCustomAlert('Failed to load shift log data: ' + (errorData.message || shiftLogsResponse.statusText), 'Error');
-                        // shiftLogs remains an empty array, so shiftCount will be 0, which is correct.
                     }
 
                     // Prepare data for the chart
