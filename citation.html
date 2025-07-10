@@ -224,6 +224,10 @@
                 if (loggedInUser.badgeNumber) {
                     officerBadgeInput.value = loggedInUser.badgeNumber;
                 }
+                // Auto-fill officer username if available
+                if (loggedInUser.username) {
+                    officerNameInput.value = loggedInUser.username;
+                }
                 // Get and display department
                 if (loggedInUser.department) {
                     userDepartment = loggedInUser.department;
@@ -231,6 +235,12 @@
                 } else {
                     officerDepartmentDisplayInput.value = 'N/A'; // Explicitly set N/A if not found
                 }
+
+                // NEW: Make department editable if user is admin
+                if (loggedInUser.role === 'admin') {
+                    officerDepartmentDisplayInput.removeAttribute('readonly');
+                }
+
                 console.log("Logged-in Officer Department:", userDepartment); // For debugging
             }
 
@@ -454,12 +464,16 @@
                         document.getElementById('penalCode_0').value = '';
                         document.getElementById('amountDue_0').value = '0.00';
                         document.getElementById('officerBadge').value = loggedInUser.badgeNumber || ''; // Reset to auto-filled value
-                        document.getElementById('officerName').value = ''; // Reset officer name
+                        document.getElementById('officerName').value = loggedInUser.username || ''; // Reset officer name to auto-filled
                         document.getElementById('officerRank').value = '';
                         document.getElementById('violatorName').value = '';
                         document.getElementById('violationDetails').value = '';
                         mainViolationTypeInput.value = '';
                         officerDepartmentDisplayInput.value = userDepartment; // Reset department display
+                        // Ensure department field is readonly if not admin
+                        if (loggedInUser.role !== 'admin') {
+                            officerDepartmentDisplayInput.setAttribute('readonly', 'readonly');
+                        }
                         calculateTotalAmountDue();
                         updateMainViolationType(); // Update after clear
                         // Reset signed status
@@ -482,7 +496,7 @@
                 citationData.violatorName = document.getElementById('violatorName').value;
                 citationData.violationDetails = document.getElementById('violationDetails').value;
                 citationData.violationType = mainViolationTypeInput.value;
-                citationData.department = userDepartment; // Pass department to the submission data
+                citationData.department = officerDepartmentDisplayInput.value; // Use current value from potentially editable field
                 citationData.signedStatus = document.querySelector('input[name="signedStatus"]:checked').value; // NEW: Signed Status
                 citationData.notSignedReason = signedNoRadio.checked ? notSignedReasonInput.value : ''; // NEW: Reason if not signed
 
@@ -535,11 +549,15 @@
                             citationForm.reset();
                             // Manually reset specific fields that need it after reset()
                             document.getElementById('officerBadge').value = loggedInUser.badgeNumber || '';
-                            document.getElementById('officerName').value = '';
+                            document.getElementById('officerName').value = loggedInUser.username || ''; // Reset officer name to auto-filled
                             document.getElementById('officerRank').value = '';
                             document.getElementById('violatorName').value = '';
                             document.getElementById('violationDetails').value = '';
                             document.getElementById('officerDepartmentDisplay').value = userDepartment;
+                            // Ensure department field is readonly if not admin after reset
+                            if (loggedInUser.role !== 'admin') {
+                                officerDepartmentDisplayInput.setAttribute('readonly', 'readonly');
+                            }
                             document.querySelectorAll('.penal-code-group[data-group-id]:not([data-group-id="0"])').forEach(group => group.remove());
                             document.getElementById('penalCode_0').value = '';
                             document.getElementById('amountDue_0').value = '0.00';

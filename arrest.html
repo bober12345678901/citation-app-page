@@ -276,7 +276,6 @@
             const totalFinesSumInput = document.getElementById('totalFinesSum'); // New total fines sum input
             const arrestForm = document.getElementById('arrestForm');
             const clearFormBtn = document.getElementById('clearFormBtn');
-            // const warrantNeededCheckbox = document.getElementById('warrantNeeded'); // OLD: Get checkbox element
             const arrestingOfficerBadgeInput = document.getElementById('arrestingOfficerBadge'); // Get the arresting officer badge input
             const yourUsernameInput = document.getElementById('yourUsername'); // Get your username input
             const officerDepartmentDisplayInput = document.getElementById('officerDepartmentDisplay'); // Get the department display input
@@ -320,6 +319,12 @@
                 } else {
                     officerDepartmentDisplayInput.value = 'N/A'; // Explicitly set N/A if not found
                 }
+
+                // NEW: Make department editable if user is admin
+                if (loggedInUser.role === 'admin') {
+                    officerDepartmentDisplayInput.removeAttribute('readonly');
+                }
+
                 console.log("Logged-in Officer Department:", userDepartment); // For debugging
             }
 
@@ -336,7 +341,7 @@
                     console.log("All penal codes (charges) loaded:", allPenalCodes);
 
                     // REMOVED FILTERING HERE - all types will be available for selection
-                    penalCodesData = allPenalCodes; // No filter applied here
+                    penalCodesData = allPenalCodes; 
                     
                 } else {
                     const errorData = await response.json();
@@ -577,9 +582,12 @@
                         document.getElementById('ranks').value = ''; // Reset ranks to empty
                         document.getElementById('suspectName').value = '';
                         document.getElementById('incidentDetails').value = '';
-                        // warrantNeededCheckbox.checked = false; // OLD: Clear checkbox
-                        warrantNeededNoRadio.checked = true; // NEW: Reset Warrant Needed to NO
+                        warrantNeededNoRadio.checked = true; // Reset Warrant Needed to NO
                         officerDepartmentDisplayInput.value = userDepartment; // Reset department display
+                        // Ensure department field is readonly if not admin
+                        if (loggedInUser.role !== 'admin') {
+                            officerDepartmentDisplayInput.setAttribute('readonly', 'readonly');
+                        }
                         calculateTotalJailTime();
                         calculateTotalFines();
                         // Clear mugshot
@@ -607,9 +615,8 @@
                 arrestData.ranks = ranksInput.value; // Explicitly get value from ranksInput
                 arrestData.suspectName = document.getElementById('suspectName').value;
                 arrestData.incidentDetails = document.getElementById('incidentDetails').value;
-                // arrestData.warrantNeeded = warrantNeededCheckbox.checked; // OLD: Capture checkbox value
-                arrestData.warrantNeeded = warrantNeededYesRadio.checked; // NEW: Capture radio button value
-                arrestData.department = userDepartment; // Pass department to the submission data
+                arrestData.warrantNeeded = warrantNeededYesRadio.checked; // Capture radio button value
+                arrestData.department = officerDepartmentDisplayInput.value; // Use current value from potentially editable field
                 arrestData.mugshot = mugshotBase64; // NEW: Include mugshot Base64
                 arrestData.servingWarrant = servingWarrantYesRadio.checked; // NEW: Serving Warrant status
                 arrestData.warrantJailTime = servingWarrantYesRadio.checked ? parseInt(warrantJailTimeInput.value) : 0; // NEW: Warrant Jail Time
@@ -702,9 +709,12 @@
                                 document.getElementById('ranks').value = '';
                                 document.getElementById('suspectName').value = '';
                                 document.getElementById('incidentDetails').value = '';
-                                // document.getElementById('warrantNeeded').checked = false; // OLD: Clear checkbox
                                 warrantNeededNoRadio.checked = true; // NEW: Reset Warrant Needed to NO
                                 officerDepartmentDisplayInput.value = userDepartment;
+                                // Ensure department field is readonly if not admin after reset
+                                if (loggedInUser.role !== 'admin') {
+                                    officerDepartmentDisplayInput.setAttribute('readonly', 'readonly');
+                                }
                                 document.querySelectorAll('.charge-group[data-group-id]:not([data-group-id="0"])').forEach(group => group.remove());
                                 document.getElementById('chargeCode_0').value = '';
                                 document.getElementById('jailTime_0').value = '0';
