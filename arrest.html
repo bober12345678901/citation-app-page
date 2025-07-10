@@ -143,6 +143,7 @@
         .penal-code-list-modal-content div {
             padding: 0.5rem 0;
             border-bottom: 1px dashed var(--border-color);
+            color: var(--text-color); /* Set text color to theme's main text color */
         }
         .penal-code-list-modal-content div:last-child {
             border-bottom: none;
@@ -636,6 +637,8 @@
                     allPenalCodesForArrestForm.forEach(pc => {
                         const itemDiv = document.createElement('div');
                         itemDiv.classList.add('theme-label-small');
+                        // Apply theme-label class to the div to ensure text color
+                        itemDiv.classList.add('theme-label');
                         itemDiv.innerHTML = `<strong>${pc.code}</strong>: ${pc.description || 'N/A'} (Jail: ${pc.jail_time_seconds || 0}s, Fine: $${parseFloat(pc.amount_due || 0).toFixed(2)})`;
                         penalCodeListModalContent.appendChild(itemDiv);
                     });
