@@ -312,7 +312,7 @@
         <img id="fullscreenImage" src="" alt="Full Screen Screenshot">
     </div>
 
-    <div id="editPenalCodeModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div id="editPenalCodeModalOverlay" class="fixed inset-0 bg-black bg-opacity50 flex items-center justify-center hidden z-50">
         <div id="editPenalCodeModal" class="theme-lookup-box p-6 rounded-lg shadow-xl">
             <h3 class="theme-title text-xl font-bold mb-4">Edit Penal Code: <span id="editPenalCodeCodeDisplay"></span></h3>
             <form id="editPenalCodeForm" class="grid grid-cols-1 gap-4">
@@ -547,7 +547,7 @@
                                     <td>${log.arrests || 0}</td>
                                     <td>${log.additionalNotes || 'N/A'}</td>
                                     <td>
-                                        ${log.screenshot ? `<img src="${log.screenshot}" alt="Screenshot" class="screenshot-thumbnail" style="max-width: 100px; max-height: 100px; cursor: pointer;">` : 'N/A'}
+                                        ${log.screenshotUrl ? `<img src="${log.screenshotUrl}" alt="Shift Log Screenshot" class="screenshot-thumbnail" style="max-width: 100px; max-height: 100px; cursor: pointer;">` : 'N/A'}
                                     </td>
                                 `;
                             });
