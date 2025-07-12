@@ -153,7 +153,7 @@
             const arrestsWarrantsVideoGuide = document.getElementById('arrestsWarrantsVideoGuide');
 
             // Base URL for your R2 bucket (replace 'a91d9d22a6264a88b02227540eadf4cb' with your actual Cloudflare Account ID)
-            const R2_BASE_URL = 'https://pub-a91d9d22a6264a88b02227540eadf4cb.r2.dev/citation-app-screenshots/';
+            const R2_BASE_URL = 'https://pub-a91d9d22a6264a88b02227540eadf4cb.r2.dev/tutorials';
 
 
             // Authentication check
@@ -189,14 +189,14 @@
             // Set the tutorial link URLs to your R2 bucket
             // IMPORTANT: Ensure these URLs match the exact public URLs of your uploaded tutorial files in R2.
             // Replace 'a91d9d22a6264a88b02227540eadf4cb' with your actual Cloudflare Account ID if different.
-            citationsStepByStep.href = R2_BASE_URL + 'citations_step_by_step.pdf';
-            citationsVideoGuide.href = R2_BASE_URL + 'citations_video.mp4';
+            citationsStepByStep.href = R2_BASE_URL + '/cite/citations_step_by_step.pdf';
+            citationsVideoGuide.href = R2_BASE_URL + '/cite/citations_video.mp4';
             
-            arrestsStepByStep.href = R2_BASE_URL + 'arrests_step_by_step.pdf';
-            arrestsVideoGuide.href = R2_BASE_URL + 'arrests_video.mp4';
+            arrestsStepByStep.href = R2_BASE_URL + '/arrest no warrant/arrests_step_by_step.pdf';
+            arrestsVideoGuide.href = R2_BASE_URL + '/arrest no warrant/arrests_video.mp4';
 
-            arrestsWarrantsStepByStep.href = R2_BASE_URL + 'arrests_w_warrants_step_by_step.pdf';
-            arrestsWarrantsVideoGuide.href = R2_BASE_URL + 'arrests_w_warrants_video.mp4';
+            arrestsWarrantsStepByStep.href = R2_BASE_URL + '/arrest w warrant/arrests_w_warrants_step_by_step.pdf';
+            arrestsWarrantsVideoGuide.href = R2_BASE_URL + '/arrest w warrant/arrests_w_warrants_video.mp4';
         });
     </script>
 </body>
