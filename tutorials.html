@@ -189,19 +189,19 @@
         const R2_BASE_URL = 'https://pub-a91d9d22a6264a88b02227540eadf4cb.r2.dev/tutorials';
 
         document.querySelectorAll('.toggle-embed-btn').forEach(button => {
-            button.addEventListener('click', function() {
+            button.addEventListener('click', function () {
                 const embedType = this.dataset.embedType;
                 const relativeUrl = this.dataset.url;
 
                 fullscreenEmbedContent.innerHTML = '';
 
                 if (embedType === 'pdf') {
-                    const iframe = document.createElement('iframe');
-                    iframe.src = R2_BASE_URL + relativeUrl;
-                    iframe.setAttribute('allowfullscreen', '');
-                    iframe.setAttribute('allow', 'fullscreen');
-                    iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-forms allow-modals allow-presentation allow-downloads allow-pointer-lock allow-top-navigation');
-                    fullscreenEmbedContent.appendChild(iframe);
+                    const embed = document.createElement('embed');
+                    embed.src = R2_BASE_URL + relativeUrl;
+                    embed.type = 'application/pdf';
+                    embed.style.width = '100%';
+                    embed.style.height = '100%';
+                    fullscreenEmbedContent.appendChild(embed);
                 } else if (embedType === 'video') {
                     const video = document.createElement('video');
                     video.controls = true;
@@ -222,9 +222,7 @@
         function closeFullscreenEmbedModal() {
             fullscreenEmbedModal.classList.remove('show');
             const videoElement = fullscreenEmbedContent.querySelector('video');
-            if (videoElement) {
-                videoElement.pause();
-            }
+            if (videoElement) videoElement.pause();
             setTimeout(() => {
                 fullscreenEmbedContent.innerHTML = '';
             }, 300);
@@ -301,6 +299,7 @@
         };
     });
 </script>
+
 
 </body>
 </html>
