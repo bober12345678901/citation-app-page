@@ -33,32 +33,35 @@
         }
         /* Styles for the new tutorial section */
         .tutorial-section {
-            margin-top: 2rem;
+            margin-top: 1.5rem; /* Slightly smaller margin-top */
             padding-top: 1rem;
             border-top: 1px solid var(--border-color);
             text-align: left; /* Align text left within the section */
         }
         .tutorial-category {
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem; /* Smaller margin between categories */
+            /* Tailwind will handle grid gaps, so individual margin-bottom on div children can be smaller */
         }
         .tutorial-category h3 {
             font-weight: bold;
-            font-size: 1.1em;
-            margin-bottom: 0.5rem;
+            font-size: 1.05em; /* Slightly smaller font for category titles */
+            margin-bottom: 0.4rem; /* Smaller margin below title */
             color: var(--text-color);
+            text-align: center; /* Center category titles */
         }
         .tutorial-category ul {
             list-style: none; /* Remove default bullet points */
             padding-left: 0;
             margin-left: 0;
+            text-align: center; /* Center list items for categories */
         }
         .tutorial-category li {
-            margin-bottom: 0.3rem;
+            margin-bottom: 0.2rem; /* Even smaller margin for list items */
         }
         .tutorial-category a {
             color: var(--link-color); /* Use link color for tutorial links */
             text-decoration: underline;
-            font-size: 0.9em;
+            font-size: 0.85em; /* Slightly smaller font for links */
         }
         .tutorial-category a:hover {
             color: color-mix(in srgb, var(--link-color) 80%, var(--accent-color));
@@ -89,24 +92,24 @@
             <div class="tutorial-section theme-label">
                 <h3 class="theme-title text-xl font-bold mb-4 text-center">Tutorials & Help</h3>
 
-                <div class="tutorial-category">
-                    <h3>Citations</h3>
-                    <ul>
-                        <li><a href="#" id="citationsStepByStep" target="_blank" rel="noopener noreferrer">Step by Step Guide</a></li>
-                        <li><a href="#" id="citationsVideoGuide" target="_blank" rel="noopener noreferrer">Video Guide</a></li>
-                    </ul>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4"> <div class="tutorial-category">
+                        <h3>Citations</h3>
+                        <ul>
+                            <li><a href="#" id="citationsStepByStep" target="_blank" rel="noopener noreferrer">Step by Step Guide</a></li>
+                            <li><a href="#" id="citationsVideoGuide" target="_blank" rel="noopener noreferrer">Video Guide</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="tutorial-category">
+                        <h3>Arrests</h3>
+                        <ul>
+                            <li><a href="#" id="arrestsStepByStep" target="_blank" rel="noopener noreferrer">Step by Step Guide</a></li>
+                            <li><a href="#" id="arrestsVideoGuide" target="_blank" rel="noopener noreferrer">Video Guide</a></li>
+                        </ul>
+                    </div>
                 </div>
 
-                <div class="tutorial-category">
-                    <h3>Arrests</h3>
-                    <ul>
-                        <li><a href="#" id="arrestsStepByStep" target="_blank" rel="noopener noreferrer">Step by Step Guide</a></li>
-                        <li><a href="#" id="arrestsVideoGuide" target="_blank" rel="noopener noreferrer">Video Guide</a></li>
-                    </ul>
-                </div>
-
-                <div class="tutorial-category">
-                    <h3>Arrests w/ Warrants</h3>
+                <div class="tutorial-category mx-auto mt-4" style="max-width: 250px;"> <h3>Arrests w/ Warrants</h3>
                     <ul>
                         <li><a href="#" id="arrestsWarrantsStepByStep" target="_blank" rel="noopener noreferrer">Step by Step Guide</a></li>
                         <li><a href="#" id="arrestsWarrantsVideoGuide" target="_blank" rel="noopener noreferrer">Video Guide</a></li>
@@ -184,6 +187,8 @@
             });
 
             // Set the tutorial link URLs to your R2 bucket
+            // IMPORTANT: Ensure these URLs match the exact public URLs of your uploaded tutorial files in R2.
+            // Replace 'a91d9d22a6264a88b02227540eadf4cb' with your actual Cloudflare Account ID if different.
             citationsStepByStep.href = R2_BASE_URL + 'citations_step_by_step.pdf';
             citationsVideoGuide.href = R2_BASE_URL + 'citations_video.mp4';
             
