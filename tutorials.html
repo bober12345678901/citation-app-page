@@ -188,7 +188,7 @@
 
             // Base URL for your R2 bucket. IMPORTANT: This should point to your 'tutorials' directory.
             // Replace 'a91d9d22a6264a88b02227540eadf4cb' with your actual Cloudflare Account ID.
-            const R2_BASE_URL = 'https://pub-a91d9d22a6264a88b02227540eadf4cb.r2.dev/tutorials';
+            const R2_BASE_URL = 'https://pub-a91d9d22a6264a88b02227540eadf4cb.r2.dev/tutorials'; //
 
 
             // Embed Toggle Logic for Fullscreen Modal
@@ -203,9 +203,10 @@
                     if (embedType === 'pdf') {
                         const iframe = document.createElement('iframe');
                         iframe.src = R2_BASE_URL + relativeUrl;
-                        iframe.setAttribute('allow', 'fullscreen'); 
-                        // ADDED: Sandbox attribute for stricter control.
-                        // We must explicitly list necessary permissions.
+                        iframe.setAttribute('allowfullscreen', ''); // Allow iframe to go fullscreen
+                        iframe.setAttribute('allow', 'fullscreen'); // Permissions Policy directive
+                        // Added sandbox with necessary permissions to try and mitigate browser security blocks
+                        // This explicitly tells the browser what the iframe is allowed to do.
                         iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-forms allow-modals allow-presentation allow-downloads allow-pointer-lock allow-top-navigation'); 
                         fullscreenEmbedContent.appendChild(iframe);
                     } else if (embedType === 'video') {
@@ -213,8 +214,8 @@
                         video.controls = true;
                         video.autoplay = true; // Autoplay when opened fullscreen
                         video.preload = 'auto'; // Preload more data
-                        video.setAttribute('allowfullscreen', '');
-                        // ADDED: Sandbox attribute for video element (though less common, for consistency)
+                        video.setAttribute('allowfullscreen', ''); // Allow video to go fullscreen natively
+                        // Added sandbox for video element as well (less common but covers all bases)
                         video.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-forms allow-modals allow-presentation allow-downloads allow-pointer-lock allow-top-navigation');
                         const source = document.createElement('source');
                         source.src = R2_BASE_URL + relativeUrl;
