@@ -203,7 +203,6 @@
                     if (embedType === 'pdf') {
                         const iframe = document.createElement('iframe');
                         iframe.src = R2_BASE_URL + relativeUrl;
-                        iframe.setAttribute('allowfullscreen', '');
                         iframe.setAttribute('allow', 'fullscreen'); 
                         // ADDED: Sandbox attribute for stricter control.
                         // We must explicitly list necessary permissions.
