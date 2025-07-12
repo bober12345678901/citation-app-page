@@ -48,64 +48,76 @@
             color: var(--text-color);
             text-align: center; /* Center category titles */
         }
-        .tutorial-category ul {
-            list-style: none; /* Remove default bullet points */
-            padding-left: 0;
-            margin-left: 0;
-            text-align: center; /* Center list items for categories */
-        }
-        .tutorial-category li {
-            margin-bottom: 0.2rem; /* Even smaller margin for list items */
-        }
-        .tutorial-category a {
-            color: var(--accent-color); /* Use accent color for links from your styles.css */
-            text-decoration: underline;
-            font-size: 0.85em; /* Slightly smaller font for links */
-        }
-        .tutorial-category a:hover {
-            /* This will use the hover styling from your styles.css for <a> tags */
-        }
-        /* Styles for embedded content containers */
-        .pdf-embed-container, .video-embed-container {
-            width: 100%;
-            height: 300px; /* Default height for embeds, adjust as needed */
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            overflow: hidden; /* Ensures scrollbars appear within the container for PDF */
-            margin-top: 0.5rem;
-        }
-        .pdf-embed-container iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-        .video-embed-container {
-            position: relative;
-            padding-bottom: 56.25%; /* 16:9 aspect ratio for video */
-            height: 0;
-            overflow: hidden;
-            background-color: black;
-        }
-        .video-embed-container video {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
+        /* Removed .tutorial-category ul/li/a styles as links are now buttons */
         .toggle-embed-group {
             display: flex;
+            flex-direction: column; /* Stack buttons vertically */
             justify-content: center;
             gap: 0.5rem;
             margin-top: 0.5rem;
+            align-items: center; /* Center buttons horizontally */
         }
         .toggle-embed-group button {
-             font-size: 0.75em; /* Smaller button text */
-             padding: 0.3rem 0.6rem;
+            width: 90%; /* Make buttons wider */
+            max-width: 200px; /* Limit max width */
+            font-size: 0.85em; /* Slightly larger button text */
+            padding: 0.5rem 0.8rem;
+            text-align: center;
+            white-space: nowrap; /* Prevent text wrapping inside buttons */
         }
-        .hidden {
-            display: none !important;
+        /* Fullscreen Embed Modal Styles */
+        #fullscreenEmbedModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.95); /* Darker overlay */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000; /* Higher z-index than other modals */
+            transition: opacity 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+        }
+        #fullscreenEmbedModal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        #fullscreenEmbedContent {
+            width: 90%;
+            height: 90%;
+            background-color: black; /* Background for content area */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        #fullscreenEmbedContent iframe,
+        #fullscreenEmbedContent video {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block; /* Remove extra space below video/iframe */
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain; /* Ensure content fits without cropping */
+        }
+        #closeEmbedBtn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            font-size: 1.5em; /* Smaller X */
+            color: white;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+        #closeEmbedBtn:hover {
+            background-color: rgba(255, 255, 255, 0.4);
         }
     </style>
 </head>
@@ -136,49 +148,36 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="tutorial-category">
                         <h3>Citations</h3>
-                        <ul>
-                            <li><a href="#" id="citationsStepByStepLink" target="_blank" rel="noopener noreferrer">Step by Step Guide (New Tab)</a></li>
-                            <li><a href="#" id="citationsVideoGuideLink" target="_blank" rel="noopener noreferrer">Video Guide (New Tab)</a></li>
-                        </ul>
                         <div class="toggle-embed-group">
-                            <button class="theme-button-secondary toggle-embed-btn" data-embed-type="pdf" data-target-id="citationsPdfEmbed" data-link-id="citationsStepByStepLink">Embed PDF</button>
-                            <button class="theme-button-secondary toggle-embed-btn" data-embed-type="video" data-target-id="citationsVideoEmbed" data-link-id="citationsVideoGuideLink">Embed Video</button>
+                            <button class="theme-button-secondary toggle-embed-btn" data-embed-type="pdf" data-url="/cite/citations_step_by_step.pdf">Open Step by Step Guide (PDF)</button>
+                            <button class="theme-button-secondary toggle-embed-btn" data-embed-type="video" data-url="/cite/citations_video.mp4">Open Video Guide</button>
                         </div>
-                        <div id="citationsPdfEmbed" class="pdf-embed-container hidden"></div>
-                        <div id="citationsVideoEmbed" class="video-embed-container hidden"></div>
                     </div>
 
                     <div class="tutorial-category">
                         <h3>Arrests</h3>
-                        <ul>
-                            <li><a href="#" id="arrestsStepByStepLink" target="_blank" rel="noopener noreferrer">Step by Step Guide (New Tab)</a></li>
-                            <li><a href="#" id="arrestsVideoGuideLink" target="_blank" rel="noopener noreferrer">Video Guide (New Tab)</a></li>
-                        </ul>
                         <div class="toggle-embed-group">
-                            <button class="theme-button-secondary toggle-embed-btn" data-embed-type="pdf" data-target-id="arrestsPdfEmbed" data-link-id="arrestsStepByStepLink">Embed PDF</button>
-                            <button class="theme-button-secondary toggle-embed-btn" data-embed-type="video" data-target-id="arrestsVideoEmbed" data-link-id="arrestsVideoGuideLink">Embed Video</button>
+                            <button class="theme-button-secondary toggle-embed-btn" data-embed-type="pdf" data-url="/arrest no warrant/arrests_step_by_step.pdf">Open Step by Step Guide (PDF)</button>
+                            <button class="theme-button-secondary toggle-embed-btn" data-embed-type="video" data-url="/arrest no warrant/arrests_video.mp4">Open Video Guide</button>
                         </div>
-                        <div id="arrestsPdfEmbed" class="pdf-embed-container hidden"></div>
-                        <div id="arrestsVideoEmbed" class="video-embed-container hidden"></div>
                     </div>
                 </div>
 
                 <div class="tutorial-category mx-auto mt-4" style="max-width: 250px;">
                     <h3>Arrests w/ Warrants</h3>
-                    <ul>
-                        <li><a href="#" id="arrestsWarrantsStepByStepLink" target="_blank" rel="noopener noreferrer">Step by Step Guide (New Tab)</a></li>
-                        <li><a href="#" id="arrestsWarrantsVideoGuideLink" target="_blank" rel="noopener noreferrer">Video Guide (New Tab)</a></li>
-                    </ul>
                     <div class="toggle-embed-group">
-                        <button class="theme-button-secondary toggle-embed-btn" data-embed-type="pdf" data-target-id="arrestsWarrantsPdfEmbed" data-link-id="arrestsWarrantsStepByStepLink">Embed PDF</button>
-                        <button class="theme-button-secondary toggle-embed-btn" data-embed-type="video" data-target-id="arrestsWarrantsVideoEmbed" data-link-id="arrestsWarrantsVideoGuideLink">Embed Video</button>
+                        <button class="theme-button-secondary toggle-embed-btn" data-embed-type="pdf" data-url="/arrest w warrant/arrests_w_warrants_step_by_step.pdf">Open Step by Step Guide (PDF)</button>
+                        <button class="theme-button-secondary toggle-embed-btn" data-embed-type="video" data-url="/arrest w warrant/arrests_w_warrants_video.mp4">Open Video Guide</button>
                     </div>
-                    <div id="arrestsWarrantsPdfEmbed" class="pdf-embed-container hidden"></div>
-                    <div id="arrestsWarrantsVideoEmbed" class="video-embed-container hidden"></div>
                 </div>
             </div>
+            </div>
+    </div>
 
-        </div>
+    <div id="fullscreenEmbedModal" class="hidden">
+        <button id="closeEmbedBtn">X</button>
+        <div id="fullscreenEmbedContent">
+            </div>
     </div>
 
     <div id="customModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
@@ -206,15 +205,13 @@
             const adminPanelLink = document.getElementById('adminPanelLink');
             const statisticsLink = document.getElementById('statisticsLink');
 
-            // Tutorial Link Elements
-            const citationsStepByStepLink = document.getElementById('citationsStepByStepLink');
-            const citationsVideoGuideLink = document.getElementById('citationsVideoGuideLink');
-            const arrestsStepByStepLink = document.getElementById('arrestsStepByStepLink');
-            const arrestsVideoGuideLink = document.getElementById('arrestsVideoGuideLink');
-            const arrestsWarrantsStepByStepLink = document.getElementById('arrestsWarrantsStepByStepLink');
-            const arrestsWarrantsVideoGuideLink = document.getElementById('arrestsWarrantsVideoGuideLink');
+            // NEW: Fullscreen Embed Modal elements
+            const fullscreenEmbedModal = document.getElementById('fullscreenEmbedModal');
+            const fullscreenEmbedContent = document.getElementById('fullscreenEmbedContent');
+            const closeEmbedBtn = document.getElementById('closeEmbedBtn');
 
             // Base URL for your R2 bucket. IMPORTANT: This should point to your 'tutorials' directory.
+            // Replace 'a91d9d22a6264a88b02227540eadf4cb' with your actual Cloudflare Account ID.
             const R2_BASE_URL = 'https://pub-a91d9d22a6264a88b02227540eadf4cb.r2.dev/tutorials';
 
 
@@ -248,76 +245,64 @@
                 window.location.href = 'index.html'; // Redirect to login
             });
 
-            // Set the direct tutorial link URLs to your R2 bucket
-            // Adjust paths based on your new R2 directory structure
-            citationsStepByStepLink.href = R2_BASE_URL + '/cite/citations_step_by_step.pdf';
-            citationsVideoGuideLink.href = R2_BASE_URL + '/cite/citations_video.mp4';
-            
-            arrestsStepByStepLink.href = R2_BASE_URL + '/arrest no warrant/arrests_step_by_step.pdf';
-            arrestsVideoGuideLink.href = R2_BASE_URL + '/arrest no warrant/arrests_video.mp4';
-
-            arrestsWarrantsStepByStepLink.href = R2_BASE_URL + '/arrest w warrant/arrests_w_warrants_step_by_step.pdf';
-            arrestsWarrantsVideoGuideLink.href = R2_BASE_URL + '/arrest w warrant/arrests_w_warrants_video.mp4';
-
-
-            // Embed Toggle Logic
+            // Embed Toggle Logic for Fullscreen Modal
             document.querySelectorAll('.toggle-embed-btn').forEach(button => {
                 button.addEventListener('click', function() {
                     const embedType = this.dataset.embedType; // 'pdf' or 'video'
-                    const targetId = this.dataset.targetId; // e.g., 'citationsPdfEmbed'
-                    const linkId = this.dataset.linkId;     // e.g., 'citationsStepByStepLink' (to get its href)
+                    const relativeUrl = this.dataset.url;     // Relative URL path from R2_BASE_URL
 
-                    const embedContainer = document.getElementById(targetId);
-                    const sourceLink = document.getElementById(linkId); // Get the <a> tag that has the URL
+                    // Clear previous content from the fullscreen modal
+                    fullscreenEmbedContent.innerHTML = '';
 
-                    // Hide any other open embeds in this same category to ensure only one is open at a time
-                    const parentCategory = this.closest('.tutorial-category');
-                    parentCategory.querySelectorAll('.pdf-embed-container, .video-embed-container').forEach(container => {
-                        if (container.id !== targetId && !container.classList.contains('hidden')) {
-                            container.classList.add('hidden');
-                            const videoElement = container.querySelector('video');
-                            if (videoElement) videoElement.pause(); // Pause video if hidden
-                        }
-                    });
-                    // Reset text of other buttons in the same category
-                    parentCategory.querySelectorAll('.toggle-embed-btn').forEach(otherBtn => {
-                        if (otherBtn !== this) {
-                            otherBtn.textContent = `Embed ${otherBtn.dataset.embedType.toUpperCase()}`;
-                        }
-                    });
-
-
-                    if (embedContainer.classList.contains('hidden')) {
-                        // Show and load embed
-                        if (!embedContainer.innerHTML) { // Load content only if not already loaded
-                            if (embedType === 'pdf') {
-                                const iframe = document.createElement('iframe');
-                                iframe.src = sourceLink.href;
-                                embedContainer.appendChild(iframe);
-                            } else if (embedType === 'video') {
-                                const video = document.createElement('video');
-                                video.controls = true;
-                                video.autoplay = false;
-                                video.preload = 'metadata';
-                                const source = document.createElement('source');
-                                source.src = sourceLink.href;
-                                source.type = (sourceLink.href.includes('.mp4')) ? 'video/mp4' : (sourceLink.href.includes('.webm') ? 'video/webm' : ''); // Basic type inference
-                                video.appendChild(source);
-                                embedContainer.appendChild(video);
-                            }
-                        }
-                        embedContainer.classList.remove('hidden');
-                        this.textContent = `Hide ${embedType.toUpperCase()}`;
-                    } else {
-                        // Hide embed
-                        embedContainer.classList.add('hidden');
-                        if (embedType === 'video') {
-                            const videoElement = embedContainer.querySelector('video');
-                            if (videoElement) videoElement.pause();
-                        }
-                        this.textContent = `Embed ${embedType.toUpperCase()}`;
+                    if (embedType === 'pdf') {
+                        const iframe = document.createElement('iframe');
+                        iframe.src = R2_BASE_URL + relativeUrl;
+                        fullscreenEmbedContent.appendChild(iframe);
+                    } else if (embedType === 'video') {
+                        const video = document.createElement('video');
+                        video.controls = true;
+                        video.autoplay = true; // Autoplay when opened fullscreen
+                        video.preload = 'auto'; // Preload more data
+                        const source = document.createElement('source');
+                        source.src = R2_BASE_URL + relativeUrl;
+                        // Basic type inference, add more if you have .webm etc.
+                        source.type = relativeUrl.includes('.mp4') ? 'video/mp4' : ''; 
+                        video.appendChild(source);
+                        fullscreenEmbedContent.appendChild(video);
                     }
+
+                    fullscreenEmbedModal.classList.add('show'); // Show the modal
                 });
+            });
+
+            // Close Fullscreen Embed Modal
+            function closeFullscreenEmbedModal() {
+                fullscreenEmbedModal.classList.remove('show'); // Hide the modal
+                // Pause any playing video when modal closes
+                const videoElement = fullscreenEmbedContent.querySelector('video');
+                if (videoElement) {
+                    videoElement.pause();
+                }
+                // Clear content after animation completes for performance/memory
+                setTimeout(() => {
+                    fullscreenEmbedContent.innerHTML = '';
+                }, 300); // Match CSS transition duration
+            }
+
+            closeEmbedBtn.addEventListener('click', closeFullscreenEmbedModal);
+
+            // Listen for Escape key to close the modal
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' && fullscreenEmbedModal.classList.contains('show')) {
+                    closeFullscreenEmbedModal();
+                }
+            });
+
+            // Close modal if clicked outside the content itself (on the overlay)
+            fullscreenEmbedModal.addEventListener('click', function(event) {
+                if (event.target === fullscreenEmbedModal) {
+                    closeFullscreenEmbedModal();
+                }
             });
         });
     </script>
