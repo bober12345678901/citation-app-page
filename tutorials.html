@@ -161,6 +161,13 @@
 
         </div>
     </div>
+
+    <div id="fullscreenEmbedModal" class="hidden">
+        <button id="closeEmbedBtn">X</button>
+        <div id="fullscreenEmbedContent">
+            </div>
+    </div>
+
     <div id="customModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
         <div id="customModal" class="theme-lookup-box p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 sm:mx-auto">
             <h3 id="customModalTitle" class="theme-title text-xl font-bold mb-4"></h3>
@@ -173,80 +180,141 @@
     </div>
 
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Base URL for your R2 bucket. IMPORTANT: This should point to your 'tutorials' directory.
-        const R2_BASE_URL = 'https://pub-a91d9d22a6264a88b02227540eadf4cb.r2.dev/tutorials';
+        document.addEventListener('DOMContentLoaded', function() {
+            // NEW: Fullscreen Embed Modal elements
+            const fullscreenEmbedModal = document.getElementById('fullscreenEmbedModal');
+            const fullscreenEmbedContent = document.getElementById('fullscreenEmbedContent');
+            const closeEmbedBtn = document.getElementById('closeEmbedBtn');
+
+            // Base URL for your R2 bucket. IMPORTANT: This should point to your 'tutorials' directory.
+            // Replace 'a91d9d22a6264a88b02227540eadf4cb' with your actual Cloudflare Account ID.
+            const R2_BASE_URL = 'https://pub-a91d9d22a6264a88b02227540eadf4cb.r2.dev/tutorials';
 
 
-        // Change: Now these buttons will directly open content in a new tab.
-        document.querySelectorAll('.toggle-embed-btn').forEach(button => {
-            button.addEventListener('click', function() {
-                const relativeUrl = this.dataset.url; // Relative URL path from R2_BASE_URL
-                const fullUrl = R2_BASE_URL + relativeUrl;
-                window.open(fullUrl, '_blank'); // Open in a new tab
+            // Embed Toggle Logic for Fullscreen Modal
+            document.querySelectorAll('.toggle-embed-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const embedType = this.dataset.embedType; // 'pdf' or 'video'
+                    const relativeUrl = this.dataset.url;     // Relative URL path from R2_BASE_URL
+
+                    // Clear previous content from the fullscreen modal
+                    fullscreenEmbedContent.innerHTML = '';
+
+                    if (embedType === 'pdf') {
+                        const iframe = document.createElement('iframe');
+                        iframe.src = R2_BASE_URL + relativeUrl;
+                        iframe.setAttribute('allowfullscreen', '');
+                        iframe.setAttribute('allow', 'fullscreen'); 
+                        // ADDED: Sandbox attribute for stricter control.
+                        // We must explicitly list necessary permissions.
+                        iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-forms allow-modals allow-presentation allow-downloads allow-pointer-lock allow-top-navigation'); 
+                        fullscreenEmbedContent.appendChild(iframe);
+                    } else if (embedType === 'video') {
+                        const video = document.createElement('video');
+                        video.controls = true;
+                        video.autoplay = true; // Autoplay when opened fullscreen
+                        video.preload = 'auto'; // Preload more data
+                        video.setAttribute('allowfullscreen', '');
+                        // ADDED: Sandbox attribute for video element (though less common, for consistency)
+                        video.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-forms allow-modals allow-presentation allow-downloads allow-pointer-lock allow-top-navigation');
+                        const source = document.createElement('source');
+                        source.src = R2_BASE_URL + relativeUrl;
+                        source.type = relativeUrl.includes('.mp4') ? 'video/mp4' : ''; // Basic type inference
+                        video.appendChild(source);
+                        fullscreenEmbedContent.appendChild(video);
+                    }
+
+                    fullscreenEmbedModal.classList.add('show'); // Show the modal
+                });
             });
+
+            // Close Fullscreen Embed Modal
+            function closeFullscreenEmbedModal() {
+                fullscreenEmbedModal.classList.remove('show'); // Hide the modal
+                // Pause any playing video when modal closes
+                const videoElement = fullscreenEmbedContent.querySelector('video');
+                if (videoElement) {
+                    videoElement.pause();
+                }
+                // Clear content after animation completes for performance/memory
+                setTimeout(() => {
+                    fullscreenEmbedContent.innerHTML = '';
+                }, 300); // Match CSS transition duration
+            }
+
+            closeEmbedBtn.addEventListener('click', closeFullscreenEmbedModal);
+
+            // Listen for Escape key to close the modal
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' && fullscreenEmbedModal.classList.contains('show')) {
+                    closeFullscreenEmbedModal();
+                }
+            });
+
+            // Close modal if clicked outside the content itself (on the overlay)
+            document.addEventListener('click', function(event) {
+                if (event.target === fullscreenEmbedModal) {
+                    closeFullscreenEmbedModal();
+                }
+            });
+
+            // Placeholder for custom alert/confirm (copied from index.html/signup.html for this new page)
+            window.showCustomAlert = function(message, title) {
+                return new Promise(resolve => {
+                    const modalOverlay = document.getElementById('customModalOverlay');
+                    const modalTitle = document.getElementById('customModalTitle');
+                    const modalMessage = document.getElementById('customModalMessage');
+                    const modalOkBtn = document.getElementById('customModalOkBtn');
+                    const modalCancelBtn = document.getElementById('customModalCancelBtn');
+
+                    modalTitle.textContent = title;
+                    modalMessage.textContent = message;
+                    modalOkBtn.textContent = "OK";
+                    modalCancelBtn.classList.add('hidden');
+                    modalOverlay.classList.remove('hidden');
+
+                    const handler = () => {
+                        modalOverlay.classList.add('hidden');
+                        modalOkBtn.removeEventListener('click', handler);
+                        resolve(true);
+                    };
+                    modalOkBtn.addEventListener('click', handler);
+                });
+            };
+
+            window.showCustomConfirm = function(message, title) {
+                return new Promise(resolve => {
+                    const modalOverlay = document.getElementById('customModalOverlay');
+                    const modalTitle = document.getElementById('customModalTitle');
+                    const modalMessage = document.getElementById('customModalMessage');
+                    const modalOkBtn = document.getElementById('customModalOkBtn');
+                    const modalCancelBtn = document.getElementById('customModalCancelBtn');
+
+                    modalTitle.textContent = title;
+                    modalMessage.textContent = message;
+                    modalOkBtn.textContent = "Confirm";
+                    modalCancelBtn.textContent = "Cancel";
+                    modalCancelBtn.classList.remove('hidden');
+                    modalOverlay.classList.remove('hidden');
+
+                    const okHandler = () => {
+                        modalOverlay.classList.add('hidden');
+                        modalOkBtn.removeEventListener('click', okHandler);
+                        modalCancelBtn.removeEventListener('click', cancelHandler);
+                        resolve(true);
+                    };
+                    const cancelHandler = () => {
+                        modalOverlay.classList.add('hidden');
+                        modalOkBtn.removeEventListener('click', okHandler);
+                        modalCancelBtn.removeEventListener('click', cancelHandler);
+                        resolve(false);
+                    };
+
+                    modalOkBtn.addEventListener('click', okHandler);
+                    modalCancelBtn.addEventListener('click', cancelHandler);
+                });
+            };
         });
-
-        // Removed all fullscreen modal related JS, as it's no longer used for direct links
-        // (e.g., fullscreenEmbedModal, fullscreenEmbedContent, closeEmbedBtn, closeFullscreenEmbedModal function, and their listeners)
-
-        // Placeholder for custom alert/confirm (kept as they might be used elsewhere)
-        window.showCustomAlert = function(message, title) {
-            return new Promise(resolve => {
-                const modalOverlay = document.getElementById('customModalOverlay');
-                const modalTitle = document.getElementById('customModalTitle');
-                const modalMessage = document.getElementById('customModalMessage');
-                const modalOkBtn = document.getElementById('customModalOkBtn');
-                const modalCancelBtn = document.getElementById('customModalCancelBtn');
-
-                modalTitle.textContent = title;
-                modalMessage.textContent = message;
-                modalOkBtn.textContent = "OK";
-                modalCancelBtn.classList.add('hidden');
-                modalOverlay.classList.remove('hidden');
-
-                const handler = () => {
-                    modalOverlay.classList.add('hidden');
-                    modalOkBtn.removeEventListener('click', handler);
-                    resolve(true);
-                };
-                modalOkBtn.addEventListener('click', handler);
-            });
-        };
-
-        window.showCustomConfirm = function(message, title) {
-            return new Promise(resolve => {
-                const modalOverlay = document.getElementById('customModalOverlay');
-                const modalTitle = document.getElementById('customModalTitle');
-                const modalMessage = document.getElementById('customModalMessage');
-                const modalOkBtn = document.getElementById('customModalOkBtn');
-                const modalCancelBtn = document.getElementById('customModalCancelBtn');
-
-                modalTitle.textContent = title;
-                modalMessage.textContent = message;
-                modalOkBtn.textContent = "Confirm";
-                modalCancelBtn.textContent = "Cancel";
-                modalCancelBtn.classList.remove('hidden');
-                modalOverlay.classList.remove('hidden');
-
-                const okHandler = () => {
-                    modalOverlay.classList.add('hidden');
-                    modalOkBtn.removeEventListener('click', okHandler);
-                    modalCancelBtn.removeEventListener('click', cancelHandler);
-                    resolve(true);
-                };
-                const cancelHandler = () => {
-                    modalOverlay.classList.add('hidden');
-                    modalOkBtn.removeEventListener('click', okHandler);
-                    modalCancelBtn.removeEventListener('click', cancelHandler);
-                    resolve(false);
-                };
-
-                modalOkBtn.addEventListener('click', okHandler);
-                modalCancelBtn.addEventListener('click', cancelHandler);
-            });
-        };
-    });
-</script>
+    </script>
 </body>
 </html>
