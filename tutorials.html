@@ -203,12 +203,17 @@
                     if (embedType === 'pdf') {
                         const iframe = document.createElement('iframe');
                         iframe.src = R2_BASE_URL + relativeUrl;
+                        iframe.setAttribute('allowfullscreen', ''); // Allow fullscreen for the iframe
+                        iframe.setAttribute('allow', 'fullscreen'); // Permissions Policy directive
                         fullscreenEmbedContent.appendChild(iframe);
                     } else if (embedType === 'video') {
                         const video = document.createElement('video');
                         video.controls = true;
                         video.autoplay = true; // Autoplay when opened fullscreen
                         video.preload = 'auto'; // Preload more data
+                        // No need for allowfullscreen on video tag unless it's embedded within an iframe,
+                        // but it's good practice for direct video elements too if you want browser's native fullscreen.
+                        video.setAttribute('allowfullscreen', ''); 
                         const source = document.createElement('source');
                         source.src = R2_BASE_URL + relativeUrl;
                         source.type = relativeUrl.includes('.mp4') ? 'video/mp4' : ''; // Basic type inference
