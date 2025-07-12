@@ -31,94 +31,6 @@
             gap: 1rem; /* Space between Admin, Statistics, and Logout buttons */
             flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
         }
-        /* Styles for the new tutorial section */
-        .tutorial-section {
-            margin-top: 1.5rem; /* Slightly smaller margin-top */
-            padding-top: 1rem;
-            border-top: 1px solid var(--border-color);
-            text-align: left; /* Align text left within the section */
-        }
-        .tutorial-category {
-            margin-bottom: 1rem; /* Smaller margin between categories */
-        }
-        .tutorial-category h3 {
-            font-weight: bold;
-            font-size: 1.05em; /* Slightly smaller font for category titles */
-            margin-bottom: 0.4rem; /* Smaller margin below title */
-            color: var(--text-color);
-            text-align: center; /* Center category titles */
-        }
-        /* Removed .tutorial-category ul/li/a styles as links are now buttons */
-        .toggle-embed-group {
-            display: flex;
-            flex-direction: column; /* Stack buttons vertically */
-            justify-content: center;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-            align-items: center; /* Center buttons horizontally */
-        }
-        .toggle-embed-group button {
-            width: 90%; /* Make buttons wider */
-            max-width: 200px; /* Limit max width */
-            font-size: 0.85em; /* Slightly larger button text */
-            padding: 0.5rem 0.8rem;
-            text-align: center;
-            white-space: nowrap; /* Prevent text wrapping inside buttons */
-        }
-        /* Fullscreen Embed Modal Styles */
-        #fullscreenEmbedModal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: rgba(0, 0, 0, 0.95); /* Darker overlay */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000; /* Higher z-index than other modals */
-            transition: opacity 0.3s ease;
-            opacity: 0;
-            visibility: hidden;
-        }
-        #fullscreenEmbedModal.show {
-            opacity: 1;
-            visibility: visible;
-        }
-        #fullscreenEmbedContent {
-            width: 90%;
-            height: 90%;
-            background-color: black; /* Background for content area */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-        #fullscreenEmbedContent iframe,
-        #fullscreenEmbedContent video {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: block; /* Remove extra space below video/iframe */
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain; /* Ensure content fits without cropping */
-        }
-        #closeEmbedBtn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            font-size: 1.5em; /* Smaller X */
-            color: white;
-            cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 5px;
-        }
-        #closeEmbedBtn:hover {
-            background-color: rgba(255, 255, 255, 0.4);
-        }
     </style>
 </head>
 <body class="min-h-screen theme-app-container">
@@ -142,41 +54,9 @@
                 <button id="logoutButton" class="theme-button-secondary py-3 px-6 rounded-md font-semibold hidden">Logout</button>
             </div>
 
-            <div class="tutorial-section theme-label">
-                <h3 class="theme-title text-xl font-bold mb-4 text-center">Tutorials & Help</h3>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="tutorial-category">
-                        <h3>Citations</h3>
-                        <div class="toggle-embed-group">
-                            <button class="theme-button-secondary toggle-embed-btn" data-embed-type="pdf" data-url="/cite/citations_step_by_step.pdf">Open Step by Step Guide</button>
-                            <button class="theme-button-secondary toggle-embed-btn" data-embed-type="video" data-url="/cite/citations_video.mp4">Open Video Guide</button>
-                        </div>
-                    </div>
-
-                    <div class="tutorial-category">
-                        <h3>Arrests</h3>
-                        <div class="toggle-embed-group">
-                            <button class="theme-button-secondary toggle-embed-btn" data-embed-type="pdf" data-url="/arrest no warrant/arrests_step_by_step.pdf">Open Step by Step Guide</button>
-                            <button class="theme-button-secondary toggle-embed-btn" data-embed-type="video" data-url="/arrest no warrant/arrests_video.mp4">Open Video Guide</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="tutorial-category mx-auto mt-4" style="max-width: 250px;">
-                    <h3>Arrests w/ Warrants</h3>
-                    <div class="toggle-embed-group">
-                        <button class="theme-button-secondary toggle-embed-btn" data-embed-type="pdf" data-url="/arrest w warrant/arrests_w_warrants_step_by_step.pdf">Open Step by Step Guide</button>
-                        <button class="theme-button-secondary toggle-embed-btn" data-embed-type="video" data-url="/arrest w warrant/arrests_w_warrants_video.mp4">Open Video Guide</button>
-                    </div>
-                </div>
+            <div class="text-center mt-6">
+                <p class="theme-label text-sm">Need help? Visit our <a href="tutorials.html" id="tutorialsHelpLink" class="theme-link font-medium hover:underline">Tutorials & Help page</a>.</p>
             </div>
-            </div>
-    </div>
-
-    <div id="fullscreenEmbedModal" class="hidden">
-        <button id="closeEmbedBtn">X</button>
-        <div id="fullscreenEmbedContent">
             </div>
     </div>
 
@@ -204,16 +84,7 @@
             const logoutButton = document.getElementById('logoutButton');
             const adminPanelLink = document.getElementById('adminPanelLink');
             const statisticsLink = document.getElementById('statisticsLink');
-
-            // NEW: Fullscreen Embed Modal elements
-            const fullscreenEmbedModal = document.getElementById('fullscreenEmbedModal');
-            const fullscreenEmbedContent = document.getElementById('fullscreenEmbedContent');
-            const closeEmbedBtn = document.getElementById('closeEmbedBtn');
-
-            // Base URL for your R2 bucket. IMPORTANT: This should point to your 'tutorials' directory.
-            // Replace 'a91d9d22a6264a88b02227540eadf4cb' with your actual Cloudflare Account ID.
-            const R2_BASE_URL = 'https://pub-a91d9d22a6264a88b02227540eadf4cb.r2.dev/tutorials';
-
+            const tutorialsHelpLink = document.getElementById('tutorialsHelpLink'); // Get the new link
 
             // Authentication check
             if (!token || !userInfo) {
@@ -245,65 +116,7 @@
                 window.location.href = 'index.html'; // Redirect to login
             });
 
-            // Embed Toggle Logic for Fullscreen Modal
-            document.querySelectorAll('.toggle-embed-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    const embedType = this.dataset.embedType; // 'pdf' or 'video'
-                    const relativeUrl = this.dataset.url;     // Relative URL path from R2_BASE_URL
-
-                    // Clear previous content from the fullscreen modal
-                    fullscreenEmbedContent.innerHTML = '';
-
-                    if (embedType === 'pdf') {
-                        const iframe = document.createElement('iframe');
-                        iframe.src = R2_BASE_URL + relativeUrl;
-                        fullscreenEmbedContent.appendChild(iframe);
-                    } else if (embedType === 'video') {
-                        const video = document.createElement('video');
-                        video.controls = true;
-                        video.autoplay = true; // Autoplay when opened fullscreen
-                        video.preload = 'auto'; // Preload more data
-                        const source = document.createElement('source');
-                        source.src = R2_BASE_URL + relativeUrl;
-                        // Basic type inference, add more if you have .webm etc.
-                        source.type = relativeUrl.includes('.mp4') ? 'video/mp4' : ''; 
-                        video.appendChild(source);
-                        fullscreenEmbedContent.appendChild(video);
-                    }
-
-                    fullscreenEmbedModal.classList.add('show'); // Show the modal
-                });
-            });
-
-            // Close Fullscreen Embed Modal
-            function closeFullscreenEmbedModal() {
-                fullscreenEmbedModal.classList.remove('show'); // Hide the modal
-                // Pause any playing video when modal closes
-                const videoElement = fullscreenEmbedContent.querySelector('video');
-                if (videoElement) {
-                    videoElement.pause();
-                }
-                // Clear content after animation completes for performance/memory
-                setTimeout(() => {
-                    fullscreenEmbedContent.innerHTML = '';
-                }, 300); // Match CSS transition duration
-            }
-
-            closeEmbedBtn.addEventListener('click', closeFullscreenEmbedModal);
-
-            // Listen for Escape key to close the modal
-            document.addEventListener('keydown', function(event) {
-                if (event.key === 'Escape' && fullscreenEmbedModal.classList.contains('show')) {
-                    closeFullscreenEmbedModal();
-                }
-            });
-
-            // Close modal if clicked outside the content itself (on the overlay)
-            fullscreenEmbedModal.addEventListener('click', function(event) {
-                if (event.target === fullscreenEmbedModal) {
-                    closeFullscreenEmbedModal();
-                }
-            });
+            // The tutorialsHelpLink href is already set in HTML, no JS needed for it.
         });
     </script>
 </body>
