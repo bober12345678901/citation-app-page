@@ -155,10 +155,24 @@
             <div class="admin-section">
                 <h3 class="theme-title text-xl font-bold">Filter Logs by User</h3>
                 <div class="action-buttons-group">
-                    <label for="filterUsername" class="theme-label block my-auto font-medium">Username:</label>
+                    <label for="filterUsername" class="theme-label block my-auto font-medium">Submitted By (Username):</label>
                     <input type="text" id="filterUsername" placeholder="Enter username" class="theme-input p-2 border rounded-md flex-grow">
+                    
+                    <label for="filterViolatorName" class="theme-label block my-auto font-medium">Violator Name:</label>
+                    <input type="text" id="filterViolatorName" placeholder="Enter violator name" class="theme-input p-2 border rounded-md flex-grow">
+
                     <label for="filterDepartment" class="theme-label block my-auto font-medium">Department:</label>
                     <input type="text" id="filterDepartment" placeholder="Enter department" class="theme-input p-2 border rounded-md flex-grow">
+
+                    <label for="filterOfficerBadge" class="theme-label block my-auto font-medium">Officer Badge:</label>
+                    <input type="text" id="filterOfficerBadge" placeholder="Enter badge #" class="theme-input p-2 border rounded-md flex-grow">
+
+                    <label for="filterStartDate" class="theme-label block my-auto font-medium">Start Date:</label>
+                    <input type="date" id="filterStartDate" class="theme-input p-2 border rounded-md flex-grow">
+
+                    <label for="filterEndDate" class="theme-label block my-auto font-medium">End Date:</label>
+                    <input type="date" id="filterEndDate" class="theme-input p-2 border rounded-md flex-grow">
+                    
                     <button id="applyFilterBtn" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">Apply Filter</button>
                     <button id="clearFilterBtn" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">Clear Filter</button>
                 </div>
@@ -312,7 +326,7 @@
         <img id="fullscreenImage" src="" alt="Full Screen Screenshot">
     </div>
 
-    <div id="editPenalCodeModalOverlay" class="fixed inset-0 bg-black bg-opacity50 flex items-center justify-center hidden z-50">
+    <div id="editPenalCodeModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
         <div id="editPenalCodeModal" class="theme-lookup-box p-6 rounded-lg shadow-xl">
             <h3 class="theme-title text-xl font-bold mb-4">Edit Penal Code: <span id="editPenalCodeCodeDisplay"></span></h3>
             <form id="editPenalCodeForm" class="grid grid-cols-1 gap-4">
@@ -380,7 +394,11 @@
 
             // Filter elements
             const filterUsernameInput = document.getElementById('filterUsername');
+            const filterViolatorNameInput = document.getElementById('filterViolatorName'); // NEW
             const filterDepartmentInput = document.getElementById('filterDepartment');
+            const filterOfficerBadgeInput = document.getElementById('filterOfficerBadge'); // NEW
+            const filterStartDateInput = document.getElementById('filterStartDate');     // NEW
+            const filterEndDateInput = document.getElementById('filterEndDate');       // NEW
             const applyFilterBtn = document.getElementById('applyFilterBtn');
             const clearFilterBtn = document.getElementById('clearFilterBtn');
             const citationCountDisplay = document.getElementById('citationCount');
@@ -435,8 +453,35 @@
                 citationsTableBody.innerHTML = '<tr><td colspan="9" class="text-center theme-label">Loading data...</td></tr>';
                 deleteSelectedCitationsBtn.disabled = true;
 
+                let url = 'https://citation-app-worker.pnbober.workers.dev/citations';
+                const params = new URLSearchParams();
+                
+                // Add filter parameters for citations
+                if (filterUsernameInput.value.trim()) {
+                    params.append('username', filterUsernameInput.value.trim());
+                }
+                if (filterViolatorNameInput.value.trim()) { // NEW
+                    params.append('violatorName', filterViolatorNameInput.value.trim());
+                }
+                if (filterDepartmentInput.value.trim()) {
+                    params.append('department', filterDepartmentInput.value.trim());
+                }
+                if (filterOfficerBadgeInput.value.trim()) { // NEW
+                    params.append('officerBadge', filterOfficerBadgeInput.value.trim());
+                }
+                if (filterStartDateInput.value) { // NEW
+                    params.append('startDate', filterStartDateInput.value);
+                }
+                if (filterEndDateInput.value) { // NEW
+                    params.append('endDate', filterEndDateInput.value);
+                }
+
+                if (params.toString()) {
+                    url += `?${params.toString()}`;
+                }
+
                 try {
-                    const response = await fetch('https://citation-app-worker.pnbober.workers.dev/citations', {
+                    const response = await fetch(url, { // Use the constructed URL
                         method: 'GET',
                         headers: {
                             'Authorization': `Bearer ${authToken}`
@@ -499,6 +544,9 @@
 
                 const username = filterUsernameInput.value.trim();
                 const department = filterDepartmentInput.value.trim();
+                const host = document.getElementById('filterHost')?.value.trim(); // NEW: Assuming a filterHost input exists
+                const callsign = document.getElementById('filterCallsign')?.value.trim(); // NEW: Assuming a filterCallsign input exists
+
 
                 let url = 'https://citation-app-worker.pnbober.workers.dev/shift-logs';
                 const params = new URLSearchParams();
@@ -508,6 +556,19 @@
                 if (department) {
                     params.append('department', department);
                 }
+                if (host) { // NEW
+                    params.append('host', host);
+                }
+                if (callsign) { // NEW
+                    params.append('callsign', callsign);
+                }
+                if (filterStartDateInput.value) { // NEW
+                    params.append('startDate', filterStartDateInput.value);
+                }
+                if (filterEndDateInput.value) { // NEW
+                    params.append('endDate', filterEndDateInput.value);
+                }
+
                 if (params.toString()) {
                     url += `?${params.toString()}`;
                 }
@@ -863,13 +924,23 @@
 
             // --- Filter Event Listeners ---
             applyFilterBtn.addEventListener('click', function() {
-                fetchAndDisplayCitations();
-                fetchAndDisplayShiftLogs();
+                fetchAndDisplayCitations(); // Now calls with parameters
+                fetchAndDisplayShiftLogs(); // Already calls with parameters
             });
 
             clearFilterBtn.addEventListener('click', function() {
                 filterUsernameInput.value = '';
+                filterViolatorNameInput.value = ''; // NEW
                 filterDepartmentInput.value = '';
+                filterOfficerBadgeInput.value = ''; // NEW
+                filterStartDateInput.value = '';     // NEW
+                filterEndDateInput.value = '';       // NEW
+                // Clear shift-log specific filters too if they existed (e.g. host, callsign)
+                const filterHostInput = document.getElementById('filterHost');
+                if (filterHostInput) filterHostInput.value = '';
+                const filterCallsignInput = document.getElementById('filterCallsign');
+                if (filterCallsignInput) filterCallsignInput.value = '';
+
                 fetchAndDisplayCitations();
                 fetchAndDisplayShiftLogs();
             });

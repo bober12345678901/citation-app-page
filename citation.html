@@ -82,6 +82,26 @@
         .radio-container label {
             margin-bottom: 0; /* Override block mb-2 */
         }
+        /* Styles for the penal code list modal */
+        .penal-code-list-modal-content {
+            max-height: 400px; /* Limit height for scrollability */
+            overflow-y: auto;
+            padding: 1rem;
+            background-color: var(--input-bg-color); /* Match theme input background */
+            border-radius: 0.375rem;
+            border: 1px solid var(--border-color);
+        }
+        .penal-code-list-modal-content div {
+            padding: 0.5rem 0;
+            border-bottom: 1px dashed var(--border-color);
+            color: var(--text-color); /* Set text color to theme's main text color */
+        }
+        .penal-code-list-modal-content div:last-child {
+            border-bottom: none;
+        }
+        .penal-code-list-modal-content strong {
+            color: var(--accent-color);
+        }
     </style>
 </head>
 <body class="min-h-screen theme-app-container">
@@ -133,7 +153,10 @@
                             </div>
                             </div>
                     </div>
-                    <button type="button" id="addPenalCodeBtn" class="theme-button-secondary py-2 px-6 rounded-md font-semibold mt-4">Add Another Penal Code</button>
+                    <div class="flex flex-wrap gap-4 mt-4">
+                        <button type="button" id="addPenalCodeBtn" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">Add Another Penal Code</button>
+                        <button type="button" id="viewAllPenalCodesBtn" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">View All Penal Codes</button>
+                    </div>
                 </div>
                 <div class="mb-4 text-right">
                     <label for="totalAmountDueSum" class="theme-label block mb-2 font-bold text-xl">Total Amount Due (All Codes):</label>
@@ -169,6 +192,19 @@
         </div>
     </div>
 
+    <!-- Penal Code List Modal -->
+    <div id="penalCodeListModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div id="penalCodeListModal" class="theme-lookup-box p-6 rounded-lg shadow-xl max-w-lg w-full mx-4 sm:mx-auto">
+            <h3 id="penalCodeListModalTitle" class="theme-title text-xl font-bold mb-4">Available Penal Codes</h3>
+            <div id="penalCodeListModalContent" class="penal-code-list-modal-content mb-6">
+                <!-- Penal codes will be loaded here -->
+            </div>
+            <div class="flex justify-end">
+                <button id="penalCodeListModalCloseBtn" class="theme-button-primary py-2 px-4 rounded-md font-semibold">Close</button>
+            </div>
+        </div>
+    </div>
+
     <div id="customModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
         <div id="customModal" class="theme-lookup-box p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 sm:mx-auto">
             <h3 id="customModalTitle" class="theme-title text-xl font-bold mb-4"></h3>
@@ -181,6 +217,11 @@
     </div>
     <script>
         let penalCodesData = []; // Store penal codes fetched from backend
+
+        // Store *all* penal codes fetched initially, before filtering for citation form display
+        // This will be used for the "View All Penal Codes" modal, which should show the filtered set.
+        let allFilteredPenalCodesForCitationForm = []; 
+
         let penalCodeGroupCounter = 0; // To assign unique IDs to new groups
 
         document.addEventListener('DOMContentLoaded', async function() {
@@ -213,6 +254,12 @@
             const notSignedReasonContainer = document.getElementById('notSignedReasonContainer');
             const notSignedReasonInput = document.getElementById('notSignedReason');
 
+            // NEW Penal Code List Modal elements
+            const viewAllPenalCodesBtn = document.getElementById('viewAllPenalCodesBtn');
+            const penalCodeListModalOverlay = document.getElementById('penalCodeListModalOverlay');
+            const penalCodeListModalContent = document.getElementById('penalCodeListModalContent');
+            const penalCodeListModalCloseBtn = document.getElementById('penalCodeListModalCloseBtn');
+
 
             // Get logged in user info for auto-fill
             const loggedInUserString = sessionStorage.getItem('loggedInUser');
@@ -224,6 +271,10 @@
                 if (loggedInUser.badgeNumber) {
                     officerBadgeInput.value = loggedInUser.badgeNumber;
                 }
+                // Auto-fill officer username if available
+                if (loggedInUser.username) {
+                    officerNameInput.value = loggedInUser.username;
+                }
                 // Get and display department
                 if (loggedInUser.department) {
                     userDepartment = loggedInUser.department;
@@ -231,6 +282,12 @@
                 } else {
                     officerDepartmentDisplayInput.value = 'N/A'; // Explicitly set N/A if not found
                 }
+
+                // Make department editable if user is admin
+                if (loggedInUser.role === 'admin') {
+                    officerDepartmentDisplayInput.removeAttribute('readonly');
+                }
+
                 console.log("Logged-in Officer Department:", userDepartment); // For debugging
             }
 
@@ -248,7 +305,6 @@
                     console.log("All penal codes loaded:", allPenalCodes);
 
                     // Filter penal codes immediately after fetching for this form
-                    // This is the updated filter logic
                     penalCodesData = allPenalCodes.filter(pc => {
                         // Always include "Reckless Driving" by its description
                         if (pc.description && pc.description.toLowerCase() === 'reckless driving') {
@@ -264,8 +320,26 @@
                         }
                         // Otherwise, filter it out
                         return false;
+                    }).sort((a, b) => { // Sort the filtered list
+                        const codeA = a.code;
+                        const codeB = b.code;
+
+                        const numA = parseFloat(codeA);
+                        const numB = parseFloat(codeB);
+
+                        if (!isNaN(numA) && !isNaN(numB)) {
+                            return numA - numB;
+                        } else if (!isNaN(numA)) {
+                            return -1;
+                        } else if (!isNaN(numB)) {
+                            return 1;
+                        } else {
+                            return codeA.localeCompare(codeB);
+                        }
                     });
-                    console.log("Filtered penal codes for Citation Form:", penalCodesData);
+
+                    allFilteredPenalCodesForCitationForm = penalCodesData; // Store the filtered and sorted list for the modal
+                    console.log("Filtered and sorted penal codes for Citation Form:", penalCodesData);
 
                 } else {
                     const errorData = await response.json();
@@ -439,6 +513,28 @@
             // Initial call to set correct state on page load
             toggleSignedReason();
 
+            // --- View All Penal Codes Modal Logic ---
+            viewAllPenalCodesBtn.addEventListener('click', () => {
+                penalCodeListModalContent.innerHTML = ''; // Clear previous content
+                if (allFilteredPenalCodesForCitationForm.length === 0) {
+                    penalCodeListModalContent.innerHTML = '<p class="theme-label">No penal codes available or loaded.</p>';
+                } else {
+                    allFilteredPenalCodesForCitationForm.forEach(pc => {
+                        const itemDiv = document.createElement('div');
+                        itemDiv.classList.add('theme-label-small');
+                        // Apply theme-label class to the div to ensure text color
+                        itemDiv.classList.add('theme-label'); 
+                        itemDiv.innerHTML = `<strong>${pc.code}</strong>: ${pc.description || 'N/A'} (Amount: $${parseFloat(pc.amount_due || 0).toFixed(2)})`;
+                        penalCodeListModalContent.appendChild(itemDiv);
+                    });
+                }
+                penalCodeListModalOverlay.classList.remove('hidden');
+            });
+
+            penalCodeListModalCloseBtn.addEventListener('click', () => {
+                penalCodeListModalOverlay.classList.add('hidden');
+            });
+
 
             // --- Initial Setup ---
             setupAutocompleteForInput(0); // <--- THIS LINE IS CRUCIAL FOR THE FIRST AUTOCOMPLETE INPUT
@@ -454,12 +550,16 @@
                         document.getElementById('penalCode_0').value = '';
                         document.getElementById('amountDue_0').value = '0.00';
                         document.getElementById('officerBadge').value = loggedInUser.badgeNumber || ''; // Reset to auto-filled value
-                        document.getElementById('officerName').value = ''; // Reset officer name
+                        document.getElementById('officerName').value = loggedInUser.username || ''; // Reset officer name to auto-filled
                         document.getElementById('officerRank').value = '';
                         document.getElementById('violatorName').value = '';
                         document.getElementById('violationDetails').value = '';
                         mainViolationTypeInput.value = '';
                         officerDepartmentDisplayInput.value = userDepartment; // Reset department display
+                        // Ensure department field is readonly if not admin
+                        if (loggedInUser.role !== 'admin') {
+                            officerDepartmentDisplayInput.setAttribute('readonly', 'readonly');
+                        }
                         calculateTotalAmountDue();
                         updateMainViolationType(); // Update after clear
                         // Reset signed status
@@ -482,7 +582,7 @@
                 citationData.violatorName = document.getElementById('violatorName').value;
                 citationData.violationDetails = document.getElementById('violationDetails').value;
                 citationData.violationType = mainViolationTypeInput.value;
-                citationData.department = userDepartment; // Pass department to the submission data
+                citationData.department = officerDepartmentDisplayInput.value; // Use current value from potentially editable field
                 citationData.signedStatus = document.querySelector('input[name="signedStatus"]:checked').value; // NEW: Signed Status
                 citationData.notSignedReason = signedNoRadio.checked ? notSignedReasonInput.value : ''; // NEW: Reason if not signed
 
@@ -535,11 +635,15 @@
                             citationForm.reset();
                             // Manually reset specific fields that need it after reset()
                             document.getElementById('officerBadge').value = loggedInUser.badgeNumber || '';
-                            document.getElementById('officerName').value = '';
+                            document.getElementById('officerName').value = loggedInUser.username || ''; // Reset officer name to auto-filled
                             document.getElementById('officerRank').value = '';
                             document.getElementById('violatorName').value = '';
                             document.getElementById('violationDetails').value = '';
                             document.getElementById('officerDepartmentDisplay').value = userDepartment;
+                            // Ensure department field is readonly if not admin after reset
+                            if (loggedInUser.role !== 'admin') {
+                                officerDepartmentDisplayInput.setAttribute('readonly', 'readonly');
+                            }
                             document.querySelectorAll('.penal-code-group[data-group-id]:not([data-group-id="0"])').forEach(group => group.remove());
                             document.getElementById('penalCode_0').value = '';
                             document.getElementById('amountDue_0').value = '0.00';

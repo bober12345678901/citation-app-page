@@ -116,6 +116,41 @@
             outline: 2px solid var(--accent-color);
             border-color: var(--accent-color);
         }
+        /* Styles for radio button container */
+        .radio-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 1rem;
+        }
+        .radio-container input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent-color);
+        }
+        .radio-container label {
+            margin-bottom: 0; /* Override block mb-2 */
+        }
+        /* Styles for the penal code list modal */
+        .penal-code-list-modal-content {
+            max-height: 400px; /* Limit height for scrollability */
+            overflow-y: auto;
+            padding: 1rem;
+            background-color: var(--input-bg-color); /* Match theme input background */
+            border-radius: 0.375rem;
+            border: 1px solid var(--border-color);
+        }
+        .penal-code-list-modal-content div {
+            padding: 0.5rem 0;
+            border-bottom: 1px dashed var(--border-color);
+            color: var(--text-color); /* Set text color to theme's main text color */
+        }
+        .penal-code-list-modal-content div:last-child {
+            border-bottom: none;
+        }
+        .penal-code-list-modal-content strong {
+            color: var(--accent-color);
+        }
     </style>
 </head>
 <body class="min-h-screen theme-app-container">
@@ -166,7 +201,10 @@
                             </div>
                             </div>
                     </div>
-                    <button type="button" id="addChargeBtn" class="theme-button-secondary py-2 px-6 rounded-md font-semibold mt-4">Add Another Charge</button>
+                    <div class="flex flex-wrap gap-4 mt-4">
+                        <button type="button" id="addChargeBtn" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">Add Another Charge</button>
+                        <button type="button" id="viewAllPenalCodesBtn" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">View All Penal Codes</button>
+                    </div>
                 </div>
                 <div class="mb-4 text-right">
                     <label for="totalJailTimeSum" class="theme-label block mb-2 font-bold text-xl">Total Jail Time (All Charges, Sec):</label>
@@ -178,12 +216,34 @@
                     <input type="text" id="totalFinesSum" name="totalFinesSum" class="theme-input p-2 border rounded-md text-right font-bold text-xl" value="$0.00" readonly>
                 </div>
 
+                <!-- Changed from checkbox to radio group -->
                 <div class="mb-6">
-                    <div class="checkbox-container">
-                        <input type="checkbox" id="warrantNeeded" name="warrantNeeded" class="theme-input">
-                        <label for="warrantNeeded" class="theme-label block font-medium">Warrant Needed</label>
+                    <label class="theme-label block mb-2 font-medium">Warrant Needed?</label>
+                    <div class="radio-container">
+                        <input type="radio" id="warrantNeededNo" name="warrantNeeded" value="NO" checked>
+                        <label for="warrantNeededNo" class="theme-label">NO</label>
+                        <input type="radio" id="warrantNeededYes" name="warrantNeeded" value="YES">
+                        <label for="warrantNeededYes" class="theme-label">YES</label>
                     </div>
                 </div>
+
+                <!-- NEW: Serving Warrant Section -->
+                <div class="mb-4">
+                    <label class="theme-label block mb-2 font-medium">Serving Warrant?</label>
+                    <div class="radio-container">
+                        <input type="radio" id="servingWarrantNo" name="servingWarrant" value="NO" checked>
+                        <label for="servingWarrantNo" class="theme-label">NO</label>
+                        <input type="radio" id="servingWarrantYes" name="servingWarrant" value="YES">
+                        <label for="servingWarrantYes" class="theme-label">YES</label>
+                    </div>
+                </div>
+
+                <div id="warrantJailTimeContainer" class="mb-4 hidden">
+                    <label for="warrantJailTime" class="theme-label block mb-2 font-medium">Jail Time (Seconds) on Warrant:</label>
+                    <input type="number" id="warrantJailTime" name="warrantJailTime" step="1" min="0" value="0" class="theme-input w-full p-2 border rounded-md">
+                </div>
+                <!-- END NEW: Serving Warrant Section -->
+
                 <div class="mb-4">
                     <label for="mugshotUpload" class="theme-label block mb-2 font-medium">Upload Mugshot:</label>
                     <input type="file" id="mugshotUpload" name="mugshotUpload" accept="image/*" class="theme-input w-full p-2 border rounded-md">
@@ -209,6 +269,19 @@
         </div>
     </div>
 
+    <!-- Penal Code List Modal (for Arrest Form) -->
+    <div id="penalCodeListModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div id="penalCodeListModal" class="theme-lookup-box p-6 rounded-lg shadow-xl max-w-lg w-full mx-4 sm:mx-auto">
+            <h3 id="penalCodeListModalTitle" class="theme-title text-xl font-bold mb-4">Available Penal Codes (Charges)</h3>
+            <div id="penalCodeListModalContent" class="penal-code-list-modal-content mb-6">
+                <!-- Penal codes will be loaded here -->
+            </div>
+            <div class="flex justify-end">
+                <button id="penalCodeListModalCloseBtn" class="theme-button-primary py-2 px-4 rounded-md font-semibold">Close</button>
+            </div>
+        </div>
+    </div>
+
     <div id="customModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
         <div id="customModal" class="theme-lookup-box p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 sm:mx-auto">
             <h3 id="customModalTitle" class="theme-title text-xl font-bold mb-4"></h3>
@@ -221,6 +294,7 @@
     </div>
     <script>
         let penalCodesData = []; // Reuse penal codes data for charges
+        let allPenalCodesForArrestForm = []; // Store all penal codes for the modal
         let chargeGroupCounter = 0; // To assign unique IDs to new charge groups
 
         document.addEventListener('DOMContentLoaded', async function() {
@@ -239,7 +313,6 @@
             const totalFinesSumInput = document.getElementById('totalFinesSum'); // New total fines sum input
             const arrestForm = document.getElementById('arrestForm');
             const clearFormBtn = document.getElementById('clearFormBtn');
-            const warrantNeededCheckbox = document.getElementById('warrantNeeded'); // Get checkbox element
             const arrestingOfficerBadgeInput = document.getElementById('arrestingOfficerBadge'); // Get the arresting officer badge input
             const yourUsernameInput = document.getElementById('yourUsername'); // Get your username input
             const officerDepartmentDisplayInput = document.getElementById('officerDepartmentDisplay'); // Get the department display input
@@ -250,6 +323,22 @@
             const pasteMugshotTargetDiv = document.getElementById('pasteMugshotTarget');
             const mugshotPreviewDiv = document.getElementById('mugshotPreview');
             let mugshotBase64 = null; // Variable to store Base64 string for mugshot
+
+            // NEW Serving Warrant elements
+            const servingWarrantNoRadio = document.getElementById('servingWarrantNo');
+            const servingWarrantYesRadio = document.getElementById('servingWarrantYes');
+            const warrantJailTimeContainer = document.getElementById('warrantJailTimeContainer');
+            const warrantJailTimeInput = document.getElementById('warrantJailTime');
+
+            // NEW Warrant Needed radio buttons
+            const warrantNeededNoRadio = document.getElementById('warrantNeededNo');
+            const warrantNeededYesRadio = document.getElementById('warrantNeededYes');
+
+            // NEW Penal Code List Modal elements
+            const viewAllPenalCodesBtn = document.getElementById('viewAllPenalCodesBtn');
+            const penalCodeListModalOverlay = document.getElementById('penalCodeListModalOverlay');
+            const penalCodeListModalContent = document.getElementById('penalCodeListModalContent');
+            const penalCodeListModalCloseBtn = document.getElementById('penalCodeListModalCloseBtn');
 
 
             // Get logged in user info for auto-fill
@@ -273,6 +362,12 @@
                 } else {
                     officerDepartmentDisplayInput.value = 'N/A'; // Explicitly set N/A if not found
                 }
+
+                // Make department editable if user is admin
+                if (loggedInUser.role === 'admin') {
+                    officerDepartmentDisplayInput.removeAttribute('readonly');
+                }
+
                 console.log("Logged-in Officer Department:", userDepartment); // For debugging
             }
 
@@ -288,8 +383,31 @@
                     let allPenalCodes = await response.json();
                     console.log("All penal codes (charges) loaded:", allPenalCodes);
 
-                    // REMOVED FILTERING HERE - all types will be available for selection
-                    penalCodesData = allPenalCodes; // No filter applied here
+                    // Sort penal codes alphabetically by code
+                    penalCodesData = allPenalCodes.sort((a, b) => {
+                        // Custom sorting logic: try to sort numerically if possible, otherwise alphabetically
+                        const codeA = a.code;
+                        const codeB = b.code;
+
+                        const numA = parseFloat(codeA);
+                        const numB = parseFloat(codeB);
+
+                        if (!isNaN(numA) && !isNaN(numB)) {
+                            // Both are numbers, sort numerically
+                            return numA - numB;
+                        } else if (!isNaN(numA)) {
+                            // Only A is a number, A comes first
+                            return -1;
+                        } else if (!isNaN(numB)) {
+                            // Only B is a number, B comes first
+                            return 1;
+                        } else {
+                            // Neither are numbers, sort alphabetically
+                            return codeA.localeCompare(codeB);
+                        }
+                    });
+                    
+                    allPenalCodesForArrestForm = penalCodesData; // Store the sorted list for the modal
                     
                 } else {
                     const errorData = await response.json();
@@ -493,6 +611,46 @@
                 }
             });
 
+            // --- NEW: Serving Warrant Logic ---
+            function toggleWarrantJailTime() {
+                if (servingWarrantYesRadio.checked) {
+                    warrantJailTimeContainer.classList.remove('hidden');
+                    warrantJailTimeInput.setAttribute('required', 'required');
+                } else {
+                    warrantJailTimeContainer.classList.add('hidden');
+                    warrantJailTimeInput.removeAttribute('required');
+                    warrantJailTimeInput.value = '0'; // Clear content when hidden
+                }
+            }
+
+            servingWarrantYesRadio.addEventListener('change', toggleWarrantJailTime);
+            servingWarrantNoRadio.addEventListener('change', toggleWarrantJailTime);
+            // Initial call to set correct state on page load
+            toggleWarrantJailTime();
+
+            // --- View All Penal Codes Modal Logic (for Arrest Form) ---
+            viewAllPenalCodesBtn.addEventListener('click', () => {
+                penalCodeListModalContent.innerHTML = ''; // Clear previous content
+                if (allPenalCodesForArrestForm.length === 0) {
+                    penalCodeListModalContent.innerHTML = '<p class="theme-label">No penal codes available or loaded.</p>';
+                } else {
+                    allPenalCodesForArrestForm.forEach(pc => {
+                        const itemDiv = document.createElement('div');
+                        itemDiv.classList.add('theme-label-small');
+                        // Apply theme-label class to the div to ensure text color
+                        itemDiv.classList.add('theme-label');
+                        itemDiv.innerHTML = `<strong>${pc.code}</strong>: ${pc.description || 'N/A'} (Jail: ${pc.jail_time_seconds || 0}s, Fine: $${parseFloat(pc.amount_due || 0).toFixed(2)})`;
+                        penalCodeListModalContent.appendChild(itemDiv);
+                    });
+                }
+                penalCodeListModalOverlay.classList.remove('hidden');
+            });
+
+            penalCodeListModalCloseBtn.addEventListener('click', () => {
+                penalCodeListModalOverlay.classList.add('hidden');
+            });
+
+
             // --- Initial Setup ---
             setupAutocompleteForChargeInput(0); // <--- THIS LINE IS CRUCIAL FOR THE FIRST AUTOCOMPLETE INPUT
             addChargeBtn.addEventListener('click', () => addChargeGroup());
@@ -512,8 +670,12 @@
                         document.getElementById('ranks').value = ''; // Reset ranks to empty
                         document.getElementById('suspectName').value = '';
                         document.getElementById('incidentDetails').value = '';
-                        warrantNeededCheckbox.checked = false; // Clear checkbox
+                        warrantNeededNoRadio.checked = true; // Reset Warrant Needed to NO
                         officerDepartmentDisplayInput.value = userDepartment; // Reset department display
+                        // Ensure department field is readonly if not admin
+                        if (loggedInUser.role !== 'admin') {
+                            officerDepartmentDisplayInput.setAttribute('readonly', 'readonly');
+                        }
                         calculateTotalJailTime();
                         calculateTotalFines();
                         // Clear mugshot
@@ -521,6 +683,9 @@
                         mugshotPreviewDiv.innerHTML = '<p class="theme-label-small text-gray-500">No image selected</p>';
                         pasteMugshotTargetDiv.textContent = 'Paste mugshot image here (Ctrl+V or Cmd+V)';
                         mugshotBase64 = null;
+                        // Reset serving warrant status
+                        servingWarrantNoRadio.checked = true;
+                        toggleWarrantJailTime(); // Ensure warrant jail time textbox is hidden and cleared
                     }
                 });
             });
@@ -538,9 +703,12 @@
                 arrestData.ranks = ranksInput.value; // Explicitly get value from ranksInput
                 arrestData.suspectName = document.getElementById('suspectName').value;
                 arrestData.incidentDetails = document.getElementById('incidentDetails').value;
-                arrestData.warrantNeeded = warrantNeededCheckbox.checked; // Capture checkbox value
-                arrestData.department = userDepartment; // Pass department to the submission data
+                arrestData.warrantNeeded = warrantNeededYesRadio.checked; // Capture radio button value
+                arrestData.department = officerDepartmentDisplayInput.value; // Use current value from potentially editable field
                 arrestData.mugshot = mugshotBase64; // NEW: Include mugshot Base64
+                arrestData.servingWarrant = servingWarrantYesRadio.checked; // NEW: Serving Warrant status
+                arrestData.warrantJailTime = servingWarrantYesRadio.checked ? parseInt(warrantJailTimeInput.value) : 0; // NEW: Warrant Jail Time
+
 
                 const appliedCharges = [];
                 let overallTotalJailTime = 0;
@@ -572,9 +740,9 @@
 
                 // Validation: Only require jail time if NO warrant is needed.
                 // If warrant is needed, jail time might not be immediately assigned in this form.
-                if (overallTotalJailTime === 0 && !warrantNeededCheckbox.checked) {
+                if (overallTotalJailTime === 0 && !warrantNeededYesRadio.checked && !arrestData.servingWarrant) { // Updated for radio
                     window.showCustomAlert(
-                        "Arrest reports require charges with jail time. For charges with no jail time, please use the Citation Form.",
+                        "Arrest reports require charges with jail time. For charges with no jail time, please use the Citation Form. If serving a warrant, please indicate so.",
                         "Input Error"
                     );
                     return; // Prevent form submission
@@ -588,7 +756,8 @@
 
 
                 arrestData.appliedCharges = appliedCharges;
-                arrestData.totalJailTime = overallTotalJailTime;
+                // If serving a warrant, add its jail time to the total
+                arrestData.totalJailTime = overallTotalJailTime + arrestData.warrantJailTime;
                 arrestData.totalFines = overallTotalFines;
 
                 const token = sessionStorage.getItem('authToken');
@@ -608,12 +777,12 @@
                         window.showCustomAlert(result.message, 'Success').then(() => {
                             // --- NEW: Warrant Needed Conditional Redirect ---
                             // Perform redirect *after* successful arrest report submission
-                            if (warrantNeededCheckbox.checked) {
+                            if (warrantNeededYesRadio.checked) { // Updated for radio
                                 const warrantData = {
                                     userReceivingWarrant: arrestData.suspectName,
                                     yourUsername: arrestData.yourUsername,
                                     badgeNumber: arrestData.arrestingOfficerBadge,
-                                    jailTime: arrestData.totalJailTime,
+                                    jailTime: arrestData.totalJailTime, // Use the combined total jail time
                                     incidentDetails: arrestData.incidentDetails,
                                 };
                                 sessionStorage.setItem('tempWarrantData', JSON.stringify(warrantData));
@@ -628,8 +797,12 @@
                                 document.getElementById('ranks').value = '';
                                 document.getElementById('suspectName').value = '';
                                 document.getElementById('incidentDetails').value = '';
-                                document.getElementById('warrantNeeded').checked = false;
-                                document.getElementById('officerDepartmentDisplay').value = userDepartment;
+                                warrantNeededNoRadio.checked = true; // NEW: Reset Warrant Needed to NO
+                                officerDepartmentDisplayInput.value = userDepartment;
+                                // Ensure department field is readonly if not admin after reset
+                                if (loggedInUser.role !== 'admin') {
+                                    officerDepartmentDisplayInput.setAttribute('readonly', 'readonly');
+                                }
                                 document.querySelectorAll('.charge-group[data-group-id]:not([data-group-id="0"])').forEach(group => group.remove());
                                 document.getElementById('chargeCode_0').value = '';
                                 document.getElementById('jailTime_0').value = '0';
@@ -640,6 +813,9 @@
                                 mugshotPreviewDiv.innerHTML = '<p class="theme-label-small text-gray-500">No image selected</p>';
                                 pasteMugshotTargetDiv.textContent = 'Paste mugshot image here (Ctrl+V or Cmd+V)';
                                 mugshotBase64 = null;
+                                // Reset serving warrant status
+                                servingWarrantNoRadio.checked = true;
+                                toggleWarrantJailTime(); // Ensure warrant jail time textbox is hidden and cleared
                             }
                         });
                     } else if (response.status === 401 || response.status === 403) {
