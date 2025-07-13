@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" href="favicon.png" type="image/png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutorials & Help</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+    <script src="theme.js"></script>
+    <style>
+        a {
+            text-decoration: none;
+        }
+        /* General page container for tutorials */
+        .tutorials-page-container {
+            padding: 2rem;
+            max-width: 768px; /* Limit width for readability */
+            margin: 0 auto;
+        }
+
+        /* Styles for the tutorial section (copied/adapted from selection.html) */
+        .tutorial-section {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            background-color: var(--box-bg-color); /* Use theme box background */
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            color: var(--text-color);
+        }
+        .tutorial-category {
+            margin-bottom: 1rem;
+            padding: 0.5rem; /* Add some padding around each category box */
+            border: 1px solid var(--border-color);
+            border-radius: 0.3rem;
+            background-color: color-mix(in srgb, var(--box-bg-color) 90%, var(--border-color)); /* Slightly different background */
+        }
+        .tutorial-category h3 {
+            font-weight: bold;
+            font-size: 1.05em;
+            margin-bottom: 0.4rem;
+            color: var(--text-color);
+            text-align: center;
+        }
+        .toggle-embed-group {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            align-items: center;
+        }
+        .toggle-embed-group button {
+             width: 90%;
+             max-width: 200px;
+             font-size: 0.85em;
+             padding: 0.5rem 0.8rem;
+             text-align: center;
+             white-space: nowrap; /* Keep button text on a single line */
+        }
+        .hidden {
+            display: none !important;
+        }
+
+        /* Fullscreen Embed Modal Styles (copied from selection.html) */
+        #fullscreenEmbedModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            transition: opacity 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+        }
+        #fullscreenEmbedModal.show {
+			display: flex !important;
+			opacity: 1;
+			visibility: visible;
+		}	
+        #fullscreenEmbedContent {
+            width: 90%;
+            height: 90%;
+            background-color: black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        #fullscreenEmbedContent iframe,
+        #fullscreenEmbedContent video {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        #closeEmbedBtn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            font-size: 1.5em;
+            color: white;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+        #closeEmbedBtn:hover {
+            background-color: rgba(255, 255, 255, 0.4);
+        }
+    </style>
+</head>
+<body class="min-h-screen theme-app-container">
+    <div class="main-content-area">
+        <div class="theme-lookup-box p-8 rounded-xl shadow-lg w-full max-w-md mx-4 sm:mx-auto text-center transition-colors duration-300 border border-solid">
+            <h2 class="theme-title text-3xl font-bold mb-8">Tutorials & Help</h2>
+            
+            <p class="theme-label mb-4">
+                Find step-by-step guides and video tutorials for using the application's forms.
+            </p>
+
+            <div class="tutorial-section theme-label">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="tutorial-category">
+                        <h3>Citations</h3>
+                        <div class="toggle-embed-group">
+                            <button class="theme-button-secondary toggle-embed-btn" data-embed-type="pdf" data-url="/cite/citations_step_by_step.pdf">Open PDF Guide</button>
+                            <button class="theme-button-secondary toggle-embed-btn" data-embed-type="video" data-url="/cite/citations_video.mp4">Open Video Guide</button>
+                        </div>
+                    </div>
+
+                    <div class="tutorial-category">
+                        <h3>Arrests</h3>
+                        <div class="toggle-embed-group">
+                            <button class="theme-button-secondary toggle-embed-btn" data-embed-type="pdf" data-url="/arrest no warrant/arrests_step_by_step.pdf">Open PDF Guide</button>
+                            <button class="theme-button-secondary toggle-embed-btn" data-embed-type="video" data-url="/arrest no warrant/arrests_video.mp4">Open Video Guide</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tutorial-category mx-auto mt-4" style="max-width: 250px;">
+                    <h3>Arrests w/ Warrants</h3>
+                    <div class="toggle-embed-group">
+                        <button class="theme-button-secondary toggle-embed-btn" data-embed-type="pdf" data-url="/arrest w warrant/arrests_w_warrants_step_by_step.pdf">Open PDF Guide</button>
+                        <button class="theme-button-secondary toggle-embed-btn" data-embed-type="video" data-url="/arrest w warrant/arrests_w_warrants_video.mp4">Open Video Guide</button>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center mt-6">
+                <a href="selection.html" class="theme-button-secondary py-2 px-4 rounded-md font-semibold inline-block">Back to Main Menu</a>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="fullscreenEmbedModal" class="hidden">
+        <button id="closeEmbedBtn">X</button>
+        <div id="fullscreenEmbedContent">
+            </div>
+    </div>
+
+    <div id="customModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div id="customModal" class="theme-lookup-box p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 sm:mx-auto">
+            <h3 id="customModalTitle" class="theme-title text-xl font-bold mb-4"></h3>
+            <p id="customModalMessage" class="theme-label mb-6"></p>
+            <div id="customModalButtons" class="flex justify-end space-x-3">
+                <button id="customModalCancelBtn" class="theme-button-secondary py-2 px-4 rounded-md font-semibold hidden">Cancel</button>
+                <button id="customModalOkBtn" class="theme-button-primary py-2 px-4 rounded-md font-semibold">OK</button>
+            </div>
+        </div>
+    </div>
+
+	<script>
+    // --- PUT THIS CODE BLOCK AT THE VERY TOP OF THE <script> TAG ---
+    const API_BASE_URL = window.location.hostname.includes("citation-app-staging.pages.dev")
+                       ? "https://citation-app-worker-experimental.pnbober.workers.dev/"
+                       : "https://citation-app-worker.pnbober.workers.dev";
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // ... all your existing JavaScript code for this page starts here ...
+    });
+</script>
+	<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const fullscreenEmbedModal = document.getElementById('fullscreenEmbedModal');
+        const fullscreenEmbedContent = document.getElementById('fullscreenEmbedContent');
+        const closeEmbedBtn = document.getElementById('closeEmbedBtn');
+
+        const R2_BASE_URL = 'https://pub-a91d9d22a6264a88b02227540eadf4cb.r2.dev/tutorials';
+
+        document.querySelectorAll('.toggle-embed-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const embedType = this.dataset.embedType;
+                const relativeUrl = this.dataset.url;
+
+                fullscreenEmbedContent.innerHTML = '';
+
+                if (embedType === 'pdf') {
+                    const embed = document.createElement('embed');
+                    embed.src = R2_BASE_URL + relativeUrl;
+                    embed.type = 'application/pdf';
+                    embed.style.width = '100%';
+                    embed.style.height = '100%';
+                    fullscreenEmbedContent.appendChild(embed);
+                } else if (embedType === 'video') {
+                    const video = document.createElement('video');
+                    video.controls = true;
+                    video.autoplay = true;
+                    video.preload = 'auto';
+                    video.setAttribute('allowfullscreen', '');
+                    const source = document.createElement('source');
+                    source.src = R2_BASE_URL + relativeUrl;
+                    source.type = relativeUrl.includes('.mp4') ? 'video/mp4' : '';
+                    video.appendChild(source);
+                    fullscreenEmbedContent.appendChild(video);
+                }
+
+                fullscreenEmbedModal.classList.add('show');
+            });
+        });
+
+        function closeFullscreenEmbedModal() {
+            fullscreenEmbedModal.classList.remove('show');
+            const videoElement = fullscreenEmbedContent.querySelector('video');
+            if (videoElement) videoElement.pause();
+            setTimeout(() => {
+                fullscreenEmbedContent.innerHTML = '';
+            }, 300);
+        }
+
+        closeEmbedBtn.addEventListener('click', closeFullscreenEmbedModal);
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && fullscreenEmbedModal.classList.contains('show')) {
+                closeFullscreenEmbedModal();
+            }
+        });
+
+        document.addEventListener('click', function(event) {
+            if (event.target === fullscreenEmbedModal) {
+                closeFullscreenEmbedModal();
+            }
+        });
+
+        window.showCustomAlert = function(message, title) {
+            return new Promise(resolve => {
+                const modalOverlay = document.getElementById('customModalOverlay');
+                const modalTitle = document.getElementById('customModalTitle');
+                const modalMessage = document.getElementById('customModalMessage');
+                const modalOkBtn = document.getElementById('customModalOkBtn');
+                const modalCancelBtn = document.getElementById('customModalCancelBtn');
+
+                modalTitle.textContent = title;
+                modalMessage.textContent = message;
+                modalOkBtn.textContent = "OK";
+                modalCancelBtn.classList.add('hidden');
+                modalOverlay.classList.remove('hidden');
+
+                const handler = () => {
+                    modalOverlay.classList.add('hidden');
+                    modalOkBtn.removeEventListener('click', handler);
+                    resolve(true);
+                };
+                modalOkBtn.addEventListener('click', handler);
+            });
+        };
+
+        window.showCustomConfirm = function(message, title) {
+            return new Promise(resolve => {
+                const modalOverlay = document.getElementById('customModalOverlay');
+                const modalTitle = document.getElementById('customModalTitle');
+                const modalMessage = document.getElementById('customModalMessage');
+                const modalOkBtn = document.getElementById('customModalOkBtn');
+                const modalCancelBtn = document.getElementById('customModalCancelBtn');
+
+                modalTitle.textContent = title;
+                modalMessage.textContent = message;
+                modalOkBtn.textContent = "Confirm";
+                modalCancelBtn.textContent = "Cancel";
+                modalCancelBtn.classList.remove('hidden');
+                modalOverlay.classList.remove('hidden');
+
+                const okHandler = () => {
+                    modalOverlay.classList.add('hidden');
+                    modalOkBtn.removeEventListener('click', okHandler);
+                    modalCancelBtn.removeEventListener('click', cancelHandler);
+                    resolve(true);
+                };
+                const cancelHandler = () => {
+                    modalOverlay.classList.add('hidden');
+                    modalOkBtn.removeEventListener('click', okHandler);
+                    modalCancelBtn.removeEventListener('click', cancelHandler);
+                    resolve(false);
+                };
+
+                modalOkBtn.addEventListener('click', okHandler);
+                modalCancelBtn.addEventListener('click', cancelHandler);
+            });
+        };
+    });
+</script>
+
+
+</body>
+</html>

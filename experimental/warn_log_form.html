@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warn Log Form</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+    <script src="theme.js"></script>
+    <style>
+        a {
+            text-decoration: none;
+        }
+        /* Specific styles for radio buttons to ensure visibility in dark themes */
+        input[type="radio"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            margin-right: 8px;
+            vertical-align: middle;
+            position: relative;
+            cursor: pointer;
+        }
+
+        input[type="radio"]:checked {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        input[type="radio"]:checked::before {
+            content: '';
+            display: block;
+            width: 8px;
+            height: 8px;
+            background-color: var(--button-text-color); /* Inner dot color */
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Adjustments for dark mode radio buttons */
+        html.dark input[type="radio"] {
+            border-color: var(--border-color);
+        }
+        html.dark input[type="radio"]:checked {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+        html.dark input[type="radio"]:checked::before {
+            background-color: var(--button-text-color);
+        }
+    </style>
+</head>
+<body class="min-h-screen theme-app-container flex items-center justify-center">
+    <div class="theme-lookup-box p-8 rounded-xl shadow-lg w-full max-w-md mx-4 sm:mx-auto transition-colors duration-300 border border-solid my-auto">
+        <h2 class="theme-title text-3xl font-bold text-center mb-6">Warn Log Form</h2>
+
+        <form id="warnLogForm">
+            <!-- LE Rank & Signature (Submitted By) -->
+            <div class="mb-4">
+                <label for="submittedByUsername" class="theme-label block mb-2">LE Rank & Signature:</label>
+                <input type="text" id="submittedByUsername" name="submittedByUsername" required readonly class="theme-input w-full p-2 border rounded-md cursor-not-allowed">
+            </div>
+
+            <!-- Punished Officer (Rank & Username) -->
+            <div class="mb-4">
+                <label for="userReceivingWarn" class="theme-label block mb-2">Punished Officer (Rank & Username):</label>
+                <input type="text" id="userReceivingWarn" name="userReceivingWarn" required class="theme-input w-full p-2 border rounded-md" placeholder="e.g., Officer JohnDoe (Badge 123)">
+            </div>
+
+            <!-- Severity of Action -->
+            <div class="mb-4">
+                <label class="theme-label block mb-2">Severity of Action:</label>
+                <div class="flex flex-wrap gap-4">
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="severity" value="Minor" required class="form-radio">
+                        <span class="theme-label">Minor</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="severity" value="Moderate" class="form-radio">
+                        <span class="theme-label">Moderate</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="severity" value="Major" class="form-radio">
+                        <span class="theme-label">Major</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="severity" value="Extreme" class="form-radio">
+                        <span class="theme-label">Extreme</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Action Taken -->
+            <div class="mb-4">
+                <label class="theme-label block mb-2">Action Taken:</label>
+                <div class="flex flex-wrap gap-4">
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="actionTaken" value="Blackmark" required class="form-radio">
+                        <span class="theme-label">Blackmark</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="actionTaken" value="Written Warning" class="form-radio">
+                        <span class="theme-label">Written Warning</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="actionTaken" value="Verbal Warning" class="form-radio">
+                        <span class="theme-label">Verbal Warning</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Blackmark Appealable -->
+            <div class="mb-4" id="blackmarkAppealableSection">
+                <label class="theme-label block mb-2">Blackmark Appealable:</label>
+                <div class="flex flex-wrap gap-4">
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="blackmarkAppealable" value="Appealable" class="form-radio">
+                        <span class="theme-label">Appealable</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="blackmarkAppealable" value="Un-appealable" class="form-radio">
+                        <span class="theme-label">Un-appealable</span>
+                    </label>
+                </div>
+                <p class="theme-label text-sm text-gray-500 mt-1">N/A if it's a Written Warning or Verbal Warning.</p>
+            </div>
+
+            <!-- Reason for action -->
+            <div class="mb-4">
+                <label for="warnReason" class="theme-label block mb-2">Reason for action:</label>
+                <textarea id="warnReason" name="warnReason" required rows="4" class="theme-input w-full p-2 border rounded-md" placeholder="Provide a detailed reason for the action taken."></textarea>
+            </div>
+
+            <!-- Proof -->
+            <div class="mb-6">
+                <label for="proof" class="theme-label block mb-2">Proof (Link to evidence, e.g., video clip, screenshot):</label>
+                <input type="url" id="proof" name="proof" class="theme-input w-full p-2 border rounded-md" placeholder="Optional: Link to evidence (e.g., YouTube, Imgur)">
+            </div>
+
+            <button type="submit" class="theme-button-primary w-full p-2 rounded-md font-semibold mb-4">Submit Warn Log</button>
+            <a href="selection.html" class="theme-label block text-center text-sm hover:underline">Back to Main Menu</a>
+        </form>
+    </div>
+
+    <div id="customModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div id="customModal" class="theme-lookup-box p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 sm:mx-auto">
+            <h3 id="customModalTitle" class="theme-title text-xl font-bold mb-4"></h3>
+            <p id="customModalMessage" class="theme-label mb-6"></p>
+            <div id="customModalButtons" class="flex justify-end space-x-3">
+                <button id="customModalCancelBtn" class="theme-button-secondary py-2 px-4 rounded-md font-semibold hidden">Cancel</button>
+                <button id="customModalOkBtn" class="theme-button-primary py-2 px-4 rounded-md font-semibold">OK</button>
+            </div>
+        </div>
+    </div>
+
+	<script>
+    // --- PUT THIS CODE BLOCK AT THE VERY TOP OF THE <script> TAG ---
+    const API_BASE_URL = window.location.hostname.includes("citation-app-staging.pages.dev")
+                       ? "https://citation-app-worker-experimental.pnbober.workers.dev/"
+                       : "https://citation-app-worker.pnbober.workers.dev";
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // ... all your existing JavaScript code for this page starts here ...
+    });
+</script>
+	<script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const warnLogForm = document.getElementById('warnLogForm');
+            const submittedByUsernameInput = document.getElementById('submittedByUsername');
+            const actionTakenRadios = document.querySelectorAll('input[name="actionTaken"]');
+            const blackmarkAppealableSection = document.getElementById('blackmarkAppealableSection');
+
+            // Populate LE Rank & Signature from sessionStorage
+            const loggedInUserString = sessionStorage.getItem('loggedInUser');
+            let loggedInUser = null;
+            if (loggedInUserString) {
+                loggedInUser = JSON.parse(loggedInUserString);
+                if (loggedInUser && (loggedInUser.role === 'admin' || loggedInUser.role === 'supervisor')) {
+                    submittedByUsernameInput.value = `${loggedInUser.role.charAt(0).toUpperCase() + loggedInUser.role.slice(1)} ${loggedInUser.username} (Badge: ${loggedInUser.badgeNumber})`;
+                } else {
+                    // Redirect if not admin or supervisor
+                    window.showCustomAlert("Access Denied: You must be a Supervisor or Admin to access this form.", "Access Denied").then(() => {
+                        sessionStorage.clear();
+                        window.location.href = 'index.html';
+                    });
+                    return; // Stop script execution
+                }
+            } else {
+                // Redirect if not logged in at all
+                window.showCustomAlert("You must be logged in to access this page.", "Authentication Error").then(() => {
+                    sessionStorage.clear();
+                    window.location.href = 'index.html';
+                });
+                return; // Stop script execution
+            }
+
+            // Function to toggle Blackmark Appealable section visibility
+            function toggleBlackmarkAppealable() {
+                const selectedAction = document.querySelector('input[name="actionTaken"]:checked');
+                if (selectedAction && selectedAction.value === 'Blackmark') {
+                    blackmarkAppealableSection.classList.remove('hidden');
+                    // Make radios required when visible
+                    document.querySelectorAll('input[name="blackmarkAppealable"]').forEach(radio => radio.required = true);
+                } else {
+                    blackmarkAppealableSection.classList.add('hidden');
+                    // Make radios not required and uncheck when hidden
+                    document.querySelectorAll('input[name="blackmarkAppealable"]').forEach(radio => {
+                        radio.required = false;
+                        radio.checked = false;
+                    });
+                }
+            }
+
+            // Attach event listeners to actionTaken radios
+            actionTakenRadios.forEach(radio => {
+                radio.addEventListener('change', toggleBlackmarkAppealable);
+            });
+
+            // Initial call to set visibility on page load
+            toggleBlackmarkAppealable();
+
+
+            warnLogForm.addEventListener('submit', async function(event) {
+                event.preventDefault();
+
+                const userReceivingWarn = document.getElementById('userReceivingWarn').value;
+                const severity = document.querySelector('input[name="severity"]:checked')?.value;
+                const actionTaken = document.querySelector('input[name="actionTaken"]:checked')?.value;
+                const blackmarkAppealable = document.querySelector('input[name="blackmarkAppealable"]:checked')?.value;
+                const warnReason = document.getElementById('warnReason').value;
+                const proof = document.getElementById('proof').value;
+                const dateOfIssue = new Date().toISOString().split('T')[0]; // Current date
+
+                // Basic validation
+                if (!userReceivingWarn || !severity || !actionTaken || !warnReason) {
+                    window.showCustomAlert("Please fill in all required fields (Punished Officer, Severity, Action Taken, Reason for action).", "Input Error");
+                    return;
+                }
+
+                if (actionTaken === 'Blackmark' && !blackmarkAppealable) {
+                    window.showCustomAlert("Please select if the Blackmark is Appealable or Un-appealable.", "Input Error");
+                    return;
+                }
+
+                const warnLogData = {
+                    userReceivingWarn,
+                    severity,
+                    actionTaken,
+                    blackmarkAppealable: actionTaken === 'Blackmark' ? blackmarkAppealable : 'N/A', // Ensure N/A if not blackmark
+                    warnReason,
+                    proof: proof || 'N/A', // Send N/A if proof is empty
+                    dateOfIssue
+                };
+
+                try {
+                    const response = await fetch(API_BASE_URL + '/submit-warn-log', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${sessionStorage.getItem('authToken')}`
+                        },
+                        body: JSON.stringify(warnLogData),
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        window.showCustomAlert(result.message, 'Success').then(() => {
+                            warnLogForm.reset(); // Clear the form
+                            toggleBlackmarkAppealable(); // Reset visibility for next submission
+                        });
+                    } else if (response.status === 401 || response.status === 403) {
+                        window.showCustomAlert("Authentication/Authorization Error: " + (result.message || 'Access denied. Please log in as a Supervisor or Admin.'), 'Error').then(() => {
+                            sessionStorage.clear();
+                            window.location.href = 'index.html';
+                        });
+                    } else {
+                        window.showCustomAlert('Warn Log submission failed: ' + (result.message || response.statusText), 'Error');
+                    }
+                } catch (error) {
+                    console.error('Error submitting Warn Log:', error);
+                    window.showCustomAlert('An error occurred during Warn Log submission. Check console for details.', 'Error');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

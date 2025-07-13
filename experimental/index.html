@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+    <script src="theme.js"></script>
+    <style>
+        /* Any custom overrides if needed */
+        a {
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen theme-app-container flex items-center justify-center">
+    <div class="flex items-center justify-center min-h-screen w-full py-8">
+        <div class="theme-lookup-box p-8 rounded-xl shadow-lg w-full max-w-md mx-4 sm:mx-auto transition-colors duration-300 border border-solid my-auto">
+            <h2 class="theme-title text-3xl font-bold text-center mb-6">Officer Login</h2>
+
+            <div class="mb-4">
+                <label for="themeSelector" class="theme-label block mb-2 font-medium">Theme:</label>
+                <select id="themeSelector" class="theme-input w-full p-2 border rounded-md transition-colors duration-200">
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                    <option value="sunset">Sunset</option>
+                    <option value="ocean">Ocean</option>
+                    <option value="forest">Forest</option>
+                    <option value="midnight">Midnight</option>
+                    <option value="dracula">Dracula</option>
+                    <option value="cyberpunk">Cyberpunk</option>
+                    <option value="custom">Custom...</option>
+                </select>
+                <div id="customColorsContainer" class="hidden mt-4">
+                    <label class="theme-label block mb-1 font-medium">Custom Colors:</label>
+                    <div class="flex flex-col space-y-2">
+                        <div>
+                            <label for="customBgColor" class="theme-label block mb-1">Background Color:</label>
+                            <input type="color" id="customBgColor" value="#f3f4f6" class="w-full h-10 p-0 border rounded-md cursor-pointer theme-input" />
+                        </div>
+                        <div>
+                            <label for="customTextColor" class="theme-label block mb-1">Text Color:</label>
+                            <input type="color" id="customTextColor" value="#1f2937" class="w-full h-10 p-0 border rounded-md cursor-pointer theme-input" />
+                        </div>
+                        <div>
+                            <label for="customAccentColor" class="theme-label block mb-1">Accent Color:</label>
+                            <input type="color" id="customAccentColor" value="#3b82f6" class="w-full h-10 p-0 border rounded-md cursor-pointer theme-input" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <form id="loginForm">
+                <div class="mb-4">
+                    <label for="usernameOrBadge" class="theme-label block mb-2">Username or Badge Number:</label>
+                    <input type="text" id="usernameOrBadge" name="usernameOrBadge" required class="theme-input w-full p-2 border rounded-md">
+                </div>
+                <div class="mb-6">
+                    <label for="password" class="theme-label block mb-2">Password:</label>
+                    <input type="password" id="password" name="password" required class="theme-input w-full p-2 border rounded-md">
+                </div>
+                <button type="submit" class="theme-button-primary w-full p-2 rounded-md font-semibold mb-4">Login</button>
+                <a href="signup.html" class="theme-label block text-center text-sm hover:underline">Don't have an account? Sign Up</a>
+            </form>
+        </div>
+    </div>
+
+    <div id="customModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div id="customModal" class="theme-lookup-box p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 sm:mx-auto">
+            <h3 id="customModalTitle" class="theme-title text-xl font-bold mb-4"></h3>
+            <p id="customModalMessage" class="theme-label mb-6"></p>
+            <div id="customModalButtons" class="flex justify-end space-x-3">
+                <button id="customModalCancelBtn" class="theme-button-secondary py-2 px-4 rounded-md font-semibold hidden">Cancel</button>
+                <button id="customModalOkBtn" class="theme-button-primary py-2 px-4 rounded-md font-semibold">OK</button>
+            </div>
+        </div>
+    </div>
+	<script>
+    // --- PUT THIS CODE BLOCK AT THE VERY TOP OF THE <script> TAG ---
+    const API_BASE_URL = window.location.hostname.includes("citation-app-staging.pages.dev")
+                       ? "https://citation-app-worker-experimental.pnbober.workers.dev/"
+                       : "https://citation-app-worker.pnbober.workers.dev";
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // ... all your existing JavaScript code for this page starts here ...
+    });
+</script>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const usernameOrBadge = document.getElementById('usernameOrBadge').value;
+            const password = document.getElementById('password').value;
+
+            const loginData = {};
+            // If input is numeric, try badgeNumber, else username
+            if (usernameOrBadge && !isNaN(usernameOrBadge)) {
+                loginData.badgeNumber = usernameOrBadge;
+            } else if (usernameOrBadge) {
+                loginData.username = usernameOrBadge;
+            } else {
+                window.showCustomAlert("Please enter either a username or a badge number.", "Input Error"); // Custom alert
+                return;
+            }
+            loginData.password = password;
+
+            try {
+                const response = await fetch(API_BASE_URL + '/login', { /* ... */ });
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(loginData),
+                });
+
+                // --- FIX STARTS HERE ---
+                // Read the response body once, store it, then use it.
+                const result = await response.json(); // Read the JSON response body
+
+                if (response.ok) {
+                    window.showCustomAlert('Login successful! Welcome, ' + result.username + ' (Badge: ' + result.badgeNumber + ')', 'Success').then(() => {
+                        sessionStorage.setItem('authToken', result.token);
+                        // Ensure department is included when saving loggedInUser to sessionStorage
+                        sessionStorage.setItem('loggedInUser', JSON.stringify({
+                            username: result.username,
+                            badgeNumber: result.badgeNumber,
+                            role: result.role,
+                            department: result.department // Ensure department is passed from result
+                        }));
+                        window.location.href = 'selection.html'; // Redirect after OK is clicked
+                    });
+                } else {
+                    // Use the 'result' object obtained from the single response.json() call
+                    window.showCustomAlert('Login failed: ' + (result.message || response.statusText), 'Error');
+                }
+                // --- FIX ENDS HERE ---
+            } catch (error) {
+                console.error('Error during login:', error);
+                window.showCustomAlert('An error occurred during login. Check console for details.', 'Error');
+            }
+        });
+    </script>
+</body>
+</html>

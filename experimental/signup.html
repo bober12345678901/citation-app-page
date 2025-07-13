@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+    <script src="theme.js"></script>
+    <style>
+        a {
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen theme-app-container flex items-center justify-center">
+    <div class="theme-lookup-box p-8 rounded-xl shadow-lg w-full max-w-md mx-4 sm:mx-auto transition-colors duration-300 border border-solid my-auto">
+        <h2 class="theme-title text-3xl font-bold text-center mb-6">Officer Sign Up</h2>
+
+        <form id="signupForm">
+            <div class="mb-4">
+                <label for="newUsername" class="theme-label block mb-2">Username:</label>
+                <input type="text" id="newUsername" name="newUsername" required class="theme-input w-full p-2 border rounded-md">
+                <span id="usernameError" class="text-red-500 text-xs mt-1 hidden"></span> </div>
+            <div class="mb-4">
+                <label for="newBadgeNumber" class="theme-label block mb-2">Badge Number:</label>
+                <input type="number" id="newBadgeNumber" name="newBadgeNumber" required class="theme-input w-full p-2 border rounded-md" min="1">
+                <span id="badgeNumberError" class="text-red-500 text-xs mt-1 hidden"></span> </div>
+            <div class="mb-4">
+                <label for="department" class="theme-label block mb-2">Department:</label>
+                <select id="department" name="department" required class="theme-input w-full p-2 border rounded-md">
+                    <option value="" disabled selected>Select Department</option>
+                    <option value="Wisconsin State Patrol">Wisconsin State Patrol</option>
+                    <option value="Outagamie County Sheriff's Office">Outagamie County Sheriff's Office</option>
+                </select>
+            </div>
+            <div class="mb-6">
+                <label for="newPassword" class="theme-label block mb-2">Password:</label>
+                <input type="password" id="newPassword" name="newPassword" required class="theme-input w-full p-2 border rounded-md">
+                <span id="passwordError" class="text-red-500 text-xs mt-1 hidden"></span>
+            </div>
+            <button type="submit" class="theme-button-primary w-full p-2 rounded-md font-semibold mb-4">Register</button>
+            <a href="index.html" class="theme-label block text-center text-sm hover:underline">Already have an account? Log In</a>
+        </form>
+    </div>
+
+    <div id="customModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div id="customModal" class="theme-lookup-box p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 sm:mx-auto">
+            <h3 id="customModalTitle" class="theme-title text-xl font-bold mb-4"></h3>
+            <p id="customModalMessage" class="theme-label mb-6"></p>
+            <div id="customModalButtons" class="flex justify-end space-x-3">
+                <button id="customModalCancelBtn" class="theme-button-secondary py-2 px-4 rounded-md font-semibold hidden">Cancel</button>
+                <button id="customModalOkBtn" class="theme-button-primary py-2 px-4 rounded-md font-semibold">OK</button>
+            </div>
+        </div>
+    </div>
+	<script>
+    // --- PUT THIS CODE BLOCK AT THE VERY TOP OF THE <script> TAG ---
+    const API_BASE_URL = window.location.hostname.includes("citation-app-staging.pages.dev")
+                       ? "https://citation-app-worker-experimental.pnbober.workers.dev/"
+                       : "https://citation-app-worker.pnbober.workers.dev";
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // ... all your existing JavaScript code for this page starts here ...
+    });
+</script>
+	<script>
+        document.getElementById('signupForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const newUsernameInput = document.getElementById('newUsername');
+            const newBadgeNumberInput = document.getElementById('newBadgeNumber');
+            const department = document.getElementById('department').value;
+            const newPasswordInput = document.getElementById('newPassword');
+            
+            const usernameErrorSpan = document.getElementById('usernameError'); // New error span for username
+            const badgeNumberErrorSpan = document.getElementById('badgeNumberError'); // New error span for badge number
+            const passwordErrorSpan = document.getElementById('passwordError');
+
+            const username = newUsernameInput.value;
+            const badgeNumber = newBadgeNumberInput.value;
+            const password = newPasswordInput.value;
+
+            // Functions to show/hide errors
+            function showUsernameError(message) {
+                usernameErrorSpan.textContent = message;
+                usernameErrorSpan.classList.remove('hidden');
+            }
+            function hideUsernameError() {
+                usernameErrorSpan.textContent = '';
+                usernameErrorSpan.classList.add('hidden');
+            }
+
+            function showBadgeNumberError(message) {
+                badgeNumberErrorSpan.textContent = message;
+                badgeNumberErrorSpan.classList.remove('hidden');
+            }
+            function hideBadgeNumberError() {
+                badgeNumberErrorSpan.textContent = '';
+                badgeNumberErrorSpan.classList.add('hidden');
+            }
+
+            function showPasswordError(message) {
+                passwordErrorSpan.textContent = message;
+                passwordErrorSpan.classList.remove('hidden');
+            }
+            function hidePasswordError() {
+                passwordErrorSpan.textContent = '';
+                passwordErrorSpan.classList.add('hidden');
+            }
+
+            // Clear all errors when user types in relevant fields
+            newUsernameInput.addEventListener('input', hideUsernameError);
+            newBadgeNumberInput.addEventListener('input', hideBadgeNumberError);
+            newPasswordInput.addEventListener('input', hidePasswordError);
+
+            // Basic client-side validation for department
+            if (!department) {
+                window.showCustomAlert("Please select your department.", "Input Error");
+                return;
+            }
+
+            // Client-side password length validation
+            if (password.length < 6) {
+                showPasswordError("Password must be at least 6 characters long.");
+                return;
+            }
+
+            try {
+                const response = await fetch(API_BASE_URL + '/register', { // Your Worker URL
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, badgeNumber, department, password }),
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    window.showCustomAlert(result.message, 'Success').then(() => {
+                        window.location.href = 'index.html'; // Redirect after OK is clicked
+                    });
+                } else {
+                    // Handle specific errors from the Worker
+                    if (response.status === 400 && result.message) {
+                        if (result.message.includes("Password must be at least 6 characters long")) {
+                            showPasswordError(result.message);
+                        } else {
+                            // Catch-all for other 400 messages not specifically handled
+                            window.showCustomAlert('Registration failed: ' + result.message, 'Error');
+                        }
+                    } else if (response.status === 409 && result.message) {
+                        // Handle "Username or Badge Number already registered."
+                        if (result.message.includes("Username or Badge Number already registered")) {
+                            // You can choose to display this under username, badge number, or a general alert
+                            if (result.message.includes("Username")) {
+                                showUsernameError(result.message); 
+                            } else if (result.message.includes("Badge Number")) {
+                                showBadgeNumberError(result.message);
+                            } else {
+                                // Fallback if both/general conflict message
+                                window.showCustomAlert(result.message, 'Error');
+                            }
+                        } else {
+                            window.showCustomAlert(result.message, 'Error'); // Other 409 messages
+                        }
+                    } else {
+                        // Generic error for unhandled status codes or no message
+                        window.showCustomAlert(result.message || 'Registration failed. Unknown error.', 'Error');
+                    }
+                }
+            } catch (error) {
+                console.error('Error during sign up:', error);
+                window.showCustomAlert('An error occurred during sign up. Check console for details.', 'Error');
+            }
+        });
+
+        // Placeholder for custom alert/confirm (from your existing code, assuming it's in a separate common.js or similar)
+        // If these functions are not globally defined, you'll need to define them here or ensure 'theme.js' loads them.
+        window.showCustomAlert = function(message, title) {
+            return new Promise(resolve => {
+                const modalOverlay = document.getElementById('customModalOverlay');
+                const modalTitle = document.getElementById('customModalTitle');
+                const modalMessage = document.getElementById('customModalMessage');
+                const modalOkBtn = document.getElementById('customModalOkBtn');
+                const modalCancelBtn = document.getElementById('customModalCancelBtn');
+
+                modalTitle.textContent = title;
+                modalMessage.textContent = message;
+                modalOkBtn.textContent = "OK";
+                modalCancelBtn.classList.add('hidden');
+                modalOverlay.classList.remove('hidden');
+
+                const handler = () => {
+                    modalOverlay.classList.add('hidden');
+                    modalOkBtn.removeEventListener('click', handler);
+                    resolve(true);
+                };
+                modalOkBtn.addEventListener('click', handler);
+            });
+        };
+
+        window.showCustomConfirm = function(message, title) {
+            return new Promise(resolve => {
+                const modalOverlay = document.getElementById('customModalOverlay');
+                const modalTitle = document.getElementById('customModalTitle');
+                const modalMessage = document.getElementById('customModalMessage');
+                const modalOkBtn = document.getElementById('customModalOkBtn');
+                const modalCancelBtn = document.getElementById('customModalCancelBtn');
+
+                modalTitle.textContent = title;
+                modalMessage.textContent = message;
+                modalOkBtn.textContent = "Confirm";
+                modalCancelBtn.textContent = "Cancel";
+                modalCancelBtn.classList.remove('hidden');
+                modalOverlay.classList.remove('hidden');
+
+                const okHandler = () => {
+                    modalOverlay.classList.add('hidden');
+                    modalOkBtn.removeEventListener('click', okHandler);
+                    modalCancelBtn.removeEventListener('click', cancelHandler);
+                    resolve(true);
+                };
+                const cancelHandler = () => {
+                    modalOverlay.classList.add('hidden');
+                    modalOkBtn.removeEventListener('click', okHandler);
+                    modalCancelBtn.removeEventListener('click', cancelHandler);
+                    resolve(false);
+                };
+
+                modalOkBtn.addEventListener('click', okHandler);
+                modalCancelBtn.addEventListener('click', cancelHandler);
+            });
+        };
+    </script>
+</body>
+</html>
