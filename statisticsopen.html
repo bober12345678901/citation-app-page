@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" href="favicon.png" type="image/png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Statistics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+    <script src="theme.js"></script>
+    <style>
+        /* Styles for the prominent stat cards */
+        .stat-card {
+            background-color: var(--box-bg-color);
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+        .stat-value {
+            font-size: 3rem; /* text-5xl */
+            font-weight: bold;
+            color: var(--accent-color);
+            margin-bottom: 0.5rem;
+        }
+        .stat-label {
+            font-size: 1.25rem; /* text-xl */
+            color: var(--text-color);
+        }
+
+        /* Loading indicator styling */
+        #loadingIndicator {
+            text-align: center;
+            padding: 2rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+    </style>
+</head>
+<body class="min-h-screen theme-app-container">
+    <div class="main-content-area">
+        <div class="theme-lookup-box p-8 rounded-xl shadow-lg w-full max-w-2xl mx-4 sm:mx-auto transition-colors duration-300 border border-solid">
+            <h2 class="theme-title text-3xl font-bold text-center mb-6">My Statistics</h2>
+            <p class="theme-label text-center mb-6" id="loggedInUserDisplay">Loading user data...</p>
+
+            <!-- Loading Indicator -->
+            <div id="loadingIndicator" class="theme-label">Loading statistics...</div>
+
+            <!-- Prominent Counters (Hidden by default, shown after loading) -->
+            <div id="statsContent" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 hidden">
+                <div class="stat-card">
+                    <div class="stat-value" id="citationCount">0</div>
+                    <div class="stat-label">Citations Filed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="shiftCount">0</div>
+                    <div class="stat-label">Shift Logs Filed</div>
+                </div>
+            </div>
+
+            <div class="flex justify-center">
+                <button type="button" onclick="window.location.href='selection.html'" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">Back to Selection</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="customModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div id="customModal" class="theme-lookup-box p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 sm:mx-auto">
+            <h3 id="customModalTitle" class="theme-title text-xl font-bold mb-4"></h3>
+            <p id="customModalMessage" class="theme-label mb-6"></p>
+            <div id="customModalButtons" class="flex justify-end space-x-3">
+                <button id="customModalCancelBtn" class="theme-button-secondary py-2 px-4 rounded-md font-semibold hidden">Cancel</button>
+                <button id="customModalOkBtn" class="theme-button-primary py-2 px-4 rounded-md font-semibold">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            const token = sessionStorage.getItem('authToken');
+            const loggedInUserString = sessionStorage.getItem('loggedInUser');
+            const loggedInUserDisplay = document.getElementById('loggedInUserDisplay');
+            const citationCountElement = document.getElementById('citationCount');
+            const shiftCountElement = document.getElementById('shiftCount');
+            const loadingIndicator = document.getElementById('loadingIndicator'); // New
+            const statsContent = document.getElementById('statsContent');         // New
+
+            console.log("[Statistics Page Debug] DOMContentLoaded fired.");
+
+            if (!token || !loggedInUserString) {
+                console.log("[Statistics Page Debug] No token or loggedInUserString found. Redirecting to login.");
+                window.showCustomAlert("You must be logged in to view statistics.", "Authentication Error").then(() => {
+                    sessionStorage.clear();
+                    window.location.href = 'index.html';
+                });
+                return;
+            }
+
+            const loggedInUser = JSON.parse(loggedInUserString);
+            console.log("[Statistics Page Debug] LoggedInUser:", loggedInUser);
+            loggedInUserDisplay.textContent = `Statistics for: ${loggedInUser.username} (Badge: ${loggedInUser.badgeNumber})`;
+
+            const headers = {
+                'Authorization': `Bearer ${token}`
+            };
+
+            // Function to fetch and display counts
+            async function fetchAndDisplayCounts() {
+                // Show loading indicator, hide content
+                loadingIndicator.classList.remove('hidden');
+                statsContent.classList.add('hidden');
+
+                let citationCount = 0;
+                let shiftCount = 0;
+                let citations = [];
+                let shiftLogs = [];
+
+                try {
+                    console.log("[Statistics Page Debug] Attempting to fetch citations...");
+                    // Fetch Citations
+                    const citationsResponse = await fetch('https://citation-app-worker.pnbober.workers.dev/citations', { headers });
+                    console.log("[Statistics Page Debug] Citations response status:", citationsResponse.status);
+
+                    if (citationsResponse.ok) {
+                        citations = await citationsResponse.json();
+                        console.log("[Statistics Page Debug] Raw citations data fetched:", citations);
+                        // Client-side filter for logged-in user's citations
+                        const loggedInUsernameLower = loggedInUser.username.toLowerCase();
+                        citations = citations.filter(c => c.submittedBy && c.submittedBy.toLowerCase() === loggedInUsernameLower);
+                        citationCount = citations.length;
+                        citationCountElement.textContent = citationCount; // Update prominent counter
+                        console.log(`[Statistics Page Debug] Filtered citation count for ${loggedInUser.username}: ${citationCount}`);
+                    } else {
+                        const errorData = await citationsResponse.json().catch(() => ({ message: 'Could not parse error response.' }));
+                        console.error('[Statistics Page Debug] Failed to fetch citations (response not ok):', citationsResponse.status, errorData);
+                        window.showCustomAlert('Failed to load citation data: ' + (errorData.message || citationsResponse.statusText), 'Error');
+                        citationCountElement.textContent = 'N/A'; // Update prominent counter
+                    }
+
+                    console.log("[Statistics Page Debug] Attempting to fetch shift logs...");
+                    // Fetch Shift Logs
+                    const shiftLogsResponse = await fetch('https://citation-app-worker.pnbober.workers.dev/shift-logs', { headers });
+                    console.log("[Statistics Page Debug] Shift logs response status:", shiftLogsResponse.status);
+
+                    if (shiftLogsResponse.ok) {
+                        shiftLogs = await shiftLogsResponse.json();
+                        console.log("[Statistics Page Debug] Raw shift logs data fetched:", shiftLogs);
+                        // Client-side filter for logged-in user's shift logs
+                        const loggedInUsernameLower = loggedInUser.username.toLowerCase();
+                        shiftLogs = shiftLogs.filter(s => s.submittedByUsername && s.submittedByUsername.toLowerCase() === loggedInUsernameLower);
+                        shiftCount = shiftLogs.length;
+                        shiftCountElement.textContent = shiftCount; // Update prominent counter
+                        console.log(`[Statistics Page Debug] Filtered shift log count for ${loggedInUser.username}: ${shiftCount}`);
+                    } else {
+                        const errorData = await shiftLogsResponse.json().catch(() => ({ message: 'Could not parse error response.' }));
+                        console.error('[Statistics Page Debug] Failed to fetch shift logs (response not ok):', shiftLogsResponse.status, errorData);
+                        window.showCustomAlert('Failed to load shift log data: ' + (errorData.message || shiftLogsResponse.statusText), 'Error');
+                        shiftCountElement.textContent = 'N/A'; // Update prominent counter
+                    }
+
+                } catch (error) {
+                    console.error('[Statistics Page Debug] Network error fetching statistics (catch block):', error);
+                    window.showCustomAlert('Network error: Could not load statistics. Check console for details.', 'Error');
+                    citationCountElement.textContent = 'N/A';
+                    shiftCountElement.textContent = 'N/A';
+                } finally {
+                    // Always hide loading indicator and show content, regardless of success or failure
+                    loadingIndicator.classList.add('hidden');
+                    statsContent.classList.remove('hidden');
+                }
+            }
+
+            fetchAndDisplayCounts();
+        });
+    </script>
+</body>
+</html>
