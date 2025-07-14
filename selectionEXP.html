@@ -48,6 +48,21 @@
             font-weight: bold;
             color: var(--accent-color);
         }
+        /* Custom scrollbar styling (optional, for aesthetics) */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: var(--box-bg-color);
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: var(--accent-color);
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: var(--button-primary-hover-bg);
+        }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4 theme-app-container">
@@ -144,10 +159,13 @@
                 <h2 class="text-xl font-semibold mb-4 text-statistics-label">Active Warrants:</h2>
                 <!-- Loading Indicator for warrants -->
                 <div id="warrantsLoadingIndicator" class="loading-text hidden">Loading warrants...</div>
-                <ul id="activeWarrantsList" class="space-y-2 hidden">
-                    <!-- Warrants will be populated here dynamically -->
-                </ul>
-                <p id="noWarrantsMessage" class="text-warrant-item hidden">No active warrants found.</p>
+                <!-- Scrollable container for warrants list -->
+                <div class="max-h-64 overflow-y-auto custom-scrollbar">
+                    <ul id="activeWarrantsList" class="space-y-2 hidden">
+                        <!-- Warrants will be populated here dynamically -->
+                    </ul>
+                    <p id="noWarrantsMessage" class="text-warrant-item hidden">No active warrants found.</p>
+                </div>
             </section>
 
         </main>
@@ -319,7 +337,8 @@
                                 const listItem = document.createElement('li');
                                 // Assuming warrant object has 'username' and 'jailtime' properties
                                 // Adjust these property names if your actual warrant data structure is different
-                                listItem.textContent = `${warrant.username || 'N/A'} - ${warrant.jailtime || 'N/A'}`;
+                                // Based on handleWarrantLogSubmission, properties are userReceivingWarrant and jailTime
+                                listItem.textContent = `${warrant.userReceivingWarrant || 'N/A'} - ${warrant.jailTime || 'N/A'}s`;
                                 listItem.classList.add('text-warrant-item'); // Apply theme-aware text color
                                 activeWarrantsList.appendChild(listItem);
                             });
