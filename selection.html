@@ -184,7 +184,7 @@
 
         <!-- Theme Selector Dropdown -->
         <div class="mb-6 flex justify-end items-center">
-            <label for="themeSelector" class="theme-label flex items-center font-medium mr-2">Theme:</label> <!-- Removed block and mb-2, added flex items-center -->
+            <label for="themeSelector" class="theme-label flex items-center font-medium mr-2">Theme:</label>
             <select id="themeSelector" class="theme-input p-2 border rounded-md transition-colors duration-200">
                 <option value="light">Light</option>
                 <option value="dark">Dark</option>
@@ -287,13 +287,20 @@
     </div>
 
     <!-- Fullscreen Embed Modal (Copied from tutorials.html) -->
+    <div id="fullscreenEmbedModal" class="hidden">
+        <button id="closeEmbedBtn">X</button>
+        <div id="fullscreenEmbedContent">
+        </div>
+    </div>
+
+    <!-- Custom Modal for Alerts (Copied from index.html for consistency) -->
     <div id="customModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-        <div id="customModal" class="p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 sm:mx-auto theme-lookup-box">
-            <h3 id="customModalTitle" class="text-xl font-bold mb-4 theme-title"></h3>
-            <p id="customModalMessage" class="mb-6 theme-label"></p>
+        <div id="customModal" class="theme-lookup-box p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 sm:mx-auto">
+            <h3 id="customModalTitle" class="theme-title text-xl font-bold mb-4"></h3>
+            <p id="customModalMessage" class="theme-label mb-6"></p>
             <div id="customModalButtons" class="flex justify-end space-x-3">
-                <button id="customModalCancelBtn" class="py-2 px-4 rounded-md font-semibold hidden theme-button-secondary">Cancel</button>
-                <button id="customModalOkBtn" class="py-2 px-4 rounded-md font-semibold theme-button-primary">OK</button>
+                <button id="customModalCancelBtn" class="theme-button-secondary py-2 px-4 rounded-md font-semibold hidden">Cancel</button>
+                <button id="customModalOkBtn" class="theme-button-primary py-2 px-4 rounded-md font-semibold">OK</button>
             </div>
         </div>
     </div>
@@ -330,7 +337,7 @@
             const fullscreenEmbedModal = document.getElementById('fullscreenEmbedModal');
             const fullscreenEmbedContent = document.getElementById('fullscreenEmbedContent');
             const closeEmbedBtn = document.getElementById('closeEmbedBtn');
-            const R2_BASE_URL = 'https://pub-a91d9d22a6264a88b02227540eadf4cb.r2.dev'; // Base URL for your tutorial files in R2
+            const R2_BASE_URL = 'https://pub-a91d9d22a6264a88b02227540eadf4cb.r2.dev/tutorials'; // Base URL for your tutorial files in R2
 
             // Authentication check
             if (!token || !userInfo) {
