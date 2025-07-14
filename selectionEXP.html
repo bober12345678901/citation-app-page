@@ -37,8 +37,8 @@
         .text-na-value {
             color: var(--accent-color); /* Accent color for N/A values */
         }
-        .text-warrant-item {
-            color: var(--text-color); /* Main text color for warrant items */
+        .text-warrant-item { /* Renamed from text-warrant-item to text-help-item for clarity, but keeping for now */
+            color: var(--text-color); /* Main text color for help items */
         }
         /* Loading indicator styling */
         .loading-text {
@@ -62,6 +62,93 @@
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: var(--button-primary-hover-bg);
+        }
+
+        /* Styles for the help categories (adapted from tutorials.html) */
+        .help-category {
+            margin-bottom: 1rem;
+            padding: 0.5rem; /* Add some padding around each category box */
+            border: 1px solid var(--border-color);
+            border-radius: 0.3rem;
+            background-color: color-mix(in srgb, var(--box-bg-color) 90%, var(--border-color)); /* Slightly different background */
+        }
+        .help-category h3 {
+            font-weight: bold;
+            font-size: 1.05em;
+            margin-bottom: 0.4rem;
+            color: var(--text-color);
+            text-align: center;
+        }
+        .toggle-embed-group {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            align-items: center;
+        }
+        .toggle-embed-group button {
+             width: 90%;
+             max-width: 200px;
+             font-size: 0.85em;
+             padding: 0.5rem 0.8rem;
+             text-align: center;
+             white-space: nowrap; /* Keep button text on a single line */
+        }
+        /* Fullscreen Embed Modal Styles (copied from tutorials.html) */
+        #fullscreenEmbedModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            transition: opacity 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+        }
+        #fullscreenEmbedModal.show {
+			display: flex !important;
+			opacity: 1;
+			visibility: visible;
+		}	
+        #fullscreenEmbedContent {
+            width: 90%;
+            height: 90%;
+            background-color: black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        #fullscreenEmbedContent iframe,
+        #fullscreenEmbedContent video {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        #closeEmbedBtn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            font-size: 1.5em;
+            color: white;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+        #closeEmbedBtn:hover {
+            background-color: rgba(255, 255, 255, 0.4);
         }
     </style>
 </head>
@@ -154,21 +241,48 @@
                 <button id="openShiftLogBtn" class="px-8 py-4 rounded-lg font-bold text-xl shadow-lg transition-colors border border-white theme-button-primary">Open Shift Log</button>
             </section>
 
-            <!-- Active Warrants Section -->
+            <!-- Help Desk Section (replaces Active Warrants) -->
             <section class="p-6 rounded-lg shadow-md theme-section-bg">
-                <h2 class="text-xl font-semibold mb-4 text-statistics-label">Active Warrants:</h2>
-                <!-- Loading Indicator for warrants -->
-                <div id="warrantsLoadingIndicator" class="loading-text hidden">Loading warrants...</div>
-                <!-- Scrollable container for warrants list -->
-                <div class="max-h-64 overflow-y-auto custom-scrollbar">
-                    <ul id="activeWarrantsList" class="space-y-2 hidden">
-                        <!-- Warrants will be populated here dynamically -->
-                    </ul>
-                    <p id="noWarrantsMessage" class="text-warrant-item hidden">No active warrants found.</p>
+                <h2 class="text-xl font-semibold mb-4 text-statistics-label">Help Desk:</h2>
+                <p class="theme-label mb-4">
+                    Find step-by-step guides and video tutorials for using the application's forms.
+                </p>
+
+                <div class="grid grid-cols-1 gap-4">
+                    <div class="help-category">
+                        <h3>Citations</h3>
+                        <div class="toggle-embed-group">
+                            <button class="theme-button-secondary toggle-embed-btn" data-embed-type="pdf" data-url="/cite/citations_step_by_step.pdf">Open PDF Guide</button>
+                            <button class="theme-button-secondary toggle-embed-btn" data-embed-type="video" data-url="/cite/citations_video.mp4">Open Video Guide</button>
+                        </div>
+                    </div>
+
+                    <div class="help-category">
+                        <h3>Arrests</h3>
+                        <div class="toggle-embed-group">
+                            <button class="theme-button-secondary toggle-embed-btn" data-embed-type="pdf" data-url="/arrest no warrant/arrests_step_by_step.pdf">Open PDF Guide</button>
+                            <button class="theme-button-secondary toggle-embed-btn" data-embed-type="video" data-url="/arrest no warrant/arrests_video.mp4">Open Video Guide</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="help-category mx-auto mt-4" style="max-width: 250px;">
+                    <h3>Arrests w/ Warrants</h3>
+                    <div class="toggle-embed-group">
+                        <button class="theme-button-secondary toggle-embed-btn" data-embed-type="pdf" data-url="/arrest w warrant/arrests_w_warrants_step_by_step.pdf">Open PDF Guide</button>
+                        <button class="theme-button-secondary toggle-embed-btn" data-embed-type="video" data-url="/arrest w warrant/arrests_w_warrants_video.mp4">Open Video Guide</button>
+                    </div>
                 </div>
             </section>
 
         </main>
+    </div>
+
+    <!-- Fullscreen Embed Modal (copied from tutorials.html) -->
+    <div id="fullscreenEmbedModal" class="hidden">
+        <button id="closeEmbedBtn">X</button>
+        <div id="fullscreenEmbedContent">
+        </div>
     </div>
 
     <!-- Custom Modal for Alerts (Copied from index.html for consistency) -->
@@ -241,10 +355,11 @@
             const statisticsLoadingIndicator = document.getElementById('statisticsLoadingIndicator');
             const statisticsContent = document.getElementById('statisticsContent');
 
-            const activeWarrantsList = document.getElementById('activeWarrantsList');
-            const warrantsLoadingIndicator = document.getElementById('warrantsLoadingIndicator');
-            const noWarrantsMessage = document.getElementById('noWarrantsMessage');
-
+            // Help Desk specific elements
+            const fullscreenEmbedModal = document.getElementById('fullscreenEmbedModal');
+            const fullscreenEmbedContent = document.getElementById('fullscreenEmbedContent');
+            const closeEmbedBtn = document.getElementById('closeEmbedBtn');
+            const R2_BASE_URL = 'https://pub-a91d9d22a6264a88b02227540eadf4cb.r2.dev/tutorials'; // Base URL for your tutorial files in R2
 
             // Authentication check
             if (!token || !userInfo) {
@@ -316,56 +431,9 @@
                 }
             }
 
-            // Function to fetch and display active warrants
-            async function fetchAndDisplayWarrants() {
-                warrantsLoadingIndicator.classList.remove('hidden');
-                activeWarrantsList.classList.add('hidden');
-                noWarrantsMessage.classList.add('hidden'); // Hide initially
-
-                try {
-                    const headers = { 'Authorization': `Bearer ${token}` };
-                    const workerBaseUrl = 'https://citation-app-worker.pnbober.workers.dev'; // Your Cloudflare Worker URL
-
-                    const warrantsResponse = await fetch(`${workerBaseUrl}/warrants`, { headers });
-
-                    if (warrantsResponse.ok) {
-                        const warrants = await warrantsResponse.json();
-                        activeWarrantsList.innerHTML = ''; // Clear existing list items
-
-                        if (warrants.length > 0) {
-                            warrants.forEach(warrant => {
-                                const listItem = document.createElement('li');
-                                // Assuming warrant object has 'username' and 'jailtime' properties
-                                // Adjust these property names if your actual warrant data structure is different
-                                // Based on handleWarrantLogSubmission, properties are userReceivingWarrant and jailTime
-                                listItem.textContent = `${warrant.userReceivingWarrant || 'N/A'} - ${warrant.jailTime || 'N/A'}s`;
-                                listItem.classList.add('text-warrant-item'); // Apply theme-aware text color
-                                activeWarrantsList.appendChild(listItem);
-                            });
-                            activeWarrantsList.classList.remove('hidden');
-                        } else {
-                            noWarrantsMessage.classList.remove('hidden');
-                        }
-                    } else {
-                        const errorData = await warrantsResponse.json().catch(() => ({ message: 'Could not parse error response.' }));
-                        window.showCustomAlert('Failed to load warrants: ' + (errorData.message || warrantsResponse.statusText), 'Error');
-                        noWarrantsMessage.textContent = 'Failed to load warrants.';
-                        noWarrantsMessage.classList.remove('hidden');
-                    }
-                } catch (error) {
-                    console.error('Network error fetching warrants:', error);
-                    window.showCustomAlert('Network error: Could not load warrants. Check console for details.', 'Error');
-                    noWarrantsMessage.textContent = 'Network error loading warrants.';
-                    noWarrantsMessage.classList.remove('hidden');
-                } finally {
-                    warrantsLoadingIndicator.classList.add('hidden');
-                }
-            }
-
-
-            // Call the functions to fetch and display data when the page loads
+            // Call the function to fetch and display data when the page loads
             fetchAndDisplayCounts();
-            fetchAndDisplayWarrants(); // Call the new function for warrants
+            // No call to fetchAndDisplayWarrants() as it's replaced
 
             // Logout Functionality
             logoutButton.addEventListener('click', function(event) {
@@ -395,6 +463,65 @@
             adminButton.addEventListener('click', function() {
                 window.location.href = 'admin.html';
             });
+
+            // --- Help Desk Embed Modal Functionality (from tutorials.html) ---
+            document.querySelectorAll('.toggle-embed-btn').forEach(button => {
+                button.addEventListener('click', function () {
+                    const embedType = this.dataset.embedType;
+                    const relativeUrl = this.dataset.url;
+
+                    fullscreenEmbedContent.innerHTML = ''; // Clear previous content
+
+                    if (embedType === 'pdf') {
+                        const embed = document.createElement('embed');
+                        embed.src = R2_BASE_URL + relativeUrl;
+                        embed.type = 'application/pdf';
+                        embed.style.width = '100%';
+                        embed.style.height = '100%';
+                        fullscreenEmbedContent.appendChild(embed);
+                    } else if (embedType === 'video') {
+                        const video = document.createElement('video');
+                        video.controls = true;
+                        video.autoplay = true;
+                        video.preload = 'auto';
+                        video.setAttribute('allowfullscreen', '');
+                        const source = document.createElement('source');
+                        source.src = R2_BASE_URL + relativeUrl;
+                        source.type = relativeUrl.includes('.mp4') ? 'video/mp4' : ''; // Infer type for video
+                        video.appendChild(source);
+                        fullscreenEmbedContent.appendChild(video);
+                    }
+
+                    fullscreenEmbedModal.classList.add('show');
+                });
+            });
+
+            function closeFullscreenEmbedModal() {
+                fullscreenEmbedModal.classList.remove('show');
+                const videoElement = fullscreenEmbedContent.querySelector('video');
+                if (videoElement) videoElement.pause(); // Pause video when closing
+                // Clear content after transition for smoother experience
+                setTimeout(() => {
+                    fullscreenEmbedContent.innerHTML = '';
+                }, 300);
+            }
+
+            closeEmbedBtn.addEventListener('click', closeFullscreenEmbedModal);
+
+            // Close modal on Escape key
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' && fullscreenEmbedModal.classList.contains('show')) {
+                    closeFullscreenEmbedModal();
+                }
+            });
+
+            // Close modal on outside click
+            document.addEventListener('click', function(event) {
+                if (event.target === fullscreenEmbedModal) {
+                    closeFullscreenEmbedModal();
+                }
+            });
+            // --- End Help Desk Embed Modal Functionality ---
         });
     </script>
 </body>
