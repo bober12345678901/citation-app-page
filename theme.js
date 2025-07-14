@@ -1,509 +1,242 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <link rel="icon" href="favicon.png" type="image/png">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Dashboard</title>
-    <!-- Load Tailwind CSS from CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Link to your custom styles.css for theme variables -->
-    <link rel="stylesheet" href="styles.css">
-    <!-- Link to theme.js for theme switching functionality -->
-    <script src="theme.js"></script>
-    <style>
-        /* Any custom overrides or specific element styles not covered by themes */
-        /* These styles will apply regardless of the selected theme */
-        a {
-            text-decoration: none;
-        }
-        /* Specific styling for the user icon border */
-        .user-icon-border {
-            border-color: var(--text-color); /* Use theme's text color for border */
-        }
-        /* Custom styling for the N/A boxes to use theme variables */
-        .theme-na-box {
-            background-color: var(--input-bg-color); /* Using input-bg-color for inner boxes */
-            border-color: var(--accent-color); /* Border color from accent */
-        }
-        /* Custom styling for section backgrounds to use theme variables */
-        .theme-section-bg {
-            background-color: var(--box-bg-color); /* Using box-bg-color for main sections */
-        }
-        /* Ensure specific text colors within statistics and warrants sections */
-        .text-statistics-label {
-            color: var(--text-color); /* Main text color for labels */
-        }
-        .text-na-value {
-            color: var(--accent-color); /* Accent color for N/A values */
-        }
-        /* Loading indicator styling */
-        .loading-text {
-            text-align: center;
-            padding: 1rem;
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: var(--accent-color);
-        }
-        /* Custom scrollbar styling (optional, for aesthetics) */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: var(--box-bg-color);
-            border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: var(--accent-color);
-            border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: var(--button-primary-hover-bg);
+// theme.js - WITH CUSTOM ALERT SYSTEM (FIXED VARIABLE NAMES)
+
+// Global reference to the modal elements
+let _customModalOverlay;
+let _customModalTitle;
+let _customModalMessage;
+let _customModalOkBtn;
+let _customModalCancelBtn;
+let _resolveCustomConfirm; // To store the resolve function for custom confirm
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Tailwind CSS Configuration MUST be inside DOMContentLoaded if CDN is in head
+    if (typeof tailwind !== 'undefined' && tailwind.config) {
+        tailwind.config = {
+            darkMode: 'class', // Enable dark mode by toggling a 'dark' class on the html element
+        };
+    }
+
+    const themeSelector = document.getElementById('themeSelector');
+    const customColorsContainer = document.getElementById('customColorsContainer');
+    const customBgColorInput = document.getElementById('customBgColor');
+    const customTextColorInput = document.getElementById('customTextColor');
+    const customAccentColorInput = document.getElementById('customAccentColor');
+    const body = document.body;
+
+    const themePresets = {
+        light: { bg: '#f3f4f6', text: '#1f2937', accent: '#3b82f6', boxBg: '#ffffff', border: '#d1d5db', inputBg: '#ffffff', inputText: '#1f2937', buttonText: '#ffffff', buttonPrimaryHover: '#2563eb', buttonSecondary: '#6b7280', buttonSecondaryHover: '#4b5563', buttonDanger: '#dc2626', buttonDangerHover: '#b91c1c' },
+        dark: { bg: '#111827', text: '#f9fafb', accent: '#2563eb', boxBg: '#1f2937', border: '#374151', inputBg: '#374151', inputText: '#f9fafb', buttonText: '#ffffff', buttonPrimaryHover: '#1e40af', buttonSecondary: '#4b5563', buttonSecondaryHover: '#374151', buttonDanger: '#b91c1c', buttonDangerHover: '#991b1b' },
+        sunset: { bg: '#ffe4e6', text: '#4b1e2f', accent: '#fb7185', boxBg: '#fef2f2', border: '#fecdd3', inputBg: '#fff7f7', inputText: '#4b1e2f', buttonText: '#ffffff', buttonPrimaryHover: '#e11d48', buttonSecondary: '#fca5a5', buttonSecondaryHover: '#ef4444', buttonDanger: '#be123c', buttonDangerHover: '#9f1239' },
+        ocean: { bg: '#e0f2fe', text: '#0c4a6e', accent: '#0284c7', boxBg: '#ecf8ff', border: '#7dd3fc', inputBg: '#f0f9ff', inputText: '#0c4a6e', buttonText: '#ffffff', buttonPrimaryHover: '#0369a1', buttonSecondary: '#38bdf8', buttonSecondaryHover: '#0ea5e9', buttonDanger: '#ef4444', buttonDangerHover: '#dc2626' },
+        forest: { bg: '#ecfdf5', text: '#064e3b', accent: '#10b981', boxBg: '#f0fdf4', border: '#6ee7b7', inputBg: '#f0fdf4', inputText: '#064e3b', buttonText: '#ffffff', buttonPrimaryHover: '#059669', buttonSecondary: '#34d399', buttonSecondaryHover: '#10b981', buttonDanger: '#ef4444', buttonDangerHover: '#dc2626' },
+        midnight: { bg: '#0f172a', text: '#e2e8f0', accent: '#7c3aed', boxBg: '#1e293b', border: '#475569', inputBg: '#334155', inputText: '#e2e8f0', buttonText: '#ffffff', buttonPrimaryHover: '#6d28d9', buttonSecondary: '#64748b', buttonSecondaryHover: '#475569', buttonDanger: '#dc2626', buttonDangerHover: '#b91c1c' },
+        dracula: { bg: '#282a36', text: '#f8f8f2', accent: '#bd93f9', boxBg: '#44475a', border: '#6272a4', inputBg: '#50fa7b', inputText: '#f8f8f2', buttonText: '#ffffff', buttonPrimaryHover: '#ff79c6', buttonSecondary: '#6272a4', buttonSecondaryHover: '#44475a', buttonDanger: '#ff5555', buttonDangerHover: '#ff3333' },
+        cyberpunk: { bg: '#0d0f1b', text: '#fefefe', accent: '#ff007c', boxBg: '#1a1d2e', border: '#00ffff', inputBg: '#2a2e4a', inputText: '#fefefe', buttonText: '#ffffff', buttonPrimaryHover: '#ff00ff', buttonSecondary: '#00ff00', buttonSecondaryHover: '#00cc00', buttonDanger: '#fe4a4a', buttonDangerHover: '#e73030' },
+        custom: null // Will be loaded from sessionStorage or default
+    };
+
+    function applyTheme(themeName) {
+        let theme = themePresets[themeName];
+        // Ensure base classes are always present for layout/styling
+        body.className = `min-h-screen theme-app-container theme-${themeName} flex items-center justify-center`; 
+
+        if (themeName === 'custom') {
+            const customColors = JSON.parse(sessionStorage.getItem('customThemeColors')) || {
+                bg: '#f3f4f6', text: '#1f2937', accent: '#3b82f6', boxBg: '#ffffff', border: '#d1d5db', inputBg: '#ffffff', inputText: '#1f2937', buttonText: '#ffffff', buttonPrimaryHover: '#2563eb', buttonSecondary: '#6b7280', buttonSecondaryHover: '#4b5563', buttonDanger: '#dc2626', buttonDangerHover: '#b91c1c'
+            };
+            theme = customColors;
+            if (customBgColorInput) customBgColorInput.value = customColors.bg;
+            if (customTextColorInput) customTextColorInput.value = customColors.text;
+            if (customAccentColorInput) customAccentColorInput.value = customColors.accent;
+            if (customColorsContainer) customColorsContainer.classList.remove('hidden');
+        } else {
+            if (customColorsContainer) customColorsContainer.classList.add('hidden');
         }
 
-        /* Styles for the help categories (adapted from tutorials.html) */
-        .help-category {
-            margin-bottom: 1rem;
-            padding: 0.5rem; /* Add some padding around each category box */
-            border: 1px solid var(--border-color);
-            border-radius: 0.3rem;
-            background-color: color-mix(in srgb, var(--box-bg-color) 90%, var(--border-color)); /* Slightly different background */
-        }
-        .help-category h3 {
-            font-weight: bold;
-            font-size: 1.05em;
-            margin-bottom: 0.4rem;
-            color: var(--text-color);
-            text-align: center;
-        }
-        .toggle-embed-group {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-            align-items: center;
-        }
-        .toggle-embed-group button {
-             width: 90%;
-             max-width: 200px;
-             font-size: 0.85em;
-             padding: 0.5rem 0.8rem;
-             text-align: center;
-             white-space: nowrap; /* Keep button text on a single line */
-        }
-        /* Fullscreen Embed Modal Styles (copied from tutorials.html) */
-        #fullscreenEmbedModal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: rgba(0, 0, 0, 0.95);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-            transition: opacity 0.3s ease;
-            opacity: 0;
-            visibility: hidden;
-        }
-        #fullscreenEmbedModal.show {
-			display: flex !important;
-			opacity: 1;
-			visibility: visible;
-		}	
-        #fullscreenEmbedContent {
-            width: 90%;
-            height: 90%;
-            background-color: black;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-        #fullscreenEmbedContent iframe,
-        #fullscreenEmbedContent video {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: block;
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-        }
-        #closeEmbedBtn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            font-size: 1.5em;
-            color: white;
-            cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 5px;
-        }
-        #closeEmbedBtn:hover {
-            background-color: rgba(255, 255, 255, 0.4);
-        }
-        /* Ensure modal buttons are flex items for proper spacing */
-        #customModalButtons button {
-            display: flex; /* Ensure buttons are always flex items */
-            align-items: center;
-            justify-content: center;
-        }
-    </style>
-</head>
-<body class="min-h-screen flex items-center justify-center p-4 theme-app-container">
-    <!-- Main container for the dashboard, centered and with a darker background -->
-    <div class="container mx-auto max-w-6xl w-full rounded-lg shadow-lg p-6 md:p-8 theme-lookup-box">
+        if (theme) {
+            document.documentElement.style.setProperty('--bg-color', theme.bg);
+            document.documentElement.style.setProperty('--text-color', theme.text);
+            document.documentElement.style.setProperty('--accent-color', theme.accent);
+            document.documentElement.style.setProperty('--box-bg-color', theme.boxBg);
+            document.documentElement.style.setProperty('--border-color', theme.border);
+            document.documentElement.style.setProperty('--input-bg-color', theme.inputBg);
+            document.documentElement.style.setProperty('--input-text-color', theme.inputText);
+            document.documentElement.style.setProperty('--button-text-color', theme.buttonText);
+            document.documentElement.style.setProperty('--button-primary-bg', theme.accent);
+            document.documentElement.style.setProperty('--button-primary-hover-bg', theme.buttonPrimaryHover);
+            document.documentElement.style.setProperty('--button-secondary-bg', theme.buttonSecondary);
+            document.documentElement.style.setProperty('--button-secondary-hover-bg', theme.buttonSecondaryHover);
+            document.documentElement.style.setProperty('--button-danger-bg', theme.buttonDanger);
+            document.documentElement.style.setProperty('--button-danger-hover-bg', theme.buttonDangerHover);
 
-        <!-- Header Section: Contains user info and action buttons -->
-        <header class="flex flex-col sm:flex-row items-center justify-between mb-8 pb-4 border-b border-gray-700">
-            <div class="flex items-center space-x-4 mb-4 sm:mb-0">
-                <!-- User Icon (SVG for a simple outline) -->
-                <div class="w-16 h-16 rounded-full border-2 user-icon-border flex items-center justify-center flex-shrink-0">
-                    <svg class="w-10 h-10 theme-label" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                    </svg>
-                </div>
-                <!-- Welcome text and badge - will be populated by JavaScript -->
-                <div>
-                    <h1 id="welcomeText" class="text-3xl font-bold theme-title">Welcome, Officer</h1>
-                    <p id="badgeNumber" class="text-lg theme-label">Badge: N/A</p>
-                </div>
-            </div>
-            <!-- Admin and Log Out buttons -->
-            <div class="flex space-x-4">
-                <button id="adminButton" class="px-6 py-2 rounded-lg font-semibold shadow-md transition-colors hidden theme-button-danger">Admin</button>
-                <button id="logoutButton" class="px-6 py-2 rounded-lg font-semibold shadow-md transition-colors theme-button-secondary">Log Out</button>
-            </div>
-        </header>
-
-        <!-- Theme Selector Dropdown -->
-        <div class="mb-6 flex justify-end">
-            <label for="themeSelector" class="theme-label block mb-2 font-medium mr-2">Theme:</label>
-            <select id="themeSelector" class="theme-input p-2 border rounded-md transition-colors duration-200">
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-                <option value="sunset">Sunset</option>
-                <option value="ocean">Ocean</option>
-                <option value="forest">Forest</option>
-                <option value="midnight">Midnight</option>
-                <option value="dracula">Dracula</option>
-                <option value="cyberpunk">Cyberpunk</option>
-                <option value="custom">Custom...</option>
-            </select>
-            <!-- Custom color pickers (hidden by default, managed by theme.js) -->
-            <div id="customColorsContainer" class="hidden mt-4 ml-4 flex flex-col space-y-2">
-                <div>
-                    <label for="customBgColor" class="theme-label block mb-1">Background Color:</label>
-                    <input type="color" id="customBgColor" value="#f3f4f6" class="w-full h-8 p-0 border rounded-md cursor-pointer theme-input" />
-                </div>
-                <div>
-                    <label for="customTextColor" class="theme-label block mb-1">Text Color:</label>
-                    <input type="color" id="customTextColor" value="#1f2937" class="w-full h-8 p-0 border rounded-md cursor-pointer theme-input" />
-                </div>
-                <div>
-                    <label for="customAccentColor" class="theme-label block mb-1">Accent Color:</label>
-                    <input type="color" id="customAccentColor" value="#3b82f6" class="w-full h-8 p-0 border rounded-md cursor-pointer theme-input" />
-                </div>
-            </div>
-        </div>
-
-        <!-- Main Content Grid: Arranges the three primary sections -->
-        <main class="grid grid-cols-1 md:grid-cols-3 gap-8">
-
-            <!-- Your Statistics Section -->
-            <section class="p-6 rounded-lg shadow-md theme-section-bg flex flex-col"> <!-- Added flex-col -->
-                <h2 class="text-xl font-semibold mb-4 text-statistics-label">Your Statistics:</h2>
-                <!-- Loading Indicator for statistics -->
-                <div id="statisticsLoadingIndicator" class="loading-text hidden">Loading statistics...</div>
-                <div id="statisticsContent" class="space-y-4 flex-grow flex flex-col justify-center"> <!-- Added flex-grow, flex, flex-col, justify-center -->
-                    <!-- Statistics Box 1: Citations Filled -->
-                    <div class="p-4 rounded-lg text-center shadow-inner theme-na-box">
-                        <p id="citationCount" class="text-4xl font-bold text-na-value">N/A</p>
-                        <p class="text-statistics-label">Citations Filled</p>
-                    </div>
-                    <!-- Statistics Box 2: Shifts Logged -->
-                    <div class="p-4 rounded-lg text-center shadow-inner theme-na-box">
-                        <p id="shiftCount" class="text-4xl font-bold text-na-value">N/A</p>
-                        <p class="text-statistics-label">Shifts Logged</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Action Buttons Section -->
-            <section class="p-6 rounded-lg shadow-md flex flex-col justify-center space-y-6 theme-section-bg">
-                <!-- Button 1: Open Citation Log -->
-                <button id="openCitationLogBtn" class="px-8 py-4 rounded-lg font-bold text-xl shadow-lg transition-colors border border-white theme-button-primary">Open Citation Log</button>
-                <!-- Button 2: Open Arrest Log -->
-                <button id="openArrestLogBtn" class="px-8 py-4 rounded-lg font-bold text-xl shadow-lg transition-colors border border-white theme-button-primary">Open Arrest Log</button>
-                <!-- Button 3: Open Shift Log -->
-                <button id="openShiftLogBtn" class="px-8 py-4 rounded-lg font-bold text-xl shadow-lg transition-colors border border-white theme-button-primary">Open Shift Log</button>
-            </section>
-
-            <!-- Help Desk Section (replaces Active Warrants) -->
-            <section class="p-6 rounded-lg shadow-md theme-section-bg">
-                <h2 class="text-xl font-semibold mb-4 text-statistics-label">Help Desk:</h2>
-                <!-- Scrollable container for Help Desk content -->
-                <div class="max-h-72 overflow-y-auto custom-scrollbar">
-                    <p class="theme-label mb-4">
-                        Find step-by-step guides and video tutorials for using the application's forms.
-                    </p>
-
-                    <div class="grid grid-cols-1 gap-4">
-                        <div class="help-category">
-                            <h3>Citations</h3>
-                            <div class="toggle-embed-group">
-                                <button class="theme-button-secondary toggle-embed-btn" data-embed-type="pdf" data-url="/cite/citations_step_by_step.pdf">Open PDF Guide</button>
-                                <button class="theme-button-secondary toggle-embed-btn" data-embed-type="video" data-url="/cite/citations_video.mp4">Open Video Guide</button>
-                            </div>
-                        </div>
-
-                        <div class="help-category">
-                            <h3>Arrests</h3>
-                            <div class="toggle-embed-group">
-                                <button class="theme-button-secondary toggle-embed-btn" data-embed-type="pdf" data-url="/arrest no warrant/arrests_step_by_step.pdf">Open PDF Guide</button>
-                                <button class="theme-button-secondary toggle-embed-btn" data-embed-type="video" data-url="/arrest no warrant/arrests_video.mp4">Open Video Guide</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="help-category mx-auto mt-4" style="max-width: 250px;">
-                        <h3>Arrests w/ Warrants</h3>
-                        <div class="toggle-embed-group">
-                            <button class="theme-button-secondary toggle-embed-btn" data-embed-type="pdf" data-url="/arrest w warrant/arrests_w_warrants_step_by_step.pdf">Open PDF Guide</button>
-                            <button class="theme-button-secondary toggle-embed-btn" data-embed-type="video" data-url="/arrest w warrant/arrests_w_warrants_video.mp4">Open Video Guide</button>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-        </main>
-    </div>
-
-    <!-- Fullscreen Embed Modal (copied from tutorials.html) -->
-    <div id="fullscreenEmbedModal" class="hidden">
-        <button id="closeEmbedBtn">X</button>
-        <div id="fullscreenEmbedContent">
-        </div>
-    </div>
-
-    <!-- Custom Modal for Alerts (Copied from index.html for consistency) -->
-    <div id="customModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-        <div id="customModal" class="p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 sm:mx-auto theme-lookup-box">
-            <h3 id="customModalTitle" class="text-xl font-bold mb-4 theme-title"></h3>
-            <p id="customModalMessage" class="mb-6 theme-label"></p>
-            <div id="customModalButtons" class="flex justify-end space-x-3">
-                <button id="customModalCancelBtn" class="py-2 px-4 rounded-md font-semibold hidden theme-button-secondary">Cancel</button>
-                <button id="customModalOkBtn" class="py-2 px-4 rounded-md font-semibold theme-button-primary">OK</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Custom alert and confirm functions will be handled by theme.js directly.
-        // We are removing the re-definition here to avoid conflicts.
-        // The theme.js file already initializes _customModalOverlay, etc.
-        // and defines window.showCustomAlert and window.showCustomConfirm.
-
-        document.addEventListener('DOMContentLoaded', async function() {
-            const token = sessionStorage.getItem('authToken');
-            const userInfoString = sessionStorage.getItem('loggedInUser');
-            let userInfo = null;
-
-            if (userInfoString) {
-                userInfo = JSON.parse(userInfoString);
-            }
-
-            const welcomeText = document.getElementById('welcomeText');
-            const badgeNumberDisplay = document.getElementById('badgeNumber');
-            const logoutButton = document.getElementById('logoutButton');
-            const adminButton = document.getElementById('adminButton');
-
-            const openCitationLogBtn = document.getElementById('openCitationLogBtn');
-            const openArrestLogBtn = document.getElementById('openArrestLogBtn');
-            const openShiftLogBtn = document.getElementById('openShiftLogBtn');
-
-            const citationCountElement = document.getElementById('citationCount');
-            const shiftCountElement = document.getElementById('shiftCount');
-            const statisticsLoadingIndicator = document.getElementById('statisticsLoadingIndicator');
-            const statisticsContent = document.getElementById('statisticsContent');
-
-            // Help Desk specific elements
-            const fullscreenEmbedModal = document.getElementById('fullscreenEmbedModal');
-            const fullscreenEmbedContent = document.getElementById('fullscreenEmbedContent');
-            const closeEmbedBtn = document.getElementById('closeEmbedBtn');
-            const R2_BASE_URL = 'https://pub-a91d9d22a6264a88b02227540eadf4cb.r2.dev/tutorials'; // Base URL for your tutorial files in R2
-
-            // Authentication check
-            if (!token || !userInfo) {
-                // Use the showCustomAlert from theme.js
-                window.showCustomAlert("You must be logged in to access this page.", "Error", "Authentication Error").then(() => {
-                    sessionStorage.clear();
-                    window.location.href = 'index.html';
-                });
-                return;
+            // Special handling for dark mode class on HTML element
+            if (themeName === 'dark' || themeName === 'midnight' || themeName === 'dracula' || themeName === 'cyberpunk') {
+                document.documentElement.classList.add('dark');
             } else {
-                welcomeText.textContent = `Welcome, Officer ${userInfo.username}`;
-                badgeNumberDisplay.textContent = `Badge: ${userInfo.badgeNumber}`;
-
-                // Conditional display for Admin button
-                if (userInfo.role === 'admin') {
-                    adminButton.classList.remove('hidden'); // Show Admin button
-                } else {
-                    adminButton.classList.add('hidden'); // Ensure hidden if not admin
-                }
+                document.documentElement.classList.remove('dark');
             }
+        }
 
-            // Function to fetch and display statistics counts (Citations and Shifts)
-            async function fetchAndDisplayCounts() {
-                statisticsLoadingIndicator.classList.remove('hidden');
-                statisticsContent.classList.add('hidden');
+        sessionStorage.setItem('selectedTheme', themeName); 
+    }
 
-                let citationCount = 0;
-                let shiftCount = 0;
+    function saveCustomColors() {
+        const customColors = {
+            bg: customBgColorInput.value,
+            text: customTextColorInput.value,
+            accent: customAccentColorInput.value,
+            // Simple derivations for other elements, can be expanded with more inputs
+            boxBg: customBgColorInput.value,
+            border: customAccentColorInput.value,
+            inputBg: customBgColorInput.value,
+            inputText: customTextColorInput.value,
+            buttonText: customTextColorInput.value,
+            buttonPrimaryHover: customAccentColorInput.value,
+            buttonSecondary: customTextColorInput.value,
+            buttonSecondaryHover: customAccentColorInput.value,
+            buttonDanger: '#dc2626', 
+            buttonDangerHover: '#b91c1c'
+        };
+        sessionStorage.setItem('customThemeColors', JSON.stringify(customColors)); 
+        applyTheme('custom'); 
+    }
 
-                try {
-                    const headers = { 'Authorization': `Bearer ${token}` };
-                    const workerBaseUrl = 'https://citation-app-worker.pnbober.workers.dev'; // Your Cloudflare Worker URL
-
-                    // Fetch Citations
-                    const citationsResponse = await fetch(`${workerBaseUrl}/citations`, { headers });
-                    if (citationsResponse.ok) {
-                        const citations = await citationsResponse.json();
-                        const loggedInUsernameLower = userInfo.username.toLowerCase();
-                        const userCitations = citations.filter(c => c.submittedBy && c.submittedBy.toLowerCase() === loggedInUsernameLower);
-                        citationCount = userCitations.length;
-                        citationCountElement.textContent = citationCount;
-                    } else {
-                        const errorData = await citationsResponse.json().catch(() => ({ message: 'Could not parse error response.' }));
-                        // Use the showCustomAlert from theme.js
-                        window.showCustomAlert('Failed to load citation data: ' + (errorData.message || citationsResponse.statusText), 'Error', 'Data Load Error');
-                        citationCountElement.textContent = 'N/A';
-                    }
-
-                    // Fetch Shift Logs
-                    const shiftLogsResponse = await fetch(`${workerBaseUrl}/shift-logs`, { headers });
-                    if (shiftLogsResponse.ok) {
-                        const shiftLogs = await shiftLogsResponse.json();
-                        const loggedInUsernameLower = userInfo.username.toLowerCase();
-                        const userShiftLogs = shiftLogs.filter(s => s.submittedByUsername && s.submittedByUsername.toLowerCase() === loggedInUsernameLower);
-                        shiftCount = userShiftLogs.length;
-                        shiftCountElement.textContent = shiftCount;
-                    } else {
-                        const errorData = await shiftLogsResponse.json().catch(() => ({ message: 'Could not parse error response.' }));
-                        // Use the showCustomAlert from theme.js
-                        window.showCustomAlert('Failed to load shift log data: ' + (errorData.message || shiftLogsResponse.statusText), 'Error', 'Data Load Error');
-                        shiftCountElement.textContent = 'N/A';
-                    }
-
-                } catch (error) {
-                    console.error('Network error fetching statistics:', error);
-                    // Use the showCustomAlert from theme.js
-                    window.showCustomAlert('Network error: Could not load statistics. Check console for details.', 'Error', 'Network Error');
-                    citationCountElement.textContent = 'N/A';
-                    shiftCountElement.textContent = 'N/A';
-                } finally {
-                    statisticsLoadingIndicator.classList.add('hidden');
-                    statisticsContent.classList.remove('hidden');
-                }
-            }
-
-            // Call the function to fetch and display data when the page loads
-            fetchAndDisplayCounts();
-
-            // Logout Functionality
-            logoutButton.addEventListener('click', function(event) {
-                event.preventDefault();
-                // Use window.showCustomConfirm from theme.js for Yes/No
-                window.showCustomConfirm("Are you sure you want to log out?", "Confirm Logout").then((confirmed) => {
-                    if (confirmed) {
-                        sessionStorage.clear(); // Clear all session data
-                        window.location.href = 'index.html'; // Redirect to login
-                    }
-                });
-            });
-
-            // Navigation for the action buttons
-            openCitationLogBtn.addEventListener('click', function() {
-                window.location.href = 'citation.html';
-            });
-
-            openArrestLogBtn.addEventListener('click', function() {
-                window.location.href = 'arrest.html';
-            });
-
-            openShiftLogBtn.addEventListener('click', function() {
-                window.location.href = 'shift_log.html';
-            });
-
-            // Admin button navigation
-            adminButton.addEventListener('click', function() {
-                window.location.href = 'admin.html';
-            });
-
-            // --- Help Desk Embed Modal Functionality (from tutorials.html) ---
-            document.querySelectorAll('.toggle-embed-btn').forEach(button => {
-                button.addEventListener('click', function () {
-                    const embedType = this.dataset.embedType;
-                    const relativeUrl = this.dataset.url;
-
-                    fullscreenEmbedContent.innerHTML = ''; // Clear previous content
-
-                    if (embedType === 'pdf') {
-                        const embed = document.createElement('embed');
-                        embed.src = R2_BASE_URL + relativeUrl;
-                        embed.type = 'application/pdf';
-                        embed.style.width = '100%';
-                        embed.style.height = '100%';
-                        fullscreenEmbedContent.appendChild(embed);
-                    } else if (embedType === 'video') {
-                        const video = document.createElement('video');
-                        video.controls = true;
-                        video.autoplay = true;
-                        video.preload = 'auto';
-                        video.setAttribute('allowfullscreen', '');
-                        const source = document.createElement('source');
-                        source.src = R2_BASE_URL + relativeUrl;
-                        source.type = relativeUrl.includes('.mp4') ? 'video/mp4' : ''; // Infer type for video
-                        video.appendChild(source);
-                        fullscreenEmbedContent.appendChild(video);
-                    }
-
-                    fullscreenEmbedModal.classList.add('show');
-                });
-            });
-
-            function closeFullscreenEmbedModal() {
-                fullscreenEmbedModal.classList.remove('show');
-                const videoElement = fullscreenEmbedContent.querySelector('video');
-                if (videoElement) videoElement.pause(); // Pause video when closing
-                // Clear content after transition for smoother experience
-                setTimeout(() => {
-                    fullscreenEmbedContent.innerHTML = '';
-                }, 300);
-            }
-
-            closeEmbedBtn.addEventListener('click', closeFullscreenEmbedModal);
-
-            // Close modal on Escape key
-            document.addEventListener('keydown', function(event) {
-                if (event.key === 'Escape' && fullscreenEmbedModal.classList.contains('show')) {
-                    closeFullscreenEmbedModal();
-                }
-            });
-
-            // Close modal on outside click
-            document.addEventListener('click', function(event) {
-                if (event.target === fullscreenEmbedModal) {
-                    closeFullscreenEmbedModal();
-                }
-            });
-            // --- End Help Desk Embed Modal Functionality ---
+    // Event Listeners for theme selection (if elements exist)
+    if (themeSelector) {
+        themeSelector.addEventListener('change', (event) => {
+            applyTheme(event.target.value);
         });
-    </script>
-</body>
-</html>
+    }
+
+    if (customBgColorInput) customBgColorInput.addEventListener('input', saveCustomColors);
+    if (customTextColorInput) customTextColorInput.addEventListener('input', saveCustomColors);
+    if (customAccentColorInput) customAccentColorInput.addEventListener('input', saveCustomColors);
+
+
+    // Load saved theme on page load (if themeSelector is present)
+    const savedTheme = sessionStorage.getItem('selectedTheme') || 'dark'; 
+    if (themeSelector) {
+        themeSelector.value = savedTheme;
+    }
+    applyTheme(savedTheme);
+
+
+    // --- CUSTOM ALERT SYSTEM ---
+    // Initialize modal elements once the DOM is ready and the HTML is present
+    // These assignments MUST happen after the modal HTML is added to the page.
+    _customModalOverlay = document.getElementById('customModalOverlay');
+    _customModalTitle = document.getElementById('customModalTitle');
+    _customModalMessage = document.getElementById('customModalMessage');
+    _customModalOkBtn = document.getElementById('customModalOkBtn');
+    _customModalCancelBtn = document.getElementById('customModalCancelBtn');
+
+    // Attach event listeners to modal buttons
+    if (_customModalOkBtn) {
+        _customModalOkBtn.addEventListener('click', () => {
+            _customModalOverlay.classList.add('hidden');
+            document.body.style.overflow = ''; // Restore scrolling
+            if (_resolveCustomConfirm) { // Only resolve if it's a confirm (null for alerts)
+                _resolveCustomConfirm(true); 
+                _resolveCustomConfirm = null; // Clear resolver
+            }
+        });
+    }
+
+    if (_customModalCancelBtn) {
+        _customModalCancelBtn.addEventListener('click', () => {
+            _customModalOverlay.classList.add('hidden');
+            document.body.style.overflow = ''; // Restore scrolling
+            if (_resolveCustomConfirm) { // Only resolve if it's a confirm
+                _resolveCustomConfirm(false); 
+                _resolveCustomConfirm = null; // Clear resolver
+            }
+        });
+    }
+
+    /**
+     * Replaces native alert() with a custom modal popup.
+     * @param {string} message The message to display.
+     * @param {string} [type="info"] Optional type for styling ('success', 'error', 'warning', 'info').
+     * @param {string} [title] Optional title for the modal. Defaults based on type.
+     * @returns {Promise<void>} A promise that resolves when OK is clicked.
+     */
+    window.showCustomAlert = function(message, type = 'info', title = null) {
+        return new Promise(resolve => {
+            // Check if modal elements are available. If not, fallback to native alert.
+            if (!_customModalOverlay || !_customModalTitle || !_customModalMessage || !_customModalOkBtn) { 
+                alert(message);
+                resolve();
+                return;
+            }
+
+            _customModalTitle.textContent = ''; // Clear previous title content
+            _customModalMessage.textContent = message;
+
+            // Clear previous type classes from the title
+            _customModalTitle.classList.remove('success', 'error', 'warning', 'info');
+
+            // Set type and title
+            let effectiveTitle = title;
+            if (!effectiveTitle) { // Set default title if not provided
+                if (type === 'success') effectiveTitle = 'Success!';
+                else if (type === 'error') effectiveTitle = 'Error!';
+                else if (type === 'warning') effectiveTitle = 'Warning!';
+                else effectiveTitle = 'Information';
+            }
+            _customModalTitle.textContent = effectiveTitle;
+            _customModalTitle.classList.add(type.replace(/\s+/g, '-')); // Replace spaces with hyphens for valid class name
+
+            _customModalCancelBtn.classList.add('hidden'); // Hide cancel button for alerts
+            _customModalOkBtn.classList.remove('hidden'); // Ensure OK button is visible
+            _customModalOkBtn.textContent = 'OK'; // Set OK button text
+
+            _customModalOverlay.classList.remove('hidden'); // Show the overlay
+            document.body.style.overflow = 'hidden'; // Prevent scrolling background
+            _customModalOkBtn.focus(); // Focus OK button for usability
+
+            // The click listener for _customModalOkBtn is set once in DOMContentLoaded
+            // and simply hides the modal and resolves _resolveCustomConfirm (if it's a confirm).
+            // For alerts, we need to ensure the specific alert's promise is resolved.
+            // A simpler way for alerts is to directly resolve when OK is clicked.
+            // We use onclick here to overwrite previous handlers for alerts.
+            _customModalOkBtn.onclick = () => {
+                _customModalOverlay.classList.add('hidden');
+                document.body.style.overflow = '';
+                _customModalOkBtn.onclick = null; // Clear this specific handler
+                resolve(); // Resolve the promise for this showCustomAlert call
+            };
+        });
+    };
+
+    /**
+     * Replaces native confirm() with a custom modal popup.
+     * @param {string} message The message to display.
+     * @param {string} [title="Confirm Action"] The title of the modal.
+     * @returns {Promise<boolean>} A promise that resolves to true if OK is clicked, false if Cancel.
+     */
+    window.showCustomConfirm = function(message, title = "Confirm Action") {
+        return new Promise((resolve) => {
+            if (!_customModalOverlay || !_customModalTitle || !_customModalMessage || !_customModalOkBtn || !_customModalCancelBtn) {
+                resolve(confirm(message)); // Fallback to native if modal elements not found
+                return;
+            }
+            _resolveCustomConfirm = resolve; // Store the resolve function for button handlers
+
+            _customModalTitle.textContent = title;
+            _customModalMessage.textContent = message;
+            _customModalTitle.classList.remove('success', 'error', 'warning', 'info'); // Clear type classes
+            _customModalTitle.classList.add('info'); // Default confirm to info styling
+
+            _customModalCancelBtn.classList.remove('hidden'); // Show cancel button for confirms
+            _customModalOkBtn.classList.remove('hidden'); // Ensure OK button is visible
+            _customModalOkBtn.textContent = 'OK'; // Set OK button text
+
+            _customModalOverlay.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Prevent scrolling background
+            _customModalOkBtn.focus(); // Focus OK button
+
+            // The click listeners for _customModalOkBtn and _customModalCancelBtn are set once in DOMContentLoaded
+            // and handle resolving _resolveCustomConfirm.
+        });
+    };
+});

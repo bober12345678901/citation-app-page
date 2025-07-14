@@ -37,9 +37,6 @@
         .text-na-value {
             color: var(--accent-color); /* Accent color for N/A values */
         }
-        .text-warrant-item { /* Renamed from text-warrant-item to text-help-item for clarity, but keeping for now */
-            color: var(--text-color); /* Main text color for help items */
-        }
         /* Loading indicator styling */
         .loading-text {
             text-align: center;
@@ -149,6 +146,12 @@
         }
         #closeEmbedBtn:hover {
             background-color: rgba(255, 255, 255, 0.4);
+        }
+        /* Ensure modal buttons are flex items for proper spacing */
+        #customModalButtons button {
+            display: flex; /* Ensure buttons are always flex items */
+            align-items: center;
+            justify-content: center;
         }
     </style>
 </head>
@@ -301,50 +304,10 @@
     </div>
 
     <script>
-        // Custom alert function (copied from theme.js/index.html context)
-        window.showCustomAlert = function(message, title = 'Alert', showCancel = false) {
-            return new Promise((resolve) => {
-                const modalOverlay = document.getElementById('customModalOverlay');
-                const modalTitle = document.getElementById('customModalTitle');
-                const modalMessage = document.getElementById('customModalMessage');
-                const modalOkBtn = document.getElementById('customModalOkBtn');
-                const modalCancelBtn = document.getElementById('customModalCancelBtn');
-
-                // Set the title and message
-                modalTitle.textContent = title;
-                modalMessage.textContent = message;
-
-                // Determine which buttons to show and their text
-                if (showCancel) {
-					modalOkBtn.textContent = "Confirm";
-					modalCancelBtn.textContent = "Cancel";
-					modalCancelBtn.classList.remove('hidden');
-				} else {
-					modalOkBtn.textContent = "OK";
-					modalCancelBtn.classList.add('hidden');
-				}
-	
-                
-                modalOverlay.classList.remove('hidden'); // Show the modal overlay
-
-                const handleOkClick = () => {
-                    modalOverlay.classList.add('hidden');
-                    modalOkBtn.removeEventListener('click', handleOkClick);
-                    modalCancelBtn.removeEventListener('click', handleCancelClick);
-                    resolve(true);
-                };
-
-                const handleCancelClick = () => {
-                    modalOverlay.classList.add('hidden');
-                    modalOkBtn.removeEventListener('click', handleOkClick);
-                    modalCancelBtn.removeEventListener('click', handleCancelClick);
-                    resolve(false);
-                };
-
-                modalOkBtn.addEventListener('click', handleOkClick);
-                modalCancelBtn.addEventListener('click', handleCancelClick);
-            });
-        };
+        // Custom alert and confirm functions will be handled by theme.js directly.
+        // We are removing the re-definition here to avoid conflicts.
+        // The theme.js file already initializes _customModalOverlay, etc.
+        // and defines window.showCustomAlert and window.showCustomConfirm.
 
         document.addEventListener('DOMContentLoaded', async function() {
             const token = sessionStorage.getItem('authToken');
@@ -377,7 +340,8 @@
 
             // Authentication check
             if (!token || !userInfo) {
-                window.showCustomAlert("You must be logged in to access this page.", "Authentication Error").then(() => {
+                // Use the showCustomAlert from theme.js
+                window.showCustomAlert("You must be logged in to access this page.", "Error", "Authentication Error").then(() => {
                     sessionStorage.clear();
                     window.location.href = 'index.html';
                 });
@@ -416,7 +380,8 @@
                         citationCountElement.textContent = citationCount;
                     } else {
                         const errorData = await citationsResponse.json().catch(() => ({ message: 'Could not parse error response.' }));
-                        window.showCustomAlert('Failed to load citation data: ' + (errorData.message || citationsResponse.statusText), 'Error');
+                        // Use the showCustomAlert from theme.js
+                        window.showCustomAlert('Failed to load citation data: ' + (errorData.message || citationsResponse.statusText), 'Error', 'Data Load Error');
                         citationCountElement.textContent = 'N/A';
                     }
 
@@ -430,13 +395,15 @@
                         shiftCountElement.textContent = shiftCount;
                     } else {
                         const errorData = await shiftLogsResponse.json().catch(() => ({ message: 'Could not parse error response.' }));
-                        window.showCustomAlert('Failed to load shift log data: ' + (errorData.message || shiftLogsResponse.statusText), 'Error');
+                        // Use the showCustomAlert from theme.js
+                        window.showCustomAlert('Failed to load shift log data: ' + (errorData.message || shiftLogsResponse.statusText), 'Error', 'Data Load Error');
                         shiftCountElement.textContent = 'N/A';
                     }
 
                 } catch (error) {
                     console.error('Network error fetching statistics:', error);
-                    window.showCustomAlert('Network error: Could not load statistics. Check console for details.', 'Error');
+                    // Use the showCustomAlert from theme.js
+                    window.showCustomAlert('Network error: Could not load statistics. Check console for details.', 'Error', 'Network Error');
                     citationCountElement.textContent = 'N/A';
                     shiftCountElement.textContent = 'N/A';
                 } finally {
@@ -451,8 +418,8 @@
             // Logout Functionality
             logoutButton.addEventListener('click', function(event) {
                 event.preventDefault();
-                // Corrected call to showCustomAlert for confirmation
-                window.showCustomAlert("Are you sure you want to log out?", "Confirm Logout", true).then((confirmed) => {
+                // Use window.showCustomConfirm from theme.js for Yes/No
+                window.showCustomConfirm("Are you sure you want to log out?", "Confirm Logout").then((confirmed) => {
                     if (confirmed) {
                         sessionStorage.clear(); // Clear all session data
                         window.location.href = 'index.html'; // Redirect to login
