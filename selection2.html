@@ -310,13 +310,14 @@
                 const modalOkBtn = document.getElementById('customModalOkBtn');
                 const modalCancelBtn = document.getElementById('customModalCancelBtn');
 
-                modalTitle.textContent = title; // Set the title
-                modalMessage.textContent = message; // Set the message
+                // Set the title and message
+                modalTitle.textContent = title;
+                modalMessage.textContent = message;
 
                 // Determine which buttons to show and their text
                 if (showCancel) {
-                    modalOkBtn.textContent = "Confirm";
-                    modalCancelBtn.textContent = "Cancel";
+                    modalOkBtn.textContent = "Yes"; // Changed to "Yes"
+                    modalCancelBtn.textContent = "No"; // Changed to "No"
                     modalCancelBtn.classList.remove('hidden');
                 } else {
                     modalOkBtn.textContent = "OK";
