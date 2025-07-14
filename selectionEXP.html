@@ -21,6 +21,25 @@
         .user-icon-border {
             border-color: var(--text-color); /* Use theme's text color for border */
         }
+        /* Custom styling for the N/A boxes to use theme variables */
+        .theme-na-box {
+            background-color: var(--input-bg-color); /* Using input-bg-color for inner boxes */
+            border-color: var(--accent-color); /* Border color from accent */
+        }
+        /* Custom styling for section backgrounds to use theme variables */
+        .theme-section-bg {
+            background-color: var(--box-bg-color); /* Using box-bg-color for main sections */
+        }
+        /* Ensure specific text colors within statistics and warrants sections */
+        .text-statistics-label {
+            color: var(--text-color); /* Main text color for labels */
+        }
+        .text-na-value {
+            color: var(--accent-color); /* Accent color for N/A values */
+        }
+        .text-warrant-item {
+            color: var(--text-color); /* Main text color for warrant items */
+        }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4 theme-app-container">
@@ -84,26 +103,26 @@
         <main class="grid grid-cols-1 md:grid-cols-3 gap-8">
 
             <!-- Your Statistics Section -->
-            <section class="p-6 rounded-lg shadow-md bg-gray-800"> <!-- Using generic dark gray -->
-                <h2 class="text-xl font-semibold mb-4 theme-label">Your Statistics:</h2>
+            <section class="p-6 rounded-lg shadow-md theme-section-bg">
+                <h2 class="text-xl font-semibold mb-4 text-statistics-label">Your Statistics:</h2>
                 <div class="space-y-4">
                     <!-- Statistics Box 1: Citations Filled -->
-                    <div class="p-4 rounded-lg text-center border border-accent-blue shadow-inner bg-gray-700"> <!-- Using generic dark gray -->
-                        <p class="text-4xl font-bold text-accent-blue">N/A</p>
-                        <p class="theme-label">Citations Filled</p>
+                    <div class="p-4 rounded-lg text-center shadow-inner theme-na-box">
+                        <p class="text-4xl font-bold text-na-value">N/A</p>
+                        <p class="text-statistics-label">Citations Filled</p>
                         <!-- TODO: Populate this value dynamically from a data source -->
                     </div>
                     <!-- Statistics Box 2: Shifts Logged -->
-                    <div class="p-4 rounded-lg text-center border border-accent-blue shadow-inner bg-gray-700"> <!-- Using generic dark gray -->
-                        <p class="text-4xl font-bold text-accent-blue">N/A</p>
-                        <p class="theme-label">Shifts Logged</p>
+                    <div class="p-4 rounded-lg text-center shadow-inner theme-na-box">
+                        <p class="text-4xl font-bold text-na-value">N/A</p>
+                        <p class="text-statistics-label">Shifts Logged</p>
                         <!-- TODO: Populate this value dynamically from a data source -->
                     </div>
                 </div>
             </section>
 
             <!-- Action Buttons Section -->
-            <section class="p-6 rounded-lg shadow-md flex flex-col justify-center space-y-6 bg-gray-800"> <!-- Using generic dark gray -->
+            <section class="p-6 rounded-lg shadow-md flex flex-col justify-center space-y-6 theme-section-bg">
                 <!-- Button 1: Open Citation Log -->
                 <button id="openCitationLogBtn" class="px-8 py-4 rounded-lg font-bold text-xl shadow-lg transition-colors border border-white theme-button-primary">Open Citation Log</button>
                 <!-- Button 2: Open Arrest Log -->
@@ -113,15 +132,15 @@
             </section>
 
             <!-- Active Warrants Section -->
-            <section class="p-6 rounded-lg shadow-md bg-gray-800"> <!-- Using generic dark gray -->
-                <h2 class="text-xl font-semibold mb-4 theme-label">Active Warrants:</h2>
+            <section class="p-6 rounded-lg shadow-md theme-section-bg">
+                <h2 class="text-xl font-semibold mb-4 text-statistics-label">Active Warrants:</h2>
                 <ul id="activeWarrantsList" class="space-y-2">
                     <!-- List items for active warrants - will be populated dynamically -->
-                    <li class="theme-label">Username - Jailtime (Placeholder)</li>
-                    <li class="theme-label">Username - Jailtime (Placeholder)</li>
-                    <li class="theme-label">Username - Jailtime (Placeholder)</li>
-                    <li class="theme-label">Username - Jailtime (Placeholder)</li>
-                    <li class="theme-label">Username - Jailtime (Placeholder)</li>
+                    <li class="text-warrant-item">Username - Jailtime (Placeholder)</li>
+                    <li class="text-warrant-item">Username - Jailtime (Placeholder)</li>
+                    <li class="text-warrant-item">Username - Jailtime (Placeholder)</li>
+                    <li class="text-warrant-item">Username - Jailtime (Placeholder)</li>
+                    <li class="text-warrant-item">Username - Jailtime (Placeholder)</li>
                     <!-- TODO: Populate this list dynamically from a data source -->
                 </ul>
             </section>
