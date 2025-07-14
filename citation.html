@@ -173,7 +173,7 @@
             <div class="mb-6 p-4 rounded-lg theme-section-bg"> <!-- Removed border theme-border-color -->
                 <label class="theme-title block mb-2 font-bold text-lg">Signed?</label>
                 <div class="radio-container">
-                    <input type="radio" id="signedYes" name="signedStatus" value="YES" class="theme-input">
+                    <input type="radio" id="signedYes" name="signedStatus" value="YES" class="theme-input" checked> <!-- Default to YES -->
                     <label for="signedYes" class="theme-label">YES</label>
                     <input type="radio" id="signedNo" name="signedStatus" value="NO" class="theme-input">
                     <label for="signedNo" class="theme-label">NO</label>
@@ -657,7 +657,9 @@
             signedYesRadio.addEventListener('change', toggleSignedReason);
             signedNoRadio.addEventListener('change', toggleSignedReason);
             // Initial call to set correct state on page load
+            signedYesRadio.checked = true; // Set default to YES
             toggleSignedReason();
+
 
             // --- View All Penal Codes Modal Logic ---
             if (viewAllPenalCodesBtn) {
@@ -711,7 +713,7 @@
                         }
                         calculateTotalAmountDue();
                         updateMainViolationType();
-                        signedYesRadio.checked = true;
+                        signedYesRadio.checked = true; // Reset to YES
                         toggleSignedReason();
                     }
                 });
@@ -790,7 +792,7 @@
                         document.getElementById('amountDue_0').value = '0.00';
                         calculateTotalAmountDue();
                         updateMainViolationType();
-                        signedYesRadio.checked = true;
+                        signedYesRadio.checked = true; // Reset to YES
                         toggleSignedReason();
                     });
                 } else if (response) {
