@@ -286,7 +286,7 @@
         </main>
     </div>
 
-    <!-- Fullscreen Embed Modal (Copied from tutorials.html) -->
+    <!-- Fullscreen Embed Modal -->
     <div id="fullscreenEmbedModal" class="hidden">
         <button id="closeEmbedBtn">X</button>
         <div id="fullscreenEmbedContent">
@@ -337,7 +337,9 @@
             const fullscreenEmbedModal = document.getElementById('fullscreenEmbedModal');
             const fullscreenEmbedContent = document.getElementById('fullscreenEmbedContent');
             const closeEmbedBtn = document.getElementById('closeEmbedBtn');
-            const R2_BASE_URL = 'https://pub-a91d9d22a6264a88b02227540eadf4cb.r2.dev/tutorials'; // Base URL for your tutorial files in R2
+            // Check the R2_BASE_URL: This must point to the root of your tutorials folder in R2
+            // Example: 'https://pub-YOUR_ACCOUNT_ID.r2.dev/YOUR_BUCKET_NAME/tutorials'
+            const R2_BASE_URL = 'https://pub-a91d9d22a6264a88b02227540eadf4cb.r2.dev/tutorials'; 
 
             // Authentication check
             if (!token || !userInfo) {
@@ -491,6 +493,13 @@
                     const embedType = this.dataset.embedType;
                     const relativeUrl = this.dataset.url;
 
+                    // Ensure fullscreenEmbedContent is not null before proceeding
+                    if (!fullscreenEmbedContent) {
+                        console.error("Error: fullscreenEmbedContent element not found.");
+                        window.showCustomAlert("An internal error occurred. Please try again.", "Error");
+                        return;
+                    }
+
                     fullscreenEmbedContent.innerHTML = ''; // Clear previous content
 
                     if (embedType === 'pdf') {
@@ -510,35 +519,50 @@
                         source.src = R2_BASE_URL + relativeUrl;
                         source.type = relativeUrl.includes('.mp4') ? 'video/mp4' : ''; // Infer type for video
                         video.appendChild(source);
-                        fullscreenEmbedModal.classList.add('show');
+                        fullscreenEmbedContent.appendChild(video); // Append the video element
                     }
 
-                    fullscreenEmbedModal.classList.add('show');
+                    // Ensure fullscreenEmbedModal is not null before showing
+                    if (fullscreenEmbedModal) {
+                        fullscreenEmbedModal.classList.add('show');
+                    } else {
+                        console.error("Error: fullscreenEmbedModal element not found.");
+                        window.showCustomAlert("An internal error occurred. Please try again.", "Error");
+                    }
                 });
             });
 
             function closeFullscreenEmbedModal() {
+                // Ensure fullscreenEmbedModal is not null before proceeding
+                if (!fullscreenEmbedModal) return;
+
                 fullscreenEmbedModal.classList.remove('show');
                 const videoElement = fullscreenEmbedContent.querySelector('video');
                 if (videoElement) videoElement.pause(); // Pause video when closing
                 // Clear content after transition for smoother experience
                 setTimeout(() => {
-                    fullscreenEmbedContent.innerHTML = '';
+                    // Ensure fullscreenEmbedContent is not null before clearing
+                    if (fullscreenEmbedContent) fullscreenEmbedContent.innerHTML = '';
                 }, 300);
             }
 
-            closeEmbedBtn.addEventListener('click', closeFullscreenEmbedModal);
+            // Ensure closeEmbedBtn is not null before attaching listener
+            if (closeEmbedBtn) {
+                closeEmbedBtn.addEventListener('click', closeFullscreenEmbedModal);
+            } else {
+                console.error("Error: closeEmbedBtn element not found.");
+            }
 
             // Close modal on Escape key
             document.addEventListener('keydown', function(event) {
-                if (event.key === 'Escape' && fullscreenEmbedModal.classList.contains('show')) {
+                if (event.key === 'Escape' && fullscreenEmbedModal && fullscreenEmbedModal.classList.contains('show')) {
                     closeFullscreenEmbedModal();
                 }
             });
 
             // Close modal on outside click
             document.addEventListener('click', function(event) {
-                if (event.target === fullscreenEmbedModal) {
+                if (event.target === fullscreenEmbedModal && fullscreenEmbedModal) {
                     closeFullscreenEmbedModal();
                 }
             });
