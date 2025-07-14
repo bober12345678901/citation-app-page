@@ -310,11 +310,20 @@
                 const modalOkBtn = document.getElementById('customModalOkBtn');
                 const modalCancelBtn = document.getElementById('customModalCancelBtn');
 
-                modalTitle.textContent = title;
-                modalMessage.textContent = message;
-                modalCancelBtn.style.display = showCancel ? 'inline-block' : 'none';
+                modalTitle.textContent = title; // Set the title
+                modalMessage.textContent = message; // Set the message
 
-                modalOverlay.classList.remove('hidden');
+                // Determine which buttons to show and their text
+                if (showCancel) {
+                    modalOkBtn.textContent = "Confirm";
+                    modalCancelBtn.textContent = "Cancel";
+                    modalCancelBtn.classList.remove('hidden');
+                } else {
+                    modalOkBtn.textContent = "OK";
+                    modalCancelBtn.classList.add('hidden');
+                }
+                
+                modalOverlay.classList.remove('hidden'); // Show the modal overlay
 
                 const handleOkClick = () => {
                     modalOverlay.classList.add('hidden');
@@ -440,6 +449,7 @@
             // Logout Functionality
             logoutButton.addEventListener('click', function(event) {
                 event.preventDefault();
+                // Corrected call to showCustomAlert for confirmation
                 window.showCustomAlert("Are you sure you want to log out?", "Confirm Logout", true).then((confirmed) => {
                     if (confirmed) {
                         sessionStorage.clear(); // Clear all session data
