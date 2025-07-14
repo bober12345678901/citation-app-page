@@ -37,9 +37,6 @@
         .text-na-value {
             color: var(--accent-color); /* Accent color for N/A values */
         }
-        .text-warrant-item { /* Renamed from text-warrant-item to text-help-item for clarity, but keeping for now */
-            color: var(--text-color); /* Main text color for help items */
-        }
         /* Loading indicator styling */
         .loading-text {
             text-align: center;
