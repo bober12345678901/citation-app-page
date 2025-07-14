@@ -244,33 +244,36 @@
             <!-- Help Desk Section (replaces Active Warrants) -->
             <section class="p-6 rounded-lg shadow-md theme-section-bg">
                 <h2 class="text-xl font-semibold mb-4 text-statistics-label">Help Desk:</h2>
-                <p class="theme-label mb-4">
-                    Find step-by-step guides and video tutorials for using the application's forms.
-                </p>
+                <!-- Scrollable container for Help Desk content -->
+                <div class="max-h-72 overflow-y-auto custom-scrollbar">
+                    <p class="theme-label mb-4">
+                        Find step-by-step guides and video tutorials for using the application's forms.
+                    </p>
 
-                <div class="grid grid-cols-1 gap-4">
-                    <div class="help-category">
-                        <h3>Citations</h3>
-                        <div class="toggle-embed-group">
-                            <button class="theme-button-secondary toggle-embed-btn" data-embed-type="pdf" data-url="/cite/citations_step_by_step.pdf">Open PDF Guide</button>
-                            <button class="theme-button-secondary toggle-embed-btn" data-embed-type="video" data-url="/cite/citations_video.mp4">Open Video Guide</button>
+                    <div class="grid grid-cols-1 gap-4">
+                        <div class="help-category">
+                            <h3>Citations</h3>
+                            <div class="toggle-embed-group">
+                                <button class="theme-button-secondary toggle-embed-btn" data-embed-type="pdf" data-url="/cite/citations_step_by_step.pdf">Open PDF Guide</button>
+                                <button class="theme-button-secondary toggle-embed-btn" data-embed-type="video" data-url="/cite/citations_video.mp4">Open Video Guide</button>
+                            </div>
+                        </div>
+
+                        <div class="help-category">
+                            <h3>Arrests</h3>
+                            <div class="toggle-embed-group">
+                                <button class="theme-button-secondary toggle-embed-btn" data-embed-type="pdf" data-url="/arrest no warrant/arrests_step_by_step.pdf">Open PDF Guide</button>
+                                <button class="theme-button-secondary toggle-embed-btn" data-embed-type="video" data-url="/arrest no warrant/arrests_video.mp4">Open Video Guide</button>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="help-category">
-                        <h3>Arrests</h3>
+                    <div class="help-category mx-auto mt-4" style="max-width: 250px;">
+                        <h3>Arrests w/ Warrants</h3>
                         <div class="toggle-embed-group">
-                            <button class="theme-button-secondary toggle-embed-btn" data-embed-type="pdf" data-url="/arrest no warrant/arrests_step_by_step.pdf">Open PDF Guide</button>
-                            <button class="theme-button-secondary toggle-embed-btn" data-embed-type="video" data-url="/arrest no warrant/arrests_video.mp4">Open Video Guide</button>
+                            <button class="theme-button-secondary toggle-embed-btn" data-embed-type="pdf" data-url="/arrest w warrant/arrests_w_warrants_step_by_step.pdf">Open PDF Guide</button>
+                            <button class="theme-button-secondary toggle-embed-btn" data-embed-type="video" data-url="/arrest w warrant/arrests_w_warrants_video.mp4">Open Video Guide</button>
                         </div>
-                    </div>
-                </div>
-
-                <div class="help-category mx-auto mt-4" style="max-width: 250px;">
-                    <h3>Arrests w/ Warrants</h3>
-                    <div class="toggle-embed-group">
-                        <button class="theme-button-secondary toggle-embed-btn" data-embed-type="pdf" data-url="/arrest w warrant/arrests_w_warrants_step_by_step.pdf">Open PDF Guide</button>
-                        <button class="theme-button-secondary toggle-embed-btn" data-embed-type="video" data-url="/arrest w warrant/arrests_w_warrants_video.mp4">Open Video Guide</button>
                     </div>
                 </div>
             </section>
@@ -433,7 +436,6 @@
 
             // Call the function to fetch and display data when the page loads
             fetchAndDisplayCounts();
-            // No call to fetchAndDisplayWarrants() as it's replaced
 
             // Logout Functionality
             logoutButton.addEventListener('click', function(event) {
