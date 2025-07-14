@@ -217,11 +217,11 @@
         <main class="grid grid-cols-1 md:grid-cols-3 gap-8">
 
             <!-- Your Statistics Section -->
-            <section class="p-6 rounded-lg shadow-md theme-section-bg flex flex-col"> <!-- Added flex-col -->
+            <section class="p-6 rounded-lg shadow-md theme-section-bg flex flex-col">
                 <h2 class="text-xl font-semibold mb-4 text-statistics-label">Your Statistics:</h2>
                 <!-- Loading Indicator for statistics -->
                 <div id="statisticsLoadingIndicator" class="loading-text hidden">Loading statistics...</div>
-                <div id="statisticsContent" class="space-y-4 flex-grow flex flex-col justify-center"> <!-- Added flex-grow, flex, flex-col, justify-center -->
+                <div id="statisticsContent" class="space-y-4 flex-grow flex flex-col justify-center">
                     <!-- Statistics Box 1: Citations Filled -->
                     <div class="p-4 rounded-lg text-center shadow-inner theme-na-box">
                         <p id="citationCount" class="text-4xl font-bold text-na-value">N/A</p>
@@ -285,14 +285,7 @@
         </main>
     </div>
 
-    <!-- Fullscreen Embed Modal (copied from tutorials.html) -->
-    <div id="fullscreenEmbedModal" class="hidden">
-        <button id="closeEmbedBtn">X</button>
-        <div id="fullscreenEmbedContent">
-        </div>
-    </div>
-
-    <!-- Custom Modal for Alerts (Copied from index.html for consistency) -->
+    <!-- Fullscreen Embed Modal (Copied from tutorials.html) -->
     <div id="customModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
         <div id="customModal" class="p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 sm:mx-auto theme-lookup-box">
             <h3 id="customModalTitle" class="text-xl font-bold mb-4 theme-title"></h3>
@@ -368,6 +361,8 @@
 
                 let citationCount = 0;
                 let shiftCount = 0;
+                let citationsData = []; // Declare at top
+                let shiftLogsData = []; // Declare at top
 
                 try {
                     const headers = { 'Authorization': `Bearer ${token}` };
@@ -376,9 +371,9 @@
                     // Fetch Citations
                     const citationsResponse = await fetch(`${workerBaseUrl}/citations`, { headers });
                     if (citationsResponse.ok) {
-                        const citations = await citationsResponse.json();
+                        citationsData = await citationsResponse.json(); // Assign to already declared variable
                         const loggedInUsernameLower = userInfo.username.toLowerCase();
-                        const userCitations = citations.filter(c => c.submittedBy && c.submittedBy.toLowerCase() === loggedInUsernameLower);
+                        const userCitations = citationsData.filter(c => c.submittedBy && c.submittedBy.toLowerCase() === loggedInUsernameLower);
                         citationCount = userCitations.length;
                         citationCountElement.textContent = citationCount;
                     } else {
@@ -391,9 +386,9 @@
                     // Fetch Shift Logs
                     const shiftLogsResponse = await fetch(`${workerBaseUrl}/shift-logs`, { headers });
                     if (shiftLogsResponse.ok) {
-                        const shiftLogs = await shiftLogs.json();
+                        shiftLogsData = await shiftLogsResponse.json(); // Assign to already declared variable
                         const loggedInUsernameLower = userInfo.username.toLowerCase();
-                        const userShiftLogs = shiftLogs.filter(s => s.submittedByUsername && s.submittedByUsername.toLowerCase() === loggedInUsernameLower);
+                        const userShiftLogs = shiftLogsData.filter(s => s.submittedByUsername && s.submittedByUsername.toLowerCase() === loggedInUsernameLower);
                         shiftCount = userShiftLogs.length;
                         shiftCountElement.textContent = shiftCount;
                     } else {
