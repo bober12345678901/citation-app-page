@@ -155,7 +155,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4 theme-app-container">
+<body class="min-h-screen theme-app-container flex items-center justify-center p-4">
     <!-- Main container for the dashboard, centered and with a darker background -->
     <div class="container mx-auto max-w-6xl w-full rounded-lg shadow-lg p-6 md:p-8 theme-lookup-box">
 
@@ -183,8 +183,8 @@
         </header>
 
         <!-- Theme Selector Dropdown -->
-        <div class="mb-6 flex justify-end items-center"> <!-- Added items-center here -->
-            <label for="themeSelector" class="theme-label flex items-center mb-0 font-medium mr-2">Theme:</label> <!-- Added flex items-center and mb-0 -->
+        <div class="mb-6 flex justify-end items-center">
+            <label for="themeSelector" class="theme-label flex items-center font-medium mr-2">Theme:</label> <!-- Removed block and mb-2, added flex items-center -->
             <select id="themeSelector" class="theme-input p-2 border rounded-md transition-colors duration-200">
                 <option value="light">Light</option>
                 <option value="dark">Dark</option>
@@ -277,6 +277,7 @@
                         <div class="toggle-embed-group">
                             <button class="theme-button-secondary toggle-embed-btn" data-embed-type="pdf" data-url="/arrest w warrant/arrests_w_warrants_step_by_step.pdf">Open PDF Guide</button>
                             <button class="theme-button-secondary toggle-embed-btn" data-embed-type="video" data-url="/arrest w warrant/arrests_w_warrants_video.mp4">Open Video Guide</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -364,6 +365,29 @@
                 let citationsData = []; // Declare at top
                 let shiftLogsData = []; // Declare at top
 
+                // --- NEW: Check for cached data ---
+                const cachedStats = sessionStorage.getItem('userStats');
+                if (cachedStats) {
+                    try {
+                        const parsedStats = JSON.parse(cachedStats);
+                        // Check if the cached data is for the current user (important for multi-user scenarios)
+                        if (parsedStats.username === userInfo.username && parsedStats.badgeNumber === userInfo.badgeNumber) {
+                            citationCount = parsedStats.citationCount;
+                            shiftCount = parsedStats.shiftCount;
+                            citationCountElement.textContent = citationCount;
+                            shiftCountElement.textContent = shiftCount;
+                            console.log("Statistics loaded from cache.");
+                            statisticsLoadingIndicator.classList.add('hidden');
+                            statisticsContent.classList.remove('hidden');
+                            return; // Exit if cached data is used
+                        }
+                    } catch (e) {
+                        console.error("Error parsing cached stats:", e);
+                        sessionStorage.removeItem('userStats'); // Clear corrupted cache
+                    }
+                }
+                // --- END NEW ---
+
                 try {
                     const headers = { 'Authorization': `Bearer ${token}` };
                     const workerBaseUrl = 'https://citation-app-worker.pnbober.workers.dev'; // Your Cloudflare Worker URL
@@ -397,6 +421,17 @@
                         window.showCustomAlert('Failed to load shift log data: ' + (errorData.message || shiftLogsResponse.statusText), 'Error', 'Data Load Error');
                         shiftCountElement.textContent = 'N/A';
                     }
+
+                    // --- NEW: Save fetched data to cache ---
+                    const statsToCache = {
+                        username: userInfo.username,
+                        badgeNumber: userInfo.badgeNumber,
+                        citationCount: citationCount,
+                        shiftCount: shiftCount
+                    };
+                    sessionStorage.setItem('userStats', JSON.stringify(statsToCache));
+                    console.log("Statistics saved to cache.");
+                    // --- END NEW ---
 
                 } catch (error) {
                     console.error('Network error fetching statistics:', error);
