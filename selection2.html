@@ -168,10 +168,11 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                     </svg>
                 </div>
-                <!-- Welcome text and badge - will be populated by JavaScript -->
+                <!-- Welcome text, badge, and department - will be populated by JavaScript -->
                 <div>
                     <h1 id="welcomeText" class="text-3xl font-bold theme-title">Welcome, Officer</h1>
                     <p id="badgeNumber" class="text-lg theme-label">Badge: N/A</p>
+                    <p id="departmentName" class="text-lg theme-label"></p> <!-- New element for department -->
                 </div>
             </div>
             <!-- Admin and Log Out buttons -->
@@ -304,10 +305,8 @@
     </div>
 
     <script>
-        // Custom alert and confirm functions will be handled by theme.js directly.
-        // We are removing the re-definition here to avoid conflicts.
-        // The theme.js file already initializes _customModalOverlay, etc.
-        // and defines window.showCustomAlert and window.showCustomConfirm.
+        // Custom alert and confirm functions are now exclusively defined in theme.js.
+        // This script will call those functions.
 
         document.addEventListener('DOMContentLoaded', async function() {
             const token = sessionStorage.getItem('authToken');
@@ -320,6 +319,7 @@
 
             const welcomeText = document.getElementById('welcomeText');
             const badgeNumberDisplay = document.getElementById('badgeNumber');
+            const departmentNameDisplay = document.getElementById('departmentName'); // Get the new department element
             const logoutButton = document.getElementById('logoutButton');
             const adminButton = document.getElementById('adminButton');
 
@@ -349,6 +349,9 @@
             } else {
                 welcomeText.textContent = `Welcome, Officer ${userInfo.username}`;
                 badgeNumberDisplay.textContent = `Badge: ${userInfo.badgeNumber}`;
+                // Display the department name
+                departmentNameDisplay.textContent = `Department: ${userInfo.department || 'N/A'}`;
+
 
                 // Conditional display for Admin button
                 if (userInfo.role === 'admin') {
@@ -388,7 +391,7 @@
                     // Fetch Shift Logs
                     const shiftLogsResponse = await fetch(`${workerBaseUrl}/shift-logs`, { headers });
                     if (shiftLogsResponse.ok) {
-                        const shiftLogs = await shiftLogsResponse.json();
+                        const shiftLogs = await shiftLogs.json();
                         const loggedInUsernameLower = userInfo.username.toLowerCase();
                         const userShiftLogs = shiftLogs.filter(s => s.submittedByUsername && s.submittedByUsername.toLowerCase() === loggedInUsernameLower);
                         shiftCount = userShiftLogs.length;
@@ -470,7 +473,7 @@
                         source.src = R2_BASE_URL + relativeUrl;
                         source.type = relativeUrl.includes('.mp4') ? 'video/mp4' : ''; // Infer type for video
                         video.appendChild(source);
-                        fullscreenEmbedContent.appendChild(video);
+                        fullscreenEmbedModal.classList.add('show');
                     }
 
                     fullscreenEmbedModal.classList.add('show');
