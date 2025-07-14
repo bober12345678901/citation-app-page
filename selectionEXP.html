@@ -41,10 +41,10 @@
             color: var(--text-color); /* Main text color for warrant items */
         }
         /* Loading indicator styling */
-        #loadingIndicator {
+        .loading-text {
             text-align: center;
-            padding: 2rem;
-            font-size: 1.5rem;
+            padding: 1rem;
+            font-size: 1.2rem;
             font-weight: bold;
             color: var(--accent-color);
         }
@@ -114,7 +114,7 @@
             <section class="p-6 rounded-lg shadow-md theme-section-bg">
                 <h2 class="text-xl font-semibold mb-4 text-statistics-label">Your Statistics:</h2>
                 <!-- Loading Indicator for statistics -->
-                <div id="statisticsLoadingIndicator" class="text-statistics-label hidden">Loading statistics...</div>
+                <div id="statisticsLoadingIndicator" class="loading-text hidden">Loading statistics...</div>
                 <div id="statisticsContent" class="space-y-4 hidden">
                     <!-- Statistics Box 1: Citations Filled -->
                     <div class="p-4 rounded-lg text-center shadow-inner theme-na-box">
@@ -142,15 +142,12 @@
             <!-- Active Warrants Section -->
             <section class="p-6 rounded-lg shadow-md theme-section-bg">
                 <h2 class="text-xl font-semibold mb-4 text-statistics-label">Active Warrants:</h2>
-                <ul id="activeWarrantsList" class="space-y-2">
-                    <!-- List items for active warrants - will be populated dynamically -->
-                    <li class="text-warrant-item">Username - Jailtime (Placeholder)</li>
-                    <li class="text-warrant-item">Username - Jailtime (Placeholder)</li>
-                    <li class="text-warrant-item">Username - Jailtime (Placeholder)</li>
-                    <li class="text-warrant-item">Username - Jailtime (Placeholder)</li>
-                    <li class="text-warrant-item">Username - Jailtime (Placeholder)</li>
-                    <!-- TODO: Populate this list dynamically from a data source -->
+                <!-- Loading Indicator for warrants -->
+                <div id="warrantsLoadingIndicator" class="loading-text hidden">Loading warrants...</div>
+                <ul id="activeWarrantsList" class="space-y-2 hidden">
+                    <!-- Warrants will be populated here dynamically -->
                 </ul>
+                <p id="noWarrantsMessage" class="text-warrant-item hidden">No active warrants found.</p>
             </section>
 
         </main>
@@ -226,6 +223,11 @@
             const statisticsLoadingIndicator = document.getElementById('statisticsLoadingIndicator');
             const statisticsContent = document.getElementById('statisticsContent');
 
+            const activeWarrantsList = document.getElementById('activeWarrantsList');
+            const warrantsLoadingIndicator = document.getElementById('warrantsLoadingIndicator');
+            const noWarrantsMessage = document.getElementById('noWarrantsMessage');
+
+
             // Authentication check
             if (!token || !userInfo) {
                 window.showCustomAlert("You must be logged in to access this page.", "Authentication Error").then(() => {
@@ -245,9 +247,8 @@
                 }
             }
 
-            // Function to fetch and display counts
+            // Function to fetch and display statistics counts (Citations and Shifts)
             async function fetchAndDisplayCounts() {
-                // Show loading indicator, hide content
                 statisticsLoadingIndicator.classList.remove('hidden');
                 statisticsContent.classList.add('hidden');
 
@@ -256,9 +257,10 @@
 
                 try {
                     const headers = { 'Authorization': `Bearer ${token}` };
+                    const workerBaseUrl = 'https://citation-app-worker.pnbober.workers.dev'; // Your Cloudflare Worker URL
 
                     // Fetch Citations
-                    const citationsResponse = await fetch('https://citation-app-worker.pnbober.workers.dev/citations', { headers });
+                    const citationsResponse = await fetch(`${workerBaseUrl}/citations`, { headers });
                     if (citationsResponse.ok) {
                         const citations = await citationsResponse.json();
                         const loggedInUsernameLower = userInfo.username.toLowerCase();
@@ -272,7 +274,7 @@
                     }
 
                     // Fetch Shift Logs
-                    const shiftLogsResponse = await fetch('https://citation-app-worker.pnbober.workers.dev/shift-logs', { headers });
+                    const shiftLogsResponse = await fetch(`${workerBaseUrl}/shift-logs`, { headers });
                     if (shiftLogsResponse.ok) {
                         const shiftLogs = await shiftLogsResponse.json();
                         const loggedInUsernameLower = userInfo.username.toLowerCase();
@@ -291,14 +293,60 @@
                     citationCountElement.textContent = 'N/A';
                     shiftCountElement.textContent = 'N/A';
                 } finally {
-                    // Always hide loading indicator and show content, regardless of success or failure
                     statisticsLoadingIndicator.classList.add('hidden');
                     statisticsContent.classList.remove('hidden');
                 }
             }
 
-            // Call the function to fetch and display counts when the page loads
+            // Function to fetch and display active warrants
+            async function fetchAndDisplayWarrants() {
+                warrantsLoadingIndicator.classList.remove('hidden');
+                activeWarrantsList.classList.add('hidden');
+                noWarrantsMessage.classList.add('hidden'); // Hide initially
+
+                try {
+                    const headers = { 'Authorization': `Bearer ${token}` };
+                    const workerBaseUrl = 'https://citation-app-worker.pnbober.workers.dev'; // Your Cloudflare Worker URL
+
+                    const warrantsResponse = await fetch(`${workerBaseUrl}/warrants`, { headers });
+
+                    if (warrantsResponse.ok) {
+                        const warrants = await warrantsResponse.json();
+                        activeWarrantsList.innerHTML = ''; // Clear existing list items
+
+                        if (warrants.length > 0) {
+                            warrants.forEach(warrant => {
+                                const listItem = document.createElement('li');
+                                // Assuming warrant object has 'username' and 'jailtime' properties
+                                // Adjust these property names if your actual warrant data structure is different
+                                listItem.textContent = `${warrant.username || 'N/A'} - ${warrant.jailtime || 'N/A'}`;
+                                listItem.classList.add('text-warrant-item'); // Apply theme-aware text color
+                                activeWarrantsList.appendChild(listItem);
+                            });
+                            activeWarrantsList.classList.remove('hidden');
+                        } else {
+                            noWarrantsMessage.classList.remove('hidden');
+                        }
+                    } else {
+                        const errorData = await warrantsResponse.json().catch(() => ({ message: 'Could not parse error response.' }));
+                        window.showCustomAlert('Failed to load warrants: ' + (errorData.message || warrantsResponse.statusText), 'Error');
+                        noWarrantsMessage.textContent = 'Failed to load warrants.';
+                        noWarrantsMessage.classList.remove('hidden');
+                    }
+                } catch (error) {
+                    console.error('Network error fetching warrants:', error);
+                    window.showCustomAlert('Network error: Could not load warrants. Check console for details.', 'Error');
+                    noWarrantsMessage.textContent = 'Network error loading warrants.';
+                    noWarrantsMessage.classList.remove('hidden');
+                } finally {
+                    warrantsLoadingIndicator.classList.add('hidden');
+                }
+            }
+
+
+            // Call the functions to fetch and display data when the page loads
             fetchAndDisplayCounts();
+            fetchAndDisplayWarrants(); // Call the new function for warrants
 
             // Logout Functionality
             logoutButton.addEventListener('click', function(event) {
