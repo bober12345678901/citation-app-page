@@ -140,7 +140,7 @@
                 </div>
             </div>
 
-            <div class="mb-6 p-4 rounded-lg border theme-border-color theme-section-bg">
+            <div class="mb-6 p-4 rounded-lg theme-section-bg"> <!-- Removed border theme-border-color -->
                 <h3 class="theme-title font-bold text-lg mb-4">Penal Code(s) & Amount Due:</h3>
                 <div id="penalCodeInputsContainer">
                     <div class="penal-code-group" data-group-id="0">
@@ -170,7 +170,7 @@
                 <textarea id="violationDetails" name="violationDetails" placeholder="Provide details of the violation" class="theme-input w-full p-2 border rounded-md min-h-[80px]"></textarea>
             </div>
 
-            <div class="mb-6 p-4 rounded-lg border theme-border-color theme-section-bg">
+            <div class="mb-6 p-4 rounded-lg theme-section-bg"> <!-- Removed border theme-border-color -->
                 <label class="theme-title block mb-2 font-bold text-lg">Signed?</label>
                 <div class="radio-container">
                     <input type="radio" id="signedYes" name="signedStatus" value="YES" class="theme-input">
@@ -705,7 +705,7 @@
                         document.getElementById('violatorName').value = '';
                         document.getElementById('violationDetails').value = '';
                         mainViolationTypeInput.value = '';
-                        officerDepartmentDisplayInput.value = userDepartment;
+                        document.getElementById('officerDepartmentDisplay').value = userDepartment;
                         if (loggedInUser.role !== 'admin') {
                             officerDepartmentDisplayInput.setAttribute('readonly', 'readonly');
                         }
