@@ -213,11 +213,11 @@
         <main class="grid grid-cols-1 md:grid-cols-3 gap-8">
 
             <!-- Your Statistics Section -->
-            <section class="p-6 rounded-lg shadow-md theme-section-bg">
+            <section class="p-6 rounded-lg shadow-md theme-section-bg flex flex-col"> <!-- Added flex-col -->
                 <h2 class="text-xl font-semibold mb-4 text-statistics-label">Your Statistics:</h2>
                 <!-- Loading Indicator for statistics -->
                 <div id="statisticsLoadingIndicator" class="loading-text hidden">Loading statistics...</div>
-                <div id="statisticsContent" class="space-y-4 hidden">
+                <div id="statisticsContent" class="space-y-4 flex-grow flex flex-col justify-center"> <!-- Added flex-grow, flex, flex-col, justify-center -->
                     <!-- Statistics Box 1: Citations Filled -->
                     <div class="p-4 rounded-lg text-center shadow-inner theme-na-box">
                         <p id="citationCount" class="text-4xl font-bold text-na-value">N/A</p>
