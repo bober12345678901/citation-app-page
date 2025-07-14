@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" href="favicon.png" type="image/png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main Menu Selection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+    <script src="theme.js"></script>
+    <style>
+        a {
+            text-decoration: none;
+        }
+        /* Additional styling for the button grid if default Tailwind isn't enough */
+        .main-button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Responsive 2-column grid */
+            gap: 1rem; /* Space between buttons */
+            margin-bottom: 2rem; /* Space below the grid */
+        }
+        /* Rule to make buttons span full width on small screens if they wrap */
+        @media (max-width: 640px) { /* Adjust breakpoint as needed, Tailwind's 'sm' is 640px */
+            .main-button-grid {
+                grid-template-columns: 1fr; /* Stack into a single column on small screens */
+            }
+        }
+        .admin-logout-row {
+            display: flex;
+            justify-content: center; /* Center the buttons within this row */
+            gap: 1rem; /* Space between Admin, Statistics, and Logout buttons */
+            flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+        }
+    </style>
+</head>
+<body class="min-h-screen theme-app-container">
+    <div class="main-content-area">
+        <div class="theme-lookup-box p-8 rounded-xl shadow-lg w-full max-w-md mx-4 sm:mx-auto text-center transition-colors duration-300 border border-solid">
+            <h2 class="theme-title text-3xl font-bold mb-8">Choose Your Form</h2>
+            
+            <p class="theme-label mb-4" id="userInfo">
+                Welcome, Officer!
+            </p>
+
+            <div class="main-button-grid">
+                <a href="citation.html" class="theme-button-primary block w-full p-3 rounded-md font-semibold">Go to Citation Form</a>
+                <a href="arrest.html" class="theme-button-primary block w-full p-3 rounded-md font-semibold">Go to Arrest Form</a>
+                <a href="shift_log.html" id="shiftLogLink" class="theme-button-primary block w-full p-3 rounded-md font-semibold">Submit Shift Log</a>
+            </div>
+
+            <div class="admin-logout-row mt-4">
+                <a href="admin.html" id="adminPanelLink" class="theme-button-secondary py-3 px-6 rounded-md font-semibold hidden">Admin Panel</a>
+                <a href="statistics.html" id="statisticsLink" class="theme-button-secondary py-3 px-6 rounded-md font-semibold">My Statistics</a>
+                <button id="logoutButton" class="theme-button-secondary py-3 px-6 rounded-md font-semibold hidden">Logout</button>
+            </div>
+
+            <div class="text-center mt-6">
+                <p class="theme-label text-sm">Need help? Visit our <a href="tutorials.html" id="tutorialsHelpLink" class="theme-link font-medium hover:underline">Tutorials & Help page</a>.</p>
+            </div>
+            </div>
+    </div>
+
+    <div id="customModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div id="customModal" class="theme-lookup-box p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 sm:mx-auto">
+            <h3 id="customModalTitle" class="theme-title text-xl font-bold mb-4"></h3>
+            <p id="customModalMessage" class="theme-label mb-6"></p>
+            <div id="customModalButtons" class="flex justify-end space-x-3">
+                <button id="customModalCancelBtn" class="theme-button-secondary py-2 px-4 rounded-md font-semibold hidden">Cancel</button>
+                <button id="customModalOkBtn" class="theme-button-primary py-2 px-4 rounded-md font-semibold">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = sessionStorage.getItem('authToken');
+            const userInfoString = sessionStorage.getItem('loggedInUser');
+            let userInfo = null;
+            if (userInfoString) {
+                userInfo = JSON.parse(userInfoString);
+            }
+
+            const userInfoDisplay = document.getElementById('userInfo');
+            const logoutButton = document.getElementById('logoutButton');
+            const adminPanelLink = document.getElementById('adminPanelLink');
+            const statisticsLink = document.getElementById('statisticsLink');
+            const tutorialsHelpLink = document.getElementById('tutorialsHelpLink'); // Get the new link
+
+            // Authentication check
+            if (!token || !userInfo) {
+                window.showCustomAlert("You must be logged in to access this page.", "Authentication Error").then(() => {
+                    sessionStorage.clear();
+                    window.location.href = 'index.html';
+                });
+                return;
+            } else {
+                userInfoDisplay.textContent = `Welcome, Officer ${userInfo.username} (Badge: ${userInfo.badgeNumber})!`;
+                
+                // Conditional display for Admin Panel, Statistics, and Logout buttons
+                if (userInfo.role === 'admin') {
+                    adminPanelLink.classList.remove('hidden'); // Show Admin Panel
+                    statisticsLink.classList.remove('hidden'); // Show Statistics
+                    logoutButton.classList.remove('hidden'); // Show Logout
+                } else {
+                    // If not admin, hide Admin Panel and show Logout and Statistics buttons
+                    adminPanelLink.classList.add('hidden'); // Ensure hidden if not admin
+                    statisticsLink.classList.remove('hidden'); // Show Statistics for regular users
+                    logoutButton.classList.remove('hidden'); // Show logout for non-admins
+                }
+            }
+
+            // Logout Functionality
+            logoutButton.addEventListener('click', function(event) {
+                event.preventDefault();
+                sessionStorage.clear(); // Clear all session data
+                window.location.href = 'index.html'; // Redirect to login
+            });
+
+            // The tutorialsHelpLink href is already set in HTML, no JS needed for it.
+        });
+    </script>
+</body>
+</html>

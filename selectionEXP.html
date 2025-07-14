@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" href="favicon.png" type="image/png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <!-- Load Tailwind CSS from CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Link to your custom styles.css for theme variables -->
+    <link rel="stylesheet" href="styles.css">
+    <!-- Link to theme.js for theme switching functionality -->
+    <script src="theme.js"></script>
+    <style>
+        /* Any custom overrides or specific element styles not covered by themes */
+        /* These styles will apply regardless of the selected theme */
+        a {
+            text-decoration: none;
+        }
+        /* Specific styling for the user icon border */
+        .user-icon-border {
+            border-color: var(--text-color); /* Use theme's text color for border */
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 theme-app-container">
+    <!-- Main container for the dashboard, centered and with a darker background -->
+    <div class="container mx-auto max-w-6xl w-full rounded-lg shadow-lg p-6 md:p-8 theme-lookup-box">
+
+        <!-- Header Section: Contains user info and action buttons -->
+        <header class="flex flex-col sm:flex-row items-center justify-between mb-8 pb-4 border-b border-gray-700">
+            <div class="flex items-center space-x-4 mb-4 sm:mb-0">
+                <!-- User Icon (SVG for a simple outline) -->
+                <div class="w-16 h-16 rounded-full border-2 user-icon-border flex items-center justify-center flex-shrink-0">
+                    <svg class="w-10 h-10 theme-label" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                </div>
+                <!-- Welcome text and badge - will be populated by JavaScript -->
+                <div>
+                    <h1 id="welcomeText" class="text-3xl font-bold theme-title">Welcome, Officer</h1>
+                    <p id="badgeNumber" class="text-lg theme-label">Badge: N/A</p>
+                </div>
+            </div>
+            <!-- Admin and Log Out buttons -->
+            <div class="flex space-x-4">
+                <button id="adminButton" class="px-6 py-2 rounded-lg font-semibold shadow-md transition-colors hidden theme-button-danger">Admin</button>
+                <button id="logoutButton" class="px-6 py-2 rounded-lg font-semibold shadow-md transition-colors theme-button-secondary">Log Out</button>
+            </div>
+        </header>
+
+        <!-- Theme Selector Dropdown -->
+        <div class="mb-6 flex justify-end">
+            <label for="themeSelector" class="theme-label block mb-2 font-medium mr-2">Theme:</label>
+            <select id="themeSelector" class="theme-input p-2 border rounded-md transition-colors duration-200">
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+                <option value="sunset">Sunset</option>
+                <option value="ocean">Ocean</option>
+                <option value="forest">Forest</option>
+                <option value="midnight">Midnight</option>
+                <option value="dracula">Dracula</option>
+                <option value="cyberpunk">Cyberpunk</option>
+                <option value="custom">Custom...</option>
+            </select>
+            <!-- Custom color pickers (hidden by default, managed by theme.js) -->
+            <div id="customColorsContainer" class="hidden mt-4 ml-4 flex flex-col space-y-2">
+                <div>
+                    <label for="customBgColor" class="theme-label block mb-1">Background Color:</label>
+                    <input type="color" id="customBgColor" value="#f3f4f6" class="w-full h-8 p-0 border rounded-md cursor-pointer theme-input" />
+                </div>
+                <div>
+                    <label for="customTextColor" class="theme-label block mb-1">Text Color:</label>
+                    <input type="color" id="customTextColor" value="#1f2937" class="w-full h-8 p-0 border rounded-md cursor-pointer theme-input" />
+                </div>
+                <div>
+                    <label for="customAccentColor" class="theme-label block mb-1">Accent Color:</label>
+                    <input type="color" id="customAccentColor" value="#3b82f6" class="w-full h-8 p-0 border rounded-md cursor-pointer theme-input" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid: Arranges the three primary sections -->
+        <main class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+            <!-- Your Statistics Section -->
+            <section class="p-6 rounded-lg shadow-md bg-gray-800"> <!-- Using generic dark gray -->
+                <h2 class="text-xl font-semibold mb-4 theme-label">Your Statistics:</h2>
+                <div class="space-y-4">
+                    <!-- Statistics Box 1: Citations Filled -->
+                    <div class="p-4 rounded-lg text-center border border-accent-blue shadow-inner bg-gray-700"> <!-- Using generic dark gray -->
+                        <p class="text-4xl font-bold text-accent-blue">N/A</p>
+                        <p class="theme-label">Citations Filled</p>
+                        <!-- TODO: Populate this value dynamically from a data source -->
+                    </div>
+                    <!-- Statistics Box 2: Shifts Logged -->
+                    <div class="p-4 rounded-lg text-center border border-accent-blue shadow-inner bg-gray-700"> <!-- Using generic dark gray -->
+                        <p class="text-4xl font-bold text-accent-blue">N/A</p>
+                        <p class="theme-label">Shifts Logged</p>
+                        <!-- TODO: Populate this value dynamically from a data source -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Action Buttons Section -->
+            <section class="p-6 rounded-lg shadow-md flex flex-col justify-center space-y-6 bg-gray-800"> <!-- Using generic dark gray -->
+                <!-- Button 1: Open Citation Log -->
+                <button id="openCitationLogBtn" class="px-8 py-4 rounded-lg font-bold text-xl shadow-lg transition-colors border border-white theme-button-primary">Open Citation Log</button>
+                <!-- Button 2: Open Arrest Log -->
+                <button id="openArrestLogBtn" class="px-8 py-4 rounded-lg font-bold text-xl shadow-lg transition-colors border border-white theme-button-primary">Open Arrest Log</button>
+                <!-- Button 3: Open Shift Log -->
+                <button id="openShiftLogBtn" class="px-8 py-4 rounded-lg font-bold text-xl shadow-lg transition-colors border border-white theme-button-primary">Open Shift Log</button>
+            </section>
+
+            <!-- Active Warrants Section -->
+            <section class="p-6 rounded-lg shadow-md bg-gray-800"> <!-- Using generic dark gray -->
+                <h2 class="text-xl font-semibold mb-4 theme-label">Active Warrants:</h2>
+                <ul id="activeWarrantsList" class="space-y-2">
+                    <!-- List items for active warrants - will be populated dynamically -->
+                    <li class="theme-label">Username - Jailtime (Placeholder)</li>
+                    <li class="theme-label">Username - Jailtime (Placeholder)</li>
+                    <li class="theme-label">Username - Jailtime (Placeholder)</li>
+                    <li class="theme-label">Username - Jailtime (Placeholder)</li>
+                    <li class="theme-label">Username - Jailtime (Placeholder)</li>
+                    <!-- TODO: Populate this list dynamically from a data source -->
+                </ul>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Custom Modal for Alerts (Copied from index.html for consistency) -->
+    <div id="customModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div id="customModal" class="p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 sm:mx-auto theme-lookup-box">
+            <h3 id="customModalTitle" class="text-xl font-bold mb-4 theme-title"></h3>
+            <p id="customModalMessage" class="mb-6 theme-label"></p>
+            <div id="customModalButtons" class="flex justify-end space-x-3">
+                <button id="customModalCancelBtn" class="py-2 px-4 rounded-md font-semibold hidden theme-button-secondary">Cancel</button>
+                <button id="customModalOkBtn" class="py-2 px-4 rounded-md font-semibold theme-button-primary">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Custom alert function (copied from theme.js/index.html context)
+        window.showCustomAlert = function(message, title = 'Alert', showCancel = false) {
+            return new Promise((resolve) => {
+                const modalOverlay = document.getElementById('customModalOverlay');
+                const modalTitle = document.getElementById('customModalTitle');
+                const modalMessage = document.getElementById('customModalMessage');
+                const modalOkBtn = document.getElementById('customModalOkBtn');
+                const modalCancelBtn = document.getElementById('customModalCancelBtn');
+
+                modalTitle.textContent = title;
+                modalMessage.textContent = message;
+                modalCancelBtn.style.display = showCancel ? 'inline-block' : 'none';
+
+                modalOverlay.classList.remove('hidden');
+
+                const handleOkClick = () => {
+                    modalOverlay.classList.add('hidden');
+                    modalOkBtn.removeEventListener('click', handleOkClick);
+                    modalCancelBtn.removeEventListener('click', handleCancelClick);
+                    resolve(true);
+                };
+
+                const handleCancelClick = () => {
+                    modalOverlay.classList.add('hidden');
+                    modalOkBtn.removeEventListener('click', handleOkClick);
+                    modalCancelBtn.removeEventListener('click', handleCancelClick);
+                    resolve(false);
+                };
+
+                modalOkBtn.addEventListener('click', handleOkClick);
+                modalCancelBtn.addEventListener('click', handleCancelClick);
+            });
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = sessionStorage.getItem('authToken');
+            const userInfoString = sessionStorage.getItem('loggedInUser');
+            let userInfo = null;
+
+            if (userInfoString) {
+                userInfo = JSON.parse(userInfoString);
+            }
+
+            const welcomeText = document.getElementById('welcomeText');
+            const badgeNumberDisplay = document.getElementById('badgeNumber');
+            const logoutButton = document.getElementById('logoutButton');
+            const adminButton = document.getElementById('adminButton');
+
+            const openCitationLogBtn = document.getElementById('openCitationLogBtn');
+            const openArrestLogBtn = document.getElementById('openArrestLogBtn');
+            const openShiftLogBtn = document.getElementById('openShiftLogBtn');
+
+            // Authentication check
+            if (!token || !userInfo) {
+                window.showCustomAlert("You must be logged in to access this page.", "Authentication Error").then(() => {
+                    sessionStorage.clear();
+                    window.location.href = 'index.html';
+                });
+                return;
+            } else {
+                welcomeText.textContent = `Welcome, Officer ${userInfo.username}`;
+                badgeNumberDisplay.textContent = `Badge: ${userInfo.badgeNumber}`;
+
+                // Conditional display for Admin button
+                if (userInfo.role === 'admin') {
+                    adminButton.classList.remove('hidden'); // Show Admin button
+                } else {
+                    adminButton.classList.add('hidden'); // Ensure hidden if not admin
+                }
+            }
+
+            // Logout Functionality
+            logoutButton.addEventListener('click', function(event) {
+                event.preventDefault();
+                window.showCustomAlert("Are you sure you want to log out?", "Confirm Logout", true).then((confirmed) => {
+                    if (confirmed) {
+                        sessionStorage.clear(); // Clear all session data
+                        window.location.href = 'index.html'; // Redirect to login
+                    }
+                });
+            });
+
+            // Navigation for the action buttons
+            openCitationLogBtn.addEventListener('click', function() {
+                window.location.href = 'citation.html';
+            });
+
+            openArrestLogBtn.addEventListener('click', function() {
+                window.location.href = 'arrest.html';
+            });
+
+            openShiftLogBtn.addEventListener('click', function() {
+                window.location.href = 'shift_log.html';
+            });
+
+            // Admin button navigation
+            adminButton.addEventListener('click', function() {
+                window.location.href = 'admin.html';
+            });
+
+            // Note: The 'My Statistics' link from the old selection.html is now represented by the 'Your Statistics' section.
+            // If there's a separate statistics.html page, you'd need to add a button/link for it.
+            // For now, the statistics section is just a display of placeholders.
+        });
+    </script>
+</body>
+</html>
