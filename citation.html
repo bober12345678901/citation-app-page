@@ -192,13 +192,11 @@
         </div>
     </div>
 
-    <!-- Penal Code List Modal -->
     <div id="penalCodeListModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
         <div id="penalCodeListModal" class="theme-lookup-box p-6 rounded-lg shadow-xl max-w-lg w-full mx-4 sm:mx-auto">
             <h3 id="penalCodeListModalTitle" class="theme-title text-xl font-bold mb-4">Available Penal Codes</h3>
             <div id="penalCodeListModalContent" class="penal-code-list-modal-content mb-6">
-                <!-- Penal codes will be loaded here -->
-            </div>
+                </div>
             <div class="flex justify-end">
                 <button id="penalCodeListModalCloseBtn" class="theme-button-primary py-2 px-4 rounded-md font-semibold">Close</button>
             </div>
@@ -216,39 +214,193 @@
         </div>
     </div>
     <script>
-        let penalCodesData = []; // Store penal codes fetched from backend
+        let penalCodesData = []; // Store penal codes fetched from backend (or charges for arrest)
+        // For arrest.html, this will be all penal codes; for citation.html, it will be filtered.
+        let allFilteredPenalCodesForCitationForm = []; // Only relevant for citation.html, rename for clarity if needed in arrest.html
 
-        // Store *all* penal codes fetched initially, before filtering for citation form display
-        // This will be used for the "View All Penal Codes" modal, which should show the filtered set.
-        let allFilteredPenalCodesForCitationForm = []; 
+        let groupCounter = 0; // Use a generic name as it's for both penalCodeGroupCounter and chargeGroupCounter
 
-        let penalCodeGroupCounter = 0; // To assign unique IDs to new groups
+        // --- UTILITY FUNCTIONS ---
+
+        // Generic custom alert/confirm from theme.js (assuming they exist)
+        // If they don't, define simple ones here:
+        if (typeof window.showCustomAlert === 'undefined') {
+            window.showCustomAlert = (message, title = 'Alert') => {
+                return new Promise(resolve => {
+                    const modalOverlay = document.getElementById('customModalOverlay');
+                    const modalTitle = document.getElementById('customModalTitle');
+                    const modalMessage = document.getElementById('customModalMessage');
+                    const modalOkBtn = document.getElementById('customModalOkBtn');
+                    const modalCancelBtn = document.getElementById('customModalCancelBtn');
+
+                    modalTitle.textContent = title;
+                    modalMessage.textContent = message;
+                    modalCancelBtn.classList.add('hidden'); // Hide cancel for alerts
+                    modalOkBtn.onclick = () => {
+                        modalOverlay.classList.add('hidden');
+                        resolve(true);
+                    };
+                    modalOverlay.classList.remove('hidden');
+                });
+            };
+        }
+        if (typeof window.showCustomConfirm === 'undefined') {
+            window.showCustomConfirm = (message, title = 'Confirm') => {
+                return new Promise(resolve => {
+                    const modalOverlay = document.getElementById('customModalOverlay');
+                    const modalTitle = document.getElementById('customModalTitle');
+                    const modalMessage = document.getElementById('customModalMessage');
+                    const modalOkBtn = document.getElementById('customModalOkBtn');
+                    const modalCancelBtn = document.getElementById('customModalCancelBtn');
+
+                    modalTitle.textContent = title;
+                    modalMessage.textContent = message;
+                    modalCancelBtn.classList.remove('hidden'); // Show cancel for confirms
+                    modalOkBtn.onclick = () => {
+                        modalOverlay.classList.add('hidden');
+                        resolve(true);
+                    };
+                    modalCancelBtn.onclick = () => {
+                        modalOverlay.classList.add('hidden');
+                        resolve(false);
+                    };
+                    modalOverlay.classList.remove('hidden');
+                });
+            };
+        }
+
+
+        // Function to handle redirection to login page and clear session storage
+        function redirectToLogin(message = "Your session has expired. Please log in again.") {
+            console.warn("Redirecting to login:", message);
+            window.showCustomAlert(message, "Session Expired").then(() => {
+                sessionStorage.clear(); // Clear all session data including tokens
+                // The credits section has been removed from all HTML files as of 2025-07-08.
+                window.location.href = 'index.html'; // Redirect to your login page
+            });
+        }
+
+        // --- JWT Decoding (Client-side, for expiration check) ---
+        function decodeJwt(token) {
+            if (!token) return null;
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) {
+                console.error("Error decoding JWT:", e);
+                return null;
+            }
+        }
+
+        // --- Token Refresh Mechanism (Calls your Worker's refresh endpoint) ---
+        async function refreshAuthToken() {
+            console.log("Attempting to refresh token...");
+            try {
+                // Your Worker's refresh token endpoint
+                // It will look for the HTTP-only refresh token cookie
+                const response = await fetch('https://citation-app-worker.pnbober.workers.dev/api/auth/refresh-token', {
+                    method: 'POST',
+                    // Credentials 'include' is important to send HTTP-only cookies
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    sessionStorage.setItem('authToken', data.accessToken); // Store new access token
+                    console.log("Token refreshed successfully.");
+                    return true;
+                } else {
+                    console.error("Refresh token failed:", response.status, await response.text());
+                    // If refresh token itself is invalid or expired, force full re-login
+                    return false;
+                }
+            } catch (error) {
+                console.error("Network error during token refresh:", error);
+                return false;
+            }
+        }
+
+        // --- Authenticated Fetch Wrapper ---
+        async function fetchWithAuth(url, options = {}) {
+            let token = sessionStorage.getItem('authToken');
+
+            // Check if token exists and is about to expire (e.g., within 5 minutes)
+            // Or if it's already expired (though the server should catch this too)
+            const decodedToken = decodeJwt(token);
+            const fiveMinutesFromNow = Math.floor(Date.now() / 1000) + (5 * 60);
+
+            if (!token || !decodedToken || decodedToken.exp < fiveMinutesFromNow) {
+                console.log("Token is missing, expired, or near expiration. Attempting refresh.");
+                const refreshed = await refreshAuthToken();
+                if (refreshed) {
+                    token = sessionStorage.getItem('authToken'); // Get the new token
+                } else {
+                    redirectToLogin("Your session has expired. Please log in again.");
+                    return null; // Stop the request
+                }
+            }
+
+            // Add Authorization header
+            options.headers = {
+                ...options.headers,
+                'Authorization': `Bearer ${token}`
+            };
+
+            try {
+                const response = await fetch(url, options);
+
+                // Handle 401/403 responses
+                if (response.status === 401 || response.status === 403) {
+                    console.warn("Received 401/403 from API. Attempting to refresh token once.");
+                    const refreshed = await refreshAuthToken(); // Try refreshing once more
+                    if (refreshed) {
+                        // If refresh succeeded, retry the original request with the new token
+                        console.log("Token refreshed, retrying original request.");
+                        options.headers['Authorization'] = `Bearer ${sessionStorage.getItem('authToken')}`;
+                        const retryResponse = await fetch(url, options);
+                        if (retryResponse.status === 401 || retryResponse.status === 403) {
+                            redirectToLogin("Your session has expired. Please log in again.");
+                            return null; // Still failed after refresh, force login
+                        }
+                        return retryResponse; // Return the successful retry response
+                    } else {
+                        redirectToLogin("Your session has expired. Please log in again.");
+                        return null; // Refresh failed, force login
+                    }
+                }
+
+                return response; // Return original response if not 401/403
+            } catch (error) {
+                console.error("Network error during authenticated fetch:", error);
+                // Optionally, handle specific network errors (e.g., no internet)
+                window.showCustomAlert('A network error occurred. Please check your internet connection.', 'Network Error');
+                return null; // Indicate failure
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', async function() {
-            // Check if user is logged in
             const token = sessionStorage.getItem('authToken');
             if (!token) {
-                // Use custom alert and wrap in setTimeout to ensure theme.js modal elements are ready
-                setTimeout(() => {
-                    window.showCustomAlert("You must be logged in to submit a citation.", "Authentication Error").then(() => {
-                        sessionStorage.clear();
-                        window.location.href = 'index.html';
-                    });
-                }, 50); // Small delay to allow theme.js to initialize the modal
-                return; // Important: return here to stop further script execution for unauthenticated users
+                redirectToLogin("You must be logged in to access this page.");
+                return;
             }
+
+            // --- ALL YOUR EXISTING DOM-RELATED CODE GOES HERE ---
+            // (E.g., getting elements, setting up event listeners, etc.)
 
             const penalCodeInputsContainer = document.getElementById('penalCodeInputsContainer');
             const addPenalCodeBtn = document.getElementById('addPenalCodeBtn');
             const totalAmountDueSumInput = document.getElementById('totalAmountDueSum');
             const citationForm = document.getElementById('citationForm');
             const clearFormBtn = document.getElementById('clearFormBtn');
-            const mainViolationTypeInput = document.getElementById('violationType'); // The main Violation Type field
-            const officerBadgeInput = document.getElementById('officerBadge'); // Get the officer badge input
-            const officerNameInput = document.getElementById('officerName'); // Get the officer name input
-            const officerDepartmentDisplayInput = document.getElementById('officerDepartmentDisplay'); // Get the department display input
+            const mainViolationTypeInput = document.getElementById('violationType');
+            const officerBadgeInput = document.getElementById('officerBadge');
+            const officerNameInput = document.getElementById('officerName');
+            const officerDepartmentDisplayInput = document.getElementById('officerDepartmentDisplay');
 
-            // NEW Signed status elements
+            // NEW Signed status elements (for citation.html)
             const signedYesRadio = document.getElementById('signedYes');
             const signedNoRadio = document.getElementById('signedNo');
             const notSignedReasonContainer = document.getElementById('notSignedReasonContainer');
@@ -264,7 +416,7 @@
             // Get logged in user info for auto-fill
             const loggedInUserString = sessionStorage.getItem('loggedInUser');
             let loggedInUser = null;
-            let userDepartment = 'N/A'; // Default value if department is not found
+            let userDepartment = 'N/A';
             if (loggedInUserString) {
                 loggedInUser = JSON.parse(loggedInUserString);
                 // Auto-fill officer badge number if available
@@ -278,9 +430,9 @@
                 // Get and display department
                 if (loggedInUser.department) {
                     userDepartment = loggedInUser.department;
-                    officerDepartmentDisplayInput.value = userDepartment; // Set the value of the display input
+                    officerDepartmentDisplayInput.value = userDepartment;
                 } else {
-                    officerDepartmentDisplayInput.value = 'N/A'; // Explicitly set N/A if not found
+                    officerDepartmentDisplayInput.value = 'N/A';
                 }
 
                 // Make department editable if user is admin
@@ -288,19 +440,14 @@
                     officerDepartmentDisplayInput.removeAttribute('readonly');
                 }
 
-                console.log("Logged-in Officer Department:", userDepartment); // For debugging
+                console.log("Logged-in Officer Department:", userDepartment);
             }
 
 
             // --- Fetch Penal Codes on Load ---
             try {
-                const response = await fetch('https://citation-app-worker.pnbober.workers.dev/penal-codes', { // Your Worker URL
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                if (response.ok) {
+                const response = await fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/penal-codes');
+                if (response && response.ok) {
                     let allPenalCodes = await response.json();
                     console.log("All penal codes loaded:", allPenalCodes);
 
@@ -334,14 +481,14 @@
                         } else if (!isNaN(numB)) {
                             return 1;
                         } else {
-                            return codeA.localeCompare(codeB);
+                            return codeA.localeCompare(b.code);
                         }
                     });
 
                     allFilteredPenalCodesForCitationForm = penalCodesData; // Store the filtered and sorted list for the modal
                     console.log("Filtered and sorted penal codes for Citation Form:", penalCodesData);
 
-                } else {
+                } else if (response) {
                     const errorData = await response.json();
                     console.error('Failed to load penal codes:', errorData.message);
                     window.showCustomAlert('Warning: Could not load penal codes for auto-fill. ' + (errorData.message || response.statusText), 'Warning');
@@ -352,9 +499,9 @@
             }
 
             // --- Function to Add a New Penal Code Input Group ---
-            function addPenalCodeGroup(initialCode = '', initialAmount = '0.00') {
-                penalCodeGroupCounter++;
-                const newGroupId = penalCodeGroupCounter;
+            function addInputGroup(initialCode = '', initialAmount = '0.00') {
+                groupCounter++;
+                const newGroupId = groupCounter;
 
                 const newGroup = document.createElement('div');
                 newGroup.classList.add('penal-code-group', 'grid', 'gap-x-6', 'gap-y-4', 'mb-4', 'items-end');
@@ -374,19 +521,19 @@
                 `;
                 penalCodeInputsContainer.appendChild(newGroup);
 
-                setupAutocompleteForInput(newGroupId);
+                setupAutocompleteForPenalCodeInput(newGroupId);
                 newGroup.querySelector('.button-remove').addEventListener('click', function() {
                     newGroup.remove();
                     calculateTotalAmountDue();
-                    updateMainViolationType(); // Update main violation type after removal
+                    updateMainViolationType();
                 });
 
                 calculateTotalAmountDue();
-                updateMainViolationType(); // Update main violation type after adding
+                updateMainViolationType();
             }
 
             // --- Setup Autocomplete for a specific input group ---
-            function setupAutocompleteForInput(groupId) {
+            function setupAutocompleteForPenalCodeInput(groupId) {
                 const penalCodeInput = document.getElementById(`penalCode_${groupId}`);
                 const amountDueInput = document.getElementById(`amountDue_${groupId}`);
                 const suggestionsDiv = document.getElementById(`penalCodeSuggestions_${groupId}`);
@@ -397,27 +544,24 @@
                     suggestionsDiv.style.display = 'none';
 
                     if (query.length > 0) {
-                        // Filtered penalCodesData is already specific to Citation types,
-                        // so no further type filtering is needed here.
                         const filteredCodes = penalCodesData.filter(pc =>
                             pc.code.toLowerCase().includes(query) || (pc.description && pc.description.toLowerCase().includes(query))
                         );
                         if (filteredCodes.length > 0) {
                             filteredCodes.forEach(pc => {
                                 const suggestionItem = document.createElement('div');
-                                // Display Offense Name and Type in suggestion
                                 suggestionItem.textContent = `${pc.code} - ${pc.description || 'No description'} (${pc.type || 'N/A'})`;
                                 suggestionItem.dataset.code = pc.code;
                                 suggestionItem.dataset.amount = pc.amount_due;
                                 suggestionItem.dataset.type = pc.type || '';
-                                suggestionItem.dataset.description = pc.description || ''; // Store description in dataset
-                                suggestionItem.dataset.jailTime = pc.jail_time_seconds || 0; // Store jail time
+                                suggestionItem.dataset.description = pc.description || '';
+                                suggestionItem.dataset.jailTime = pc.jail_time_seconds || 0;
                                 suggestionsDiv.appendChild(suggestionItem);
 
                                 suggestionItem.addEventListener('click', function() {
                                     penalCodeInput.value = this.dataset.code;
                                     amountDueInput.value = parseFloat(this.dataset.amount).toFixed(2);
-                                    updateMainViolationType(); // Update main violation type after selection
+                                    updateMainViolationType();
                                     suggestionsDiv.innerHTML = '';
                                     suggestionsDiv.style.display = 'none';
                                     calculateTotalAmountDue();
@@ -427,7 +571,6 @@
                         }
                     }
                     
-                    // This part now also searches within the already filtered penalCodesData
                     const matchedCode = penalCodesData.find(pc =>
                         pc.code.toLowerCase() === query
                     );
@@ -437,14 +580,13 @@
                         amountDueInput.value = parseFloat(matchedCode.amount_due).toFixed(2);
                     }
                     calculateTotalAmountDue();
-                    updateMainViolationType(); // Update main violation type on input change
+                    updateMainViolationType();
                 });
 
                 penalCodeInput.addEventListener('blur', () => {
                     setTimeout(() => {
                         suggestionsDiv.style.display = 'none';
                     }, 100);
-                    // This also searches within the already filtered penalCodesData
                     const exactMatch = penalCodesData.find(pc =>
                         pc.code.toLowerCase() === penalCodeInput.value.toLowerCase()
                     );
@@ -454,7 +596,7 @@
                         amountDueInput.value = '0.00';
                     }
                     calculateTotalAmountDue();
-                    updateMainViolationType(); // Update main violation type on blur
+                    updateMainViolationType();
                 });
                 penalCodeInput.addEventListener('focus', () => {
                     if (suggestionsDiv.innerHTML !== '' && penalCodeInput.value.length > 0) {
@@ -472,7 +614,7 @@
                         total += value;
                     }
                 });
-                totalAmountDueSumInput.value = `$${total.toFixed(2)}`;
+                if (totalAmountDueSumInput) totalAmountDueSumInput.value = `$${total.toFixed(2)}`;
             }
 
             // --- Update Main Violation Type based on all selected Penal Codes ---
@@ -481,18 +623,19 @@
                 document.querySelectorAll('.penal-code-input').forEach(input => {
                     const code = input.value.trim();
                     if (code) {
-                        // Match against the already filtered penalCodesData
                         const matchedCode = penalCodesData.find(pc => pc.code.toLowerCase() === code.toLowerCase());
-                        if (matchedCode && matchedCode.description) { // No need for additional type check here, as penalCodesData is already filtered
+                        if (matchedCode && matchedCode.description) {
                             selectedDescriptions.push(matchedCode.description);
                         }
                     }
                 });
-                mainViolationTypeInput.value = Array.from(new Set(selectedDescriptions)).join(', ');
-                if (mainViolationTypeInput.value === '') {
-                    mainViolationTypeInput.placeholder = "Auto-filled from Penal Code(s)";
-                } else {
-                    mainViolationTypeInput.placeholder = "";
+                if (mainViolationTypeInput) {
+                    mainViolationTypeInput.value = Array.from(new Set(selectedDescriptions)).join(', ');
+                    if (mainViolationTypeInput.value === '') {
+                        mainViolationTypeInput.placeholder = "Auto-filled from Penal Code(s)";
+                    } else {
+                        mainViolationTypeInput.placeholder = "";
+                    }
                 }
             }
 
@@ -500,11 +643,11 @@
             function toggleSignedReason() {
                 if (signedNoRadio.checked) {
                     notSignedReasonContainer.classList.remove('hidden');
-                    notSignedReasonInput.setAttribute('required', 'required'); // Make required if 'NO'
+                    notSignedReasonInput.setAttribute('required', 'required');
                 } else {
                     notSignedReasonContainer.classList.add('hidden');
-                    notSignedReasonInput.removeAttribute('required'); // Remove required if 'YES'
-                    notSignedReasonInput.value = ''; // Clear content when hidden
+                    notSignedReasonInput.removeAttribute('required');
+                    notSignedReasonInput.value = '';
                 }
             }
 
@@ -514,33 +657,37 @@
             toggleSignedReason();
 
             // --- View All Penal Codes Modal Logic ---
-            viewAllPenalCodesBtn.addEventListener('click', () => {
-                penalCodeListModalContent.innerHTML = ''; // Clear previous content
-                if (allFilteredPenalCodesForCitationForm.length === 0) {
-                    penalCodeListModalContent.innerHTML = '<p class="theme-label">No penal codes available or loaded.</p>';
-                } else {
-                    allFilteredPenalCodesForCitationForm.forEach(pc => {
-                        const itemDiv = document.createElement('div');
-                        itemDiv.classList.add('theme-label-small');
-                        // Apply theme-label class to the div to ensure text color
-                        itemDiv.classList.add('theme-label'); 
-                        itemDiv.innerHTML = `<strong>${pc.code}</strong>: ${pc.description || 'N/A'} (Amount: $${parseFloat(pc.amount_due || 0).toFixed(2)})`;
-                        penalCodeListModalContent.appendChild(itemDiv);
-                    });
-                }
-                penalCodeListModalOverlay.classList.remove('hidden');
-            });
+            if (viewAllPenalCodesBtn) {
+                viewAllPenalCodesBtn.addEventListener('click', () => {
+                    penalCodeListModalContent.innerHTML = '';
+                    if (allFilteredPenalCodesForCitationForm.length === 0) {
+                        penalCodeListModalContent.innerHTML = '<p class="theme-label">No penal codes available or loaded.</p>';
+                    } else {
+                        allFilteredPenalCodesForCitationForm.forEach(pc => {
+                            const itemDiv = document.createElement('div');
+                            itemDiv.classList.add('theme-label-small');
+                            // Apply theme-label class to the div to ensure text color
+                            itemDiv.classList.add('theme-label');
+                            itemDiv.innerHTML = `<strong>${pc.code}</strong>: ${pc.description || 'N/A'} (Amount: $${parseFloat(pc.amount_due || 0).toFixed(2)})`;
+                            penalCodeListModalContent.appendChild(itemDiv);
+                        });
+                    }
+                    penalCodeListModalOverlay.classList.remove('hidden');
+                });
+            }
 
-            penalCodeListModalCloseBtn.addEventListener('click', () => {
-                penalCodeListModalOverlay.classList.add('hidden');
-            });
+            if (penalCodeListModalCloseBtn) {
+                penalCodeListModalCloseBtn.addEventListener('click', () => {
+                    penalCodeListModalOverlay.classList.add('hidden');
+                });
+            }
 
 
             // --- Initial Setup ---
-            setupAutocompleteForInput(0); // <--- THIS LINE IS CRUCIAL FOR THE FIRST AUTOCOMPLETE INPUT
-            addPenalCodeBtn.addEventListener('click', () => addPenalCodeGroup());
+            setupAutocompleteForPenalCodeInput(0);
+            addPenalCodeBtn.addEventListener('click', () => addInputGroup());
             calculateTotalAmountDue();
-            updateMainViolationType(); // Initial call to set/clear main violation type
+            updateMainViolationType();
 
             // --- Form Clear Logic ---
             clearFormBtn.addEventListener('click', function() {
@@ -549,22 +696,20 @@
                         document.querySelectorAll('.penal-code-group[data-group-id]:not([data-group-id="0"])').forEach(group => group.remove());
                         document.getElementById('penalCode_0').value = '';
                         document.getElementById('amountDue_0').value = '0.00';
-                        document.getElementById('officerBadge').value = loggedInUser.badgeNumber || ''; // Reset to auto-filled value
-                        document.getElementById('officerName').value = loggedInUser.username || ''; // Reset officer name to auto-filled
+                        document.getElementById('officerBadge').value = loggedInUser.badgeNumber || '';
+                        document.getElementById('officerName').value = loggedInUser.username || '';
                         document.getElementById('officerRank').value = '';
                         document.getElementById('violatorName').value = '';
                         document.getElementById('violationDetails').value = '';
                         mainViolationTypeInput.value = '';
-                        officerDepartmentDisplayInput.value = userDepartment; // Reset department display
-                        // Ensure department field is readonly if not admin
+                        officerDepartmentDisplayInput.value = userDepartment;
                         if (loggedInUser.role !== 'admin') {
                             officerDepartmentDisplayInput.setAttribute('readonly', 'readonly');
                         }
                         calculateTotalAmountDue();
-                        updateMainViolationType(); // Update after clear
-                        // Reset signed status
+                        updateMainViolationType();
                         signedYesRadio.checked = true;
-                        toggleSignedReason(); // Ensure reason textbox is hidden and cleared
+                        toggleSignedReason();
                     }
                 });
             });
@@ -582,9 +727,9 @@
                 citationData.violatorName = document.getElementById('violatorName').value;
                 citationData.violationDetails = document.getElementById('violationDetails').value;
                 citationData.violationType = mainViolationTypeInput.value;
-                citationData.department = officerDepartmentDisplayInput.value; // Use current value from potentially editable field
-                citationData.signedStatus = document.querySelector('input[name="signedStatus"]:checked').value; // NEW: Signed Status
-                citationData.notSignedReason = signedNoRadio.checked ? notSignedReasonInput.value : ''; // NEW: Reason if not signed
+                citationData.department = officerDepartmentDisplayInput.value;
+                citationData.signedStatus = document.querySelector('input[name="signedStatus"]:checked').value;
+                citationData.notSignedReason = signedNoRadio.checked ? notSignedReasonInput.value : '';
 
 
                 const appliedPenalCodes = [];
@@ -598,9 +743,8 @@
                     const amount = parseFloat(amountDueInput.value);
                     
                     if (code && !isNaN(amount)) {
-                        // Match against the already filtered penalCodesData
                         const matchedCode = penalCodesData.find(pc => pc.code.toLowerCase() === code.toLowerCase());
-                        if (matchedCode) { // No need for additional type check here, as penalCodesData is already filtered
+                        if (matchedCode) {
                             appliedPenalCodes.push({
                                 code: code,
                                 description: matchedCode.description || 'N/A',
@@ -616,56 +760,39 @@
                 citationData.appliedPenalCodes = appliedPenalCodes;
                 citationData.totalAmountDue = overallTotalAmount;
 
-                const token = sessionStorage.getItem('authToken');
+                const response = await fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/submit-citation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(citationData),
+                });
 
-                try {
-                    const response = await fetch('https://citation-app-worker.pnbober.workers.dev/submit-citation', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify(citationData),
+                if (response && response.ok) {
+                    const result = await response.json();
+                    window.showCustomAlert(result.message, 'Success').then(() => {
+                        citationForm.reset();
+                        document.getElementById('officerBadge').value = loggedInUser.badgeNumber || '';
+                        document.getElementById('officerName').value = loggedInUser.username || '';
+                        document.getElementById('officerRank').value = '';
+                        document.getElementById('violatorName').value = '';
+                        document.getElementById('violationDetails').value = '';
+                        mainViolationTypeInput.value = '';
+                        document.getElementById('officerDepartmentDisplay').value = userDepartment;
+                        if (loggedInUser.role !== 'admin') {
+                            officerDepartmentDisplayInput.setAttribute('readonly', 'readonly');
+                        }
+                        document.querySelectorAll('.penal-code-group[data-group-id]:not([data-group-id="0"])').forEach(group => group.remove());
+                        document.getElementById('penalCode_0').value = '';
+                        document.getElementById('amountDue_0').value = '0.00';
+                        calculateTotalAmountDue();
+                        updateMainViolationType();
+                        signedYesRadio.checked = true;
+                        toggleSignedReason();
                     });
-
-                    if (response.ok) {
-                        const result = await response.json();
-                        window.showCustomAlert(result.message, 'Success').then(() => {
-                            // Clear the form after successful submission instead of redirecting
-                            citationForm.reset();
-                            // Manually reset specific fields that need it after reset()
-                            document.getElementById('officerBadge').value = loggedInUser.badgeNumber || '';
-                            document.getElementById('officerName').value = loggedInUser.username || ''; // Reset officer name to auto-filled
-                            document.getElementById('officerRank').value = '';
-                            document.getElementById('violatorName').value = '';
-                            document.getElementById('violationDetails').value = '';
-                            document.getElementById('officerDepartmentDisplay').value = userDepartment;
-                            // Ensure department field is readonly if not admin after reset
-                            if (loggedInUser.role !== 'admin') {
-                                officerDepartmentDisplayInput.setAttribute('readonly', 'readonly');
-                            }
-                            document.querySelectorAll('.penal-code-group[data-group-id]:not([data-group-id="0"])').forEach(group => group.remove());
-                            document.getElementById('penalCode_0').value = '';
-                            document.getElementById('amountDue_0').value = '0.00';
-                            calculateTotalAmountDue();
-                            updateMainViolationType(); // Ensure auto-filled fields are reset/updated correctly
-                            // Reset signed status
-                            signedYesRadio.checked = true;
-                            toggleSignedReason(); // Ensure reason textbox is hidden and cleared
-                        });
-                    } else if (response.status === 401 || response.status === 403) {
-                        window.showCustomAlert("Authentication failed. Please log in again.", 'Error').then(() => {
-                            sessionStorage.clear();
-                            window.location.href = 'index.html';
-                        });
-                    }
-                    else {
-                        const errorData = await response.json();
-                        window.showCustomAlert('Submission failed: ' + (errorData.message || response.statusText), 'Error');
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    window.showCustomAlert('An error occurred. Check console for details.', 'Error');
+                } else if (response) {
+                    const errorData = await response.json();
+                    window.showCustomAlert('Submission failed: ' + (errorData.message || response.statusText), 'Error');
                 }
             });
         });
