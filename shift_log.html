@@ -107,7 +107,7 @@
             </div>
 
             <div class="mb-6 p-4 rounded-lg theme-section-bg">
-                <h3 class="theme-title font-bold text-lg mb-4">Screenshot</h3>
+                <h3 class="theme-title font-bold text-lg mb-4">Screenshot (Optional)</h3>
                 <label for="screenshotUpload" class="theme-label block mb-2 font-medium">Upload Screenshot:</label>
                 <input type="file" id="screenshotUpload" name="screenshotUpload" accept="image/*" class="theme-input w-full p-2 border rounded-md">
                 <p class="theme-label text-center my-2">OR</p>
@@ -347,8 +347,8 @@
                 if (loggedInUser.role) {
                     userRole = loggedInUser.role;
                 }
-                // Auto-fill rank if available from user info
-                rankDisplayInput.value = userRole || '';
+                // Removed: Auto-fill rank based on userRole
+                // rankDisplayInput.value = userRole || '';
             }
 
             // Function to handle image processing and preview display
@@ -369,6 +369,7 @@
                 };
                 reader.readAsDataURL(file);
             }
+
 
             // Handle screenshot file selection and preview
             screenshotUploadInput.addEventListener('change', function(event) {
@@ -419,10 +420,10 @@
                 }
 
                 const shiftLogData = {
-                    yourUsername: loggedInUser.username, // Changed to match index.js expectation
-                    badgeNumber: loggedInUser.badgeNumber, // Changed to match index.js expectation
-                    department: userDepartment, // Changed to match index.js expectation
-                    rank: rankDisplayInput.value, // Changed to match index.js expectation
+                    yourUsername: loggedInUser.username,
+                    badgeNumber: loggedInUser.badgeNumber,
+                    department: userDepartment,
+                    rank: rankDisplayInput.value, // Now takes user input
                     hostOfTheSession: document.getElementById('hostSession').value,
                     callsign: document.getElementById('callsign').value,
                     shiftDuration: document.getElementById('shiftDuration').value,
@@ -484,7 +485,7 @@
                             screenshotBase64 = null;
                             usernameBadgeInput.value = `${loggedInUser.username || 'N/A'} (Badge: ${loggedInUser.badgeNumber || 'N/A'})`;
                             departmentDisplayInput.value = userDepartment;
-                            rankDisplayInput.value = userRole || ''; // Reset rank based on userRole
+                            rankDisplayInput.value = ''; // Ensure rank is explicitly cleared, not reset to userRole
                         });
                     } else if (response) {
                         window.showCustomAlert('Submission failed: ' + (result.message || response.statusText), 'Error');
@@ -500,7 +501,7 @@
                 setTimeout(() => {
                     usernameBadgeInput.value = `${loggedInUser.username || 'N/A'} (Badge: ${loggedInUser.badgeNumber || 'N/A'})`;
                     departmentDisplayInput.value = userDepartment;
-                    rankDisplayInput.value = userRole || ''; // Reset rank based on userRole
+                    rankDisplayInput.value = ''; // Ensure rank is explicitly cleared, not reset to userRole
                     imagePreviewDiv.innerHTML = '<p class="theme-label-small theme-label">No image selected</p>';
                     pasteTargetDiv.textContent = 'Paste image here (Ctrl+V or Cmd+V)';
                     screenshotBase64 = null;
