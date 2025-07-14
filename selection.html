@@ -405,6 +405,7 @@
                     const citationsResponse = await fetch(`${workerBaseUrl}/citations`, { headers });
                     if (citationsResponse.ok) {
                         citationsData = await citationsResponse.json(); // Assign to already declared variable
+                        // Client-side filter for the logged-in user's citations
                         const loggedInUsernameLower = userInfo.username.toLowerCase();
                         const userCitations = citationsData.filter(c => c.submittedBy && c.submittedBy.toLowerCase() === loggedInUsernameLower);
                         citationCount = userCitations.length;
@@ -420,6 +421,7 @@
                     const shiftLogsResponse = await fetch(`${workerBaseUrl}/shift-logs`, { headers });
                     if (shiftLogsResponse.ok) {
                         shiftLogsData = await shiftLogsResponse.json(); // Assign to already declared variable
+                        // Client-side filter for the logged-in user's shift logs
                         const loggedInUsernameLower = userInfo.username.toLowerCase();
                         const userShiftLogs = shiftLogsData.filter(s => s.submittedByUsername && s.submittedByUsername.toLowerCase() === loggedInUsernameLower);
                         shiftCount = userShiftLogs.length;
