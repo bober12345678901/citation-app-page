@@ -40,6 +40,14 @@
         .text-warrant-item {
             color: var(--text-color); /* Main text color for warrant items */
         }
+        /* Loading indicator styling */
+        #loadingIndicator {
+            text-align: center;
+            padding: 2rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent-color);
+        }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4 theme-app-container">
@@ -105,18 +113,18 @@
             <!-- Your Statistics Section -->
             <section class="p-6 rounded-lg shadow-md theme-section-bg">
                 <h2 class="text-xl font-semibold mb-4 text-statistics-label">Your Statistics:</h2>
-                <div class="space-y-4">
+                <!-- Loading Indicator for statistics -->
+                <div id="statisticsLoadingIndicator" class="text-statistics-label hidden">Loading statistics...</div>
+                <div id="statisticsContent" class="space-y-4 hidden">
                     <!-- Statistics Box 1: Citations Filled -->
                     <div class="p-4 rounded-lg text-center shadow-inner theme-na-box">
-                        <p class="text-4xl font-bold text-na-value">N/A</p>
+                        <p id="citationCount" class="text-4xl font-bold text-na-value">N/A</p>
                         <p class="text-statistics-label">Citations Filled</p>
-                        <!-- TODO: Populate this value dynamically from a data source -->
                     </div>
                     <!-- Statistics Box 2: Shifts Logged -->
                     <div class="p-4 rounded-lg text-center shadow-inner theme-na-box">
-                        <p class="text-4xl font-bold text-na-value">N/A</p>
+                        <p id="shiftCount" class="text-4xl font-bold text-na-value">N/A</p>
                         <p class="text-statistics-label">Shifts Logged</p>
-                        <!-- TODO: Populate this value dynamically from a data source -->
                     </div>
                 </div>
             </section>
@@ -195,7 +203,7 @@
             });
         };
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
             const token = sessionStorage.getItem('authToken');
             const userInfoString = sessionStorage.getItem('loggedInUser');
             let userInfo = null;
@@ -212,6 +220,11 @@
             const openCitationLogBtn = document.getElementById('openCitationLogBtn');
             const openArrestLogBtn = document.getElementById('openArrestLogBtn');
             const openShiftLogBtn = document.getElementById('openShiftLogBtn');
+
+            const citationCountElement = document.getElementById('citationCount');
+            const shiftCountElement = document.getElementById('shiftCount');
+            const statisticsLoadingIndicator = document.getElementById('statisticsLoadingIndicator');
+            const statisticsContent = document.getElementById('statisticsContent');
 
             // Authentication check
             if (!token || !userInfo) {
@@ -231,6 +244,61 @@
                     adminButton.classList.add('hidden'); // Ensure hidden if not admin
                 }
             }
+
+            // Function to fetch and display counts
+            async function fetchAndDisplayCounts() {
+                // Show loading indicator, hide content
+                statisticsLoadingIndicator.classList.remove('hidden');
+                statisticsContent.classList.add('hidden');
+
+                let citationCount = 0;
+                let shiftCount = 0;
+
+                try {
+                    const headers = { 'Authorization': `Bearer ${token}` };
+
+                    // Fetch Citations
+                    const citationsResponse = await fetch('https://citation-app-worker.pnbober.workers.dev/citations', { headers });
+                    if (citationsResponse.ok) {
+                        const citations = await citationsResponse.json();
+                        const loggedInUsernameLower = userInfo.username.toLowerCase();
+                        const userCitations = citations.filter(c => c.submittedBy && c.submittedBy.toLowerCase() === loggedInUsernameLower);
+                        citationCount = userCitations.length;
+                        citationCountElement.textContent = citationCount;
+                    } else {
+                        const errorData = await citationsResponse.json().catch(() => ({ message: 'Could not parse error response.' }));
+                        window.showCustomAlert('Failed to load citation data: ' + (errorData.message || citationsResponse.statusText), 'Error');
+                        citationCountElement.textContent = 'N/A';
+                    }
+
+                    // Fetch Shift Logs
+                    const shiftLogsResponse = await fetch('https://citation-app-worker.pnbober.workers.dev/shift-logs', { headers });
+                    if (shiftLogsResponse.ok) {
+                        const shiftLogs = await shiftLogsResponse.json();
+                        const loggedInUsernameLower = userInfo.username.toLowerCase();
+                        const userShiftLogs = shiftLogs.filter(s => s.submittedByUsername && s.submittedByUsername.toLowerCase() === loggedInUsernameLower);
+                        shiftCount = userShiftLogs.length;
+                        shiftCountElement.textContent = shiftCount;
+                    } else {
+                        const errorData = await shiftLogsResponse.json().catch(() => ({ message: 'Could not parse error response.' }));
+                        window.showCustomAlert('Failed to load shift log data: ' + (errorData.message || shiftLogsResponse.statusText), 'Error');
+                        shiftCountElement.textContent = 'N/A';
+                    }
+
+                } catch (error) {
+                    console.error('Network error fetching statistics:', error);
+                    window.showCustomAlert('Network error: Could not load statistics. Check console for details.', 'Error');
+                    citationCountElement.textContent = 'N/A';
+                    shiftCountElement.textContent = 'N/A';
+                } finally {
+                    // Always hide loading indicator and show content, regardless of success or failure
+                    statisticsLoadingIndicator.classList.add('hidden');
+                    statisticsContent.classList.remove('hidden');
+                }
+            }
+
+            // Call the function to fetch and display counts when the page loads
+            fetchAndDisplayCounts();
 
             // Logout Functionality
             logoutButton.addEventListener('click', function(event) {
@@ -260,10 +328,6 @@
             adminButton.addEventListener('click', function() {
                 window.location.href = 'admin.html';
             });
-
-            // Note: The 'My Statistics' link from the old selection.html is now represented by the 'Your Statistics' section.
-            // If there's a separate statistics.html page, you'd need to add a button/link for it.
-            // For now, the statistics section is just a display of placeholders.
         });
     </script>
 </body>
