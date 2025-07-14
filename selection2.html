@@ -316,13 +316,14 @@
 
                 // Determine which buttons to show and their text
                 if (showCancel) {
-                    modalOkBtn.textContent = "Yes"; // Changed to "Yes"
-                    modalCancelBtn.textContent = "No"; // Changed to "No"
-                    modalCancelBtn.classList.remove('hidden');
-                } else {
-                    modalOkBtn.textContent = "OK";
-                    modalCancelBtn.classList.add('hidden');
-                }
+					modalOkBtn.textContent = "Confirm";
+					modalCancelBtn.textContent = "Cancel";
+					modalCancelBtn.classList.remove('hidden');
+				} else {
+					modalOkBtn.textContent = "OK";
+					modalCancelBtn.classList.add('hidden');
+				}
+	
                 
                 modalOverlay.classList.remove('hidden'); // Show the modal overlay
 
