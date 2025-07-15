@@ -390,10 +390,15 @@
             // Fetch penal codes for autocomplete
             const penalCodesResponse = await fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/penal-codes');
             if (penalCodesResponse && penalCodesResponse.ok) {
-                penalCodesData = await penalCodesResponse.json();
-                console.log("Penal codes loaded:", penalCodesData);
+                try {
+                    penalCodesData = await penalCodesResponse.json();
+                    console.log("Penal codes loaded:", penalCodesData);
+                } catch (e) {
+                    console.error("Failed to parse penal codes JSON:", e);
+                    window.showCustomAlert("Failed to parse penal codes. Autocomplete will not work.", "Error");
+                }
             } else {
-                console.error("Failed to fetch penal codes:", penalCodesResponse.status, await penalCodesResponse.text());
+                console.error("Failed to fetch penal codes:", penalCodesResponse?.status, await penalCodesResponse?.text());
                 window.showCustomAlert("Failed to load penal codes. Autocomplete will not work.", "Error");
             }
 
@@ -620,35 +625,39 @@
                     "Vehicular Offences": [800, 899],
                     "Control of Deadly Weapons and Equipment": [900, 999]
                 };
-
-                // Sort the penal codes by their numeric value
-                const sortedPenalCodes = penalCodesData.sort((a, b) => {
-                    const numA = parseInt(a.code, 10);
-                    const numB = parseInt(b.code, 10);
-                    return numA - numB;
-                });
                 
-                for (const category in categories) {
-                    const [start, end] = categories[category];
-                    const categoryPenalCodes = sortedPenalCodes.filter(code => {
-                        const num = parseInt(code.code, 10);
-                        return num >= start && num <= end;
+                if (penalCodesData.length === 0) {
+                    modalContent.innerHTML = '<p class="theme-label">No penal codes available. Please check the backend.</p>';
+                } else {
+                    // Sort the penal codes by their numeric value
+                    const sortedPenalCodes = penalCodesData.sort((a, b) => {
+                        const numA = parseInt(a.code, 10);
+                        const numB = parseInt(b.code, 10);
+                        return numA - numB;
                     });
                     
-                    if (categoryPenalCodes.length > 0) {
-                        const categoryHeader = document.createElement('h4');
-                        categoryHeader.className = 'penal-code-category';
-                        categoryHeader.textContent = category;
-                        modalContent.appendChild(categoryHeader);
-
-                        categoryPenalCodes.forEach(code => {
-                            const div = document.createElement('div');
-                            div.innerHTML = `
-                                <strong>${code.code}</strong> - ${code.description || 'No description'}<br>
-                                Fines: $${(code.amount_due || 0).toFixed(2)} | Jail: ${code.jail_time_seconds || 0}s
-                            `;
-                            modalContent.appendChild(div);
+                    for (const category in categories) {
+                        const [start, end] = categories[category];
+                        const categoryPenalCodes = sortedPenalCodes.filter(code => {
+                            const num = parseInt(code.code, 10);
+                            return num >= start && num <= end;
                         });
+                        
+                        if (categoryPenalCodes.length > 0) {
+                            const categoryHeader = document.createElement('h4');
+                            categoryHeader.className = 'penal-code-category';
+                            categoryHeader.textContent = category;
+                            modalContent.appendChild(categoryHeader);
+
+                            categoryPenalCodes.forEach(code => {
+                                const div = document.createElement('div');
+                                div.innerHTML = `
+                                    <strong>${code.code}</strong> - ${code.description || 'No description'}<br>
+                                    Fines: $${(code.amount_due || 0).toFixed(2)} | Jail: ${code.jail_time_seconds || 0}s
+                                `;
+                                modalContent.appendChild(div);
+                            });
+                        }
                     }
                 }
                 
