@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" href="favicon.png" type="image/png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arrest Form</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+    <script src="theme.js"></script>
+    <style>
+        /* Autocomplete suggestions dropdown styles (similar to citation.html) */
+        .autocomplete-suggestions {
+            border: 1px solid var(--border-color);
+            background: var(--box-bg-color);
+            max-height: 150px;
+            overflow-y: auto;
+            position: absolute;
+            z-index: 100;
+            width: calc(100% - 22px); /* Adjust based on input padding */
+            left: 11px; /* Align with input field */
+            border-radius: 0.375rem; /* rounded-md */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .autocomplete-suggestions div {
+            padding: 8px 10px;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+        .autocomplete-suggestions div:hover {
+            background-color: var(--button-secondary-hover-bg);
+            color: var(--button-text-color);
+        }
+        /* Style for dynamically added charge groups (similar to penal-code-group) */
+        .charge-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto; /* Charge, Jail Time, Remove Button */
+            gap: 1.5rem; /* Tailwind's gap-x-6 gap-y-4 */
+            margin-bottom: 1rem; /* Tailwind's mb-4 */
+            align-items: end; /* Align buttons to bottom of input */
+        }
+        .charge-group .input-wrapper {
+            position: relative;
+            grid-column: span 1;
+        }
+        .charge-group .jail-time-wrapper {
+             grid-column: span 1;
+        }
+        .charge-group .button-remove {
+            grid-column: span 1;
+            justify-self: end;
+            width: auto;
+            min-width: 80px;
+        }
+        @media (max-width: 767px) { /* On smaller screens, stack buttons below inputs */
+            .charge-group {
+                grid-template-columns: 1fr;
+            }
+            .charge-group .input-wrapper,
+            .charge-group .jail-time-wrapper {
+                grid-column: span 1;
+            }
+            .charge-group .button-remove {
+                grid-column: span 1;
+                width: 100%;
+                justify-self: stretch;
+            }
+        }
+        .text-right {
+            text-align: right;
+        }
+        /* Style for checkbox label to align checkbox visually */
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 8px; /* Space between checkbox and label */
+        }
+        .checkbox-container input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--accent-color); /* Colors the checkbox itself */
+        }
+        /* Styles for the image upload/paste area */
+        .image-preview-container {
+            margin-top: 1rem;
+            border: 1px dashed var(--border-color);
+            padding: 1rem;
+            text-align: center;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: color-mix(in srgb, var(--input-bg-color) 95%, var(--border-color)); /* Use theme variables */
+            border-radius: 0.375rem; /* rounded-md */
+        }
+        .image-preview-container img {
+            max-width: 100%;
+            max-height: 200px; /* Limit preview height */
+            object-fit: contain;
+            border-radius: 0.375rem;
+        }
+        .image-preview-container p {
+            color: var(--text-color);
+        }
+        #pasteMugshotTarget {
+            border: 1px dashed var(--border-color);
+            min-height: 50px;
+            padding: 10px;
+            text-align: center;
+            line-height: 30px;
+            cursor: pointer;
+            color: var(--text-color);
+            background-color: color-mix(in srgb, var(--input-bg-color) 90%, var(--border-color));
+            border-radius: 0.375rem;
+            margin-top: 0.5rem;
+        }
+        #pasteMugshotTarget:focus {
+            outline: 2px solid var(--accent-color);
+            border-color: var(--accent-color);
+        }
+        /* Styles for radio button container */
+        .radio-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 1rem;
+        }
+        .radio-container input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent-color);
+        }
+        .radio-container label {
+            margin-bottom: 0; /* Override block mb-2 */
+        }
+        /* Styles for the penal code list modal */
+        .penal-code-list-modal-content {
+            max-height: 400px; /* Limit height for scrollability */
+            overflow-y: auto;
+            padding: 1rem;
+            background-color: var(--input-bg-color); /* Match theme input background */
+            border-radius: 0.375rem;
+            border: 1px solid var(--border-color);
+        }
+        .penal-code-list-modal-content div {
+            padding: 0.5rem 0;
+            border-bottom: 1px dashed var(--border-color);
+            color: var(--text-color); /* Set text color to theme's main text color */
+        }
+        .penal-code-list-modal-content div:last-child {
+            border-bottom: none;
+        }
+        .penal-code-list-modal-content strong {
+            color: var(--accent-color);
+        }
+        .penal-code-category {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 0.25rem;
+        }
+    </style>
+</head>
+<body class="min-h-screen theme-app-container flex items-center justify-center p-4">
+    <div class="container mx-auto max-w-4xl w-full theme-lookup-box p-8 rounded-xl shadow-lg transition-colors duration-300 border border-solid">
+        <h2 class="theme-title text-3xl font-bold text-center mb-6">Arrest Report Form</h2>
+        <form id="arrestForm">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mb-6">
+                
+                <div>
+                    <label for="arrestingOfficerBadge" class="theme-label block mb-2 font-medium">Arresting Officer Badge Number:</label>
+                    <input type="text" id="arrestingOfficerBadge" name="arrestingOfficerBadge" required class="theme-input w-full p-2 border rounded-md">
+                </div>
+                <div>
+                    <label for="yourUsername" class="theme-label block mb-2 font-medium">Your Username:</label>
+                    <input type="text" id="yourUsername" name="yourUsername" required class="theme-input w-full p-2 border rounded-md" placeholder="Full Roblox Username">
+                </div>
+                <div>
+                    <label for="leoUsernames" class="theme-label block mb-2 font-medium">Law Enforcement RP Name(s):</label>
+                    <input type="text" id="leoUsernames" name="leoUsernames" placeholder="Comma-separated if multiple" class="theme-input w-full p-2 border rounded-md">
+                </div>
+                <div>
+                    <label for="ranks" class="theme-label block mb-2 font-medium">Ranks:</label>
+                    <input type="text" id="ranks" name="ranks" placeholder="Comma-separated if multiple" class="theme-input w-full p-2 border rounded-md">
+                </div>
+                <div>
+                    <label for="suspectName" class="theme-label block mb-2 font-medium">Suspect's USER ID:</label>
+                    <input type="text" id="suspectName" name="suspectName" required class="theme-input w-full p-2 border rounded-md">
+                </div>
+                <div>
+                    <label for="officerDepartmentDisplay" class="theme-label block mb-2 font-medium">Department:</label>
+                    <input type="text" id="officerDepartmentDisplay" name="officerDepartmentDisplay" class="theme-input w-full p-2 border rounded-md" readonly>
+                </div>
+            </div>
+
+            <div class="mb-6 p-4 rounded-lg theme-section-bg">
+                <h3 class="theme-title font-bold text-lg mb-4">Charge(s) & Jail Time (Seconds):</h3>
+                <div id="chargeInputsContainer">
+                    <div class="charge-group" data-group-id="0">
+                        <div class="input-wrapper">
+                            <label for="chargeCode_0" class="theme-label block mb-2 font-medium">Charge Code:</label>
+                            <input type="text" id="chargeCode_0" name="chargeCode_0" class="theme-input w-full p-2 border rounded-md charge-code-input" autocomplete="off">
+                            <div id="chargeSuggestions_0" class="autocomplete-suggestions"></div>
+                        </div>
+                        <div class="jail-time-wrapper">
+                            <label for="jailTime_0" class="theme-label block mb-2 font-medium">Jail Time (Sec):</label>
+                            <input type="number" id="jailTime_0" name="jailTime_0" step="1" min="0" value="0" class="theme-input w-full p-2 border rounded-md jail-time-input" readonly>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-4 mt-4 justify-center">
+                    <button type="button" id="addChargeBtn" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">Add Another Charge</button>
+                    <button type="button" id="viewAllPenalCodesBtn" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">View All Penal Codes</button>
+                </div>
+            </div>
+            <div class="mb-6 text-right">
+                <label for="totalJailTimeSum" class="theme-title block mb-2 font-bold text-xl">Total Jail Time (All Charges, Sec):</label>
+                <input type="text" id="totalJailTimeSum" name="totalJailTimeSum" class="theme-input p-2 border rounded-md text-right font-bold text-xl" value="0" readonly>
+            </div>
+
+            <div class="mb-6 text-right">
+                <label for="totalFinesSum" class="theme-title block mb-2 font-bold text-xl">Total Fines (All Charges):</label>
+                <input type="text" id="totalFinesSum" name="totalFinesSum" class="theme-input p-2 border rounded-md text-right font-bold text-xl" value="$0.00" readonly>
+            </div>
+
+            <div class="mb-6 p-4 rounded-lg theme-section-bg">
+                <label class="theme-title block mb-2 font-bold text-lg">Warrant Needed?</label>
+                <div class="radio-container">
+                    <input type="radio" id="warrantNeededNo" name="warrantNeeded" value="NO" class="theme-input" checked> <label for="warrantNeededNo" class="theme-label">NO</label>
+                    <input type="radio" id="warrantNeededYes" name="warrantNeeded" value="YES" class="theme-input">
+                    <label for="warrantNeededYes" class="theme-label">YES</label>
+                </div>
+
+                <label class="theme-title block mb-2 font-bold text-lg mt-4">Serving Warrant?</label>
+                <div class="radio-container">
+                    <input type="radio" id="servingWarrantNo" name="servingWarrant" value="NO" class="theme-input" checked> <label for="servingWarrantNo" class="theme-label">NO</label>
+                    <input type="radio" id="servingWarrantYes" name="servingWarrant" value="YES" class="theme-input">
+                    <label for="servingWarrantYes" class="theme-label">YES</label>
+                </div>
+
+                <div id="warrantJailTimeContainer" class="mt-4 hidden">
+                    <label for="warrantJailTime" class="theme-label block mb-2 font-medium">Jail Time (Seconds) on Warrant:</label>
+                    <input type="number" id="warrantJailTime" name="warrantJailTime" step="1" min="0" value="0" class="theme-input w-full p-2 border rounded-md">
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <label for="mugshotUpload" class="theme-label block mb-2 font-medium">Upload Mugshot:</label>
+                <input type="file" id="mugshotUpload" name="mugshotUpload" accept="image/*" class="theme-input w-full p-2 border rounded-md">
+                <p class="theme-label text-center my-2">OR</p>
+                <div id="pasteMugshotTarget" tabindex="0" class="theme-input p-2 rounded-md cursor-pointer text-center">
+                    Paste mugshot image here (Ctrl+V or Cmd+V)
+                </div>
+                <div id="mugshotPreview" class="image-preview-container">
+                    <p class="theme-label-small theme-label">No image selected</p>
+                </div>
+            </div>
+            <div class="mb-6">
+                <label for="incidentDetails" class="theme-label block mb-2 font-medium">Description of the incident:</label>
+                <textarea id="incidentDetails" name="incidentDetails" placeholder="Provide detailed account of the incident leading to arrest, or description/mugshot details" required class="theme-input w-full p-2 border rounded-md min-h-[120px]"></textarea>
+            </div>
+            
+            <div class="flex flex-wrap justify-center gap-4">
+                <button type="submit" class="theme-button-danger py-2 px-6 rounded-md font-semibold">Submit Arrest Report</button>
+                <button type="reset" class="theme-button-secondary py-2 px-6 rounded-md font-semibold" id="clearFormBtn">Clear Form</button>
+                <button type="button" onclick="window.location.href='selection.html'" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">Back to Selection</button>
+            </div>
+        </form>
+    </div>
+
+    <div id="penalCodeListModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div id="penalCodeListModal" class="theme-lookup-box p-6 rounded-lg shadow-xl max-w-lg w-full mx-4 sm:mx-auto">
+            <h3 id="penalCodeListModalTitle" class="theme-title text-xl font-bold mb-4">Available Penal Codes (Charges)</h3>
+            <div id="penalCodeListModalContent" class="penal-code-list-modal-content mb-6">
+                </div>
+            <div class="flex justify-end">
+                <button id="penalCodeListModalCloseBtn" class="theme-button-primary py-2 px-4 rounded-md font-semibold">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="customModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div id="customModal" class="theme-lookup-box p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 sm:mx-auto">
+            <h3 id="customModalTitle" class="theme-title text-xl font-bold mb-4"></h3>
+            <p id="customModalMessage" class="theme-label mb-6"></p>
+            <div id="customModalButtons" class="flex justify-end space-x-3">
+                <button id="customModalCancelBtn" class="theme-button-secondary py-2 px-4 rounded-md font-semibold hidden">Cancel</button>
+                <button id="customModalOkBtn" class="theme-button-primary py-2 px-4 rounded-md font-semibold">OK</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Store penal codes data globally for autocomplete and calculation
+        let penalCodesData = [];
+
+        // Track dynamically added charge input groups
+        let chargeGroupCounter = 0;
+
+        // --- UTILITY FUNCTIONS ---
+        // (Assuming these are provided by theme.js or a separate utils file)
+        function redirectToLogin(message = "Your session has expired. Please log in again.") {
+            console.warn("Redirecting to login:", message);
+            window.showCustomAlert(message, "Session Expired").then(() => {
+                sessionStorage.clear();
+                window.location.href = 'index.html';
+            });
+        }
+
+        function decodeJwt(token) {
+            if (!token) return null;
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) {
+                console.error("Error decoding JWT:", e);
+                return null;
+            }
+        }
+
+        async function fetchWithAuth(url, options = {}) {
+            let token = sessionStorage.getItem('authToken');
+            const decodedToken = decodeJwt(token);
+
+            if (!token || !decodedToken || decodedToken.exp < (Date.now() / 1000)) {
+                redirectToLogin("Your session has expired. Please log in again.");
+                return null;
+            }
+
+            options.headers = { ...options.headers, 'Authorization': `Bearer ${token}` };
+
+            try {
+                const response = await fetch(url, options);
+                if (response.status === 401 || response.status === 403) {
+                    redirectToLogin("Authentication failed. Please log in again.");
+                    return null;
+                }
+                return response;
+            } catch (error) {
+                console.error("Network error during authenticated fetch:", error);
+                window.showCustomAlert('A network error occurred. Please check your internet connection.', 'Network Error');
+                return null;
+            }
+        }
+
+        // --- CORE LOGIC ---
+        document.addEventListener('DOMContentLoaded', async function() {
+            const token = sessionStorage.getItem('authToken');
+            if (!token) {
+                redirectToLogin("You must be logged in to access the Arrest form.");
+                return;
+            }
+
+            // --- DOM Elements ---
+            const arrestForm = document.getElementById('arrestForm');
+            const arrestingOfficerBadgeInput = document.getElementById('arrestingOfficerBadge');
+            const yourUsernameInput = document.getElementById('yourUsername');
+            const officerDepartmentDisplayInput = document.getElementById('officerDepartmentDisplay');
+            const suspectNameInput = document.getElementById('suspectName');
+            const chargeInputsContainer = document.getElementById('chargeInputsContainer');
+            const totalJailTimeSumInput = document.getElementById('totalJailTimeSum');
+            const totalFinesSumInput = document.getElementById('totalFinesSum');
+            const addChargeBtn = document.getElementById('addChargeBtn');
+            const mugshotUploadInput = document.getElementById('mugshotUpload');
+            const mugshotPreview = document.getElementById('mugshotPreview');
+            const pasteMugshotTarget = document.getElementById('pasteMugshotTarget');
+            const warrantJailTimeContainer = document.getElementById('warrantJailTimeContainer');
+            const servingWarrantRadios = document.querySelectorAll('input[name="servingWarrant"]');
+            const viewAllPenalCodesBtn = document.getElementById('viewAllPenalCodesBtn');
+
+            // --- State Variables ---
+            let mugshotBase64 = null;
+
+            // --- Initial Setup ---
+            const loggedInUserString = sessionStorage.getItem('loggedInUser');
+            if (loggedInUserString) {
+                const loggedInUser = JSON.parse(loggedInUserString);
+                yourUsernameInput.value = loggedInUser.username || '';
+                arrestingOfficerBadgeInput.value = loggedInUser.badgeNumber || '';
+                officerDepartmentDisplayInput.value = loggedInUser.department || 'N/A';
+            } else {
+                redirectToLogin("User session data not found.");
+                return;
+            }
+
+            // Fetch penal codes for autocomplete
+            const penalCodesResponse = await fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/penal-codes');
+            if (penalCodesResponse && penalCodesResponse.ok) {
+                penalCodesData = await penalCodesResponse.json();
+                console.log("Penal codes loaded:", penalCodesData);
+            } else {
+                console.error("Failed to fetch penal codes:", penalCodesResponse.status, await penalCodesResponse.text());
+                window.showCustomAlert("Failed to load penal codes. Autocomplete will not work.", "Error");
+            }
+
+            // --- Event Listeners ---
+            arrestForm.addEventListener('submit', handleFormSubmit);
+            addChargeBtn.addEventListener('click', addChargeInputGroup);
+            chargeInputsContainer.addEventListener('input', handleChargeInput);
+            chargeInputsContainer.addEventListener('click', handleChargeInput);
+            chargeInputsContainer.addEventListener('keydown', handleChargeInput);
+            mugshotUploadInput.addEventListener('change', handleMugshotUpload);
+            pasteMugshotTarget.addEventListener('paste', handleMugshotPaste);
+            servingWarrantRadios.forEach(radio => radio.addEventListener('change', toggleWarrantJailTimeField));
+            viewAllPenalCodesBtn.addEventListener('click', handleViewAllPenalCodes);
+            document.getElementById('penalCodeListModalCloseBtn').addEventListener('click', () => {
+                document.getElementById('penalCodeListModalOverlay').classList.add('hidden');
+            });
+            document.getElementById('clearFormBtn').addEventListener('click', () => {
+                setTimeout(resetForm, 0); // Use a timeout to allow the native reset to clear fields first
+            });
+
+
+            // --- FUNCTIONS ---
+            function resetForm() {
+                // Manually clear dynamic inputs
+                chargeInputsContainer.innerHTML = `
+                    <div class="charge-group" data-group-id="0">
+                        <div class="input-wrapper">
+                            <label for="chargeCode_0" class="theme-label block mb-2 font-medium">Charge Code:</label>
+                            <input type="text" id="chargeCode_0" name="chargeCode_0" class="theme-input w-full p-2 border rounded-md charge-code-input" autocomplete="off">
+                            <div id="chargeSuggestions_0" class="autocomplete-suggestions"></div>
+                        </div>
+                        <div class="jail-time-wrapper">
+                            <label for="jailTime_0" class="theme-label block mb-2 font-medium">Jail Time (Sec):</label>
+                            <input type="number" id="jailTime_0" name="jailTime_0" step="1" min="0" value="0" class="theme-input w-full p-2 border rounded-md jail-time-input" readonly>
+                        </div>
+                    </div>
+                `;
+                chargeGroupCounter = 0; // Reset counter
+
+                // Reset mugshot preview
+                mugshotBase64 = null;
+                mugshotPreview.innerHTML = '<p class="theme-label-small theme-label">No image selected</p>';
+                mugshotUploadInput.value = '';
+
+                // Restore initial auto-filled values
+                const loggedInUser = JSON.parse(sessionStorage.getItem('loggedInUser'));
+                yourUsernameInput.value = loggedInUser.username || '';
+                arrestingOfficerBadgeInput.value = loggedInUser.badgeNumber || '';
+                officerDepartmentDisplayInput.value = loggedInUser.department || 'N/A';
+
+                // Recalculate totals
+                updateTotals();
+            }
+            
+            function toggleWarrantJailTimeField() {
+                if (document.getElementById('servingWarrantYes').checked) {
+                    warrantJailTimeContainer.classList.remove('hidden');
+                } else {
+                    warrantJailTimeContainer.classList.add('hidden');
+                    document.getElementById('warrantJailTime').value = 0;
+                }
+            }
+            
+            function addChargeInputGroup() {
+                chargeGroupCounter++;
+                const newGroup = document.createElement('div');
+                newGroup.className = 'charge-group';
+                newGroup.dataset.groupId = chargeGroupCounter;
+                newGroup.innerHTML = `
+                    <div class="input-wrapper">
+                        <label for="chargeCode_${chargeGroupCounter}" class="theme-label block mb-2 font-medium">Charge Code:</label>
+                        <input type="text" id="chargeCode_${chargeGroupCounter}" name="chargeCode_${chargeGroupCounter}" class="theme-input w-full p-2 border rounded-md charge-code-input" autocomplete="off">
+                        <div id="chargeSuggestions_${chargeGroupCounter}" class="autocomplete-suggestions"></div>
+                    </div>
+                    <div class="jail-time-wrapper">
+                        <label for="jailTime_${chargeGroupCounter}" class="theme-label block mb-2 font-medium">Jail Time (Sec):</label>
+                        <input type="number" id="jailTime_${chargeGroupCounter}" name="jailTime_${chargeCode_${chargeGroupCounter}" step="1" min="0" value="0" class="theme-input w-full p-2 border rounded-md jail-time-input" readonly>
+                    </div>
+                    <button type="button" class="theme-button-secondary py-2 px-4 rounded-md font-semibold button-remove">Remove</button>
+                `;
+                chargeInputsContainer.appendChild(newGroup);
+                updateTotals();
+            }
+
+            function handleChargeInput(event) {
+                const target = event.target;
+                const group = target.closest('.charge-group');
+                if (!group) return; // Exit if the event target is not within a charge group
+
+                const groupId = group.dataset.groupId;
+                const suggestionsDiv = document.getElementById(`chargeSuggestions_${groupId}`);
+                const jailTimeInput = document.getElementById(`jailTime_${groupId}`);
+                const codeInput = document.getElementById(`chargeCode_${groupId}`);
+
+                // Handle Autocomplete input
+                if (target.classList.contains('charge-code-input')) {
+                    const query = target.value.toLowerCase();
+                    if (query.length > 0) {
+                        const filtered = penalCodesData.filter(code =>
+                            code.code.toLowerCase().includes(query) ||
+                            (code.description && code.description.toLowerCase().includes(query))
+                        ).slice(0, 5); // Limit suggestions to 5
+                        
+                        suggestionsDiv.innerHTML = '';
+                        if (filtered.length > 0) {
+                            suggestionsDiv.style.display = 'block';
+                            filtered.forEach(item => {
+                                const suggestion = document.createElement('div');
+                                suggestion.textContent = `${item.code}: ${item.description || ''}`;
+                                suggestion.dataset.code = item.code;
+                                suggestion.dataset.jailTime = item.jail_time_seconds || 0;
+                                suggestion.dataset.fines = item.amount_due || 0;
+                                suggestionsDiv.appendChild(suggestion);
+                            });
+                        } else {
+                            suggestionsDiv.style.display = 'none';
+                        }
+                    } else {
+                        suggestionsDiv.style.display = 'none';
+                    }
+                }
+
+                // Handle suggestion click
+                if (event.type === 'click' && target.parentElement === suggestionsDiv && target.tagName === 'DIV') {
+                    codeInput.value = target.dataset.code;
+                    jailTimeInput.value = target.dataset.jailTime;
+                    suggestionsDiv.style.display = 'none';
+                    updateTotals();
+                }
+                
+                // Handle Enter keypress for autofill
+                if (event.type === 'keydown' && event.key === 'Enter') {
+                    event.preventDefault(); // Prevent form submission
+                    const firstSuggestion = suggestionsDiv.querySelector('div');
+                    if (firstSuggestion) {
+                        codeInput.value = firstSuggestion.dataset.code;
+                        jailTimeInput.value = firstSuggestion.dataset.jailTime;
+                        suggestionsDiv.style.display = 'none';
+                        updateTotals();
+                    }
+                }
+                
+                // Handle Remove button click
+                if (target.classList.contains('button-remove')) {
+                    const groupToRemove = target.closest('.charge-group');
+                    groupToRemove.remove();
+                    updateTotals();
+                }
+            }
+
+            function updateTotals() {
+                let totalJailTime = 0;
+                let totalFines = 0;
+                document.querySelectorAll('.charge-group').forEach(group => {
+                    const codeInput = group.querySelector('.charge-code-input');
+                    const code = codeInput.value.toUpperCase();
+                    const penalCode = penalCodesData.find(p => p.code === code);
+                    
+                    if (penalCode) {
+                        const jailTimeInput = group.querySelector('.jail-time-input');
+                        jailTimeInput.value = penalCode.jail_time_seconds || 0;
+                        totalJailTime += parseFloat(penalCode.jail_time_seconds || 0);
+                        totalFines += parseFloat(penalCode.amount_due || 0);
+                    }
+                });
+                totalJailTimeSumInput.value = totalJailTime.toFixed(0);
+                totalFinesSumInput.value = `$${totalFines.toFixed(2)}`;
+            }
+
+            function handleMugshotUpload(event) {
+                const file = event.target.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        mugshotBase64 = e.target.result;
+                        displayMugshotPreview(mugshotBase64);
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    mugshotBase64 = null;
+                    displayMugshotPreview(null);
+                }
+            }
+
+            function handleMugshotPaste(event) {
+                event.preventDefault();
+                const items = (event.clipboardData || event.originalEvent.clipboardData).items;
+                for (let item of items) {
+                    if (item.type.startsWith('image/')) {
+                        const blob = item.getAsFile();
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            mugshotBase64 = e.target.result;
+                            displayMugshotPreview(mugshotBase64);
+                        };
+                        reader.readAsDataURL(blob);
+                        return;
+                    }
+                }
+                window.showCustomAlert('Pasted content is not an image.', 'Info');
+            }
+
+            function handleViewAllPenalCodes() {
+                const modalContent = document.getElementById('penalCodeListModalContent');
+                modalContent.innerHTML = '';
+                
+                // Define the categories and their code ranges
+                const categories = {
+                    "Crimes Against Civilian": [100, 199],
+                    "Crimes Against Property": [200, 299],
+                    "Crimes Against Public Decency": [300, 399],
+                    "Crimes Against Public Justice": [400, 499],
+                    "Crimes Against Public Peace": [500, 599],
+                    "Crimes Against Public Health and Safety": [600, 699],
+                    "Crimes Against State Dependents": [700, 799],
+                    "Vehicular Offences": [800, 899],
+                    "Control of Deadly Weapons and Equipment": [900, 999]
+                };
+
+                // Sort the penal codes by their numeric value
+                const sortedPenalCodes = penalCodesData.sort((a, b) => {
+                    const numA = parseInt(a.code, 10);
+                    const numB = parseInt(b.code, 10);
+                    return numA - numB;
+                });
+                
+                for (const category in categories) {
+                    const [start, end] = categories[category];
+                    const categoryPenalCodes = sortedPenalCodes.filter(code => {
+                        const num = parseInt(code.code, 10);
+                        return num >= start && num <= end;
+                    });
+                    
+                    if (categoryPenalCodes.length > 0) {
+                        const categoryHeader = document.createElement('h4');
+                        categoryHeader.className = 'penal-code-category';
+                        categoryHeader.textContent = category;
+                        modalContent.appendChild(categoryHeader);
+
+                        categoryPenalCodes.forEach(code => {
+                            const div = document.createElement('div');
+                            div.innerHTML = `
+                                <strong>${code.code}</strong> - ${code.description || 'No description'}<br>
+                                Fines: $${(code.amount_due || 0).toFixed(2)} | Jail: ${code.jail_time_seconds || 0}s
+                            `;
+                            modalContent.appendChild(div);
+                        });
+                    }
+                }
+                
+                document.getElementById('penalCodeListModalOverlay').classList.remove('hidden');
+            }
+
+            async function handleFormSubmit(event) {
+                event.preventDefault();
+
+                const form = event.target;
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+
+                // Get dynamic charges data
+                const appliedCharges = [];
+                document.querySelectorAll('.charge-group').forEach(group => {
+                    const codeInput = group.querySelector('.charge-code-input');
+                    const penalCode = penalCodesData.find(p => p.code === codeInput.value.toUpperCase());
+                    if (penalCode) {
+                        appliedCharges.push({
+                            code: penalCode.code,
+                            description: penalCode.description,
+                            amount_due: penalCode.amount_due,
+                            jail_time_seconds: penalCode.jail_time_seconds
+                        });
+                    }
+                });
+
+                const submissionData = {
+                    yourUsername: data.yourUsername,
+                    arrestingOfficerBadge: data.arrestingOfficerBadge,
+                    leoUsernames: data.leoUsernames,
+                    ranks: data.ranks,
+                    suspectName: data.suspectName,
+                    incidentDetails: data.incidentDetails,
+                    department: officerDepartmentDisplayInput.value,
+                    appliedCharges: appliedCharges,
+                    totalJailTime: parseInt(totalJailTimeSumInput.value, 10),
+                    totalFines: parseFloat(totalFinesSumInput.value.replace('$', '')),
+                    warrantNeeded: data.warrantNeeded === 'YES',
+                    servingWarrant: data.servingWarrant === 'YES',
+                    warrantJailTime: data.servingWarrant === 'YES' ? parseInt(data.warrantJailTime, 10) : 0,
+                    mugshot: mugshotBase64
+                };
+
+                // Validate at least one charge is selected
+                if (appliedCharges.length === 0) {
+                    window.showCustomAlert('Please add at least one charge.', 'Validation Error');
+                    return;
+                }
+
+                try {
+                    const response = await fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/submit-arrest', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(submissionData),
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        const message = result.message + (submissionData.warrantNeeded ? "<br><br><b>A warrant is needed. Please remember to log this warrant in the Discord Warrant Log channel manually.</b>" : "");
+                        window.showCustomAlert(message, 'Success').then(() => {
+                            form.reset(); // Reset the form
+                            resetForm(); // Call custom reset logic
+                        });
+                    } else if (response.status === 401 || response.status === 403) {
+                        window.showCustomAlert("Authentication failed. Please log in again.", 'Error').then(() => {
+                            sessionStorage.clear();
+                            window.location.href = 'index.html';
+                        });
+                    } else {
+                        window.showCustomAlert('Submission failed: ' + (result.message || response.statusText), 'Error');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    window.showCustomAlert('An error occurred. Check console for details.', 'Error');
+                }
+            }
+            
+            // Initial call to check warrant fields
+            toggleWarrantJailTimeField();
+        });
+    </script>
+</body>
+</html>
