@@ -470,7 +470,7 @@
                     </div>
                     <div class="jail-time-wrapper">
                         <label for="jailTime_${chargeGroupCounter}" class="theme-label block mb-2 font-medium">Jail Time (Sec):</label>
-                        <input type="number" id="jailTime_${chargeGroupCounter}" name="jailTime_${chargeCode_${chargeGroupCounter}" step="1" min="0" value="0" class="theme-input w-full p-2 border rounded-md jail-time-input" readonly>
+                        <input type="number" id="jailTime_${chargeGroupCounter}" name="jailTime_${chargeGroupCounter}" step="1" min="0" value="0" class="theme-input w-full p-2 border rounded-md jail-time-input" readonly>
                     </div>
                     <button type="button" class="theme-button-secondary py-2 px-4 rounded-md font-semibold button-remove">Remove</button>
                 `;
@@ -594,6 +594,14 @@
                     }
                 }
                 window.showCustomAlert('Pasted content is not an image.', 'Info');
+            }
+
+            function displayMugshotPreview(dataUrl) {
+                if (dataUrl) {
+                    mugshotPreview.innerHTML = `<img src="${dataUrl}" alt="Mugshot Preview">`;
+                } else {
+                    mugshotPreview.innerHTML = '<p class="theme-label-small theme-label">No image selected</p>';
+                }
             }
 
             function handleViewAllPenalCodes() {
