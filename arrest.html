@@ -671,9 +671,13 @@
                     window.showCustomAlert('An error occurred. Check console for details.', 'Error');
                 }
             }
-
+            
             // Initial call to add the first charge input group
-            addChargeInputGroup();
+            // This is the line that's currently duplicating the input.
+            // A charge group is already present in the HTML, so this is not needed.
+            // If the HTML was empty, this would be necessary.
+            // To prevent the second input from appearing, this line is now removed.
+
             // Initial call to check warrant fields
             toggleWarrantJailTimeField();
         });
