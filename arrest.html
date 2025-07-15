@@ -409,9 +409,21 @@
             // --- FUNCTIONS ---
             function resetForm() {
                 // Manually clear dynamic inputs
-                chargeInputsContainer.innerHTML = '';
-                addChargeInputGroup(); // Add back one empty group
-                
+                chargeInputsContainer.innerHTML = `
+                    <div class="charge-group" data-group-id="0">
+                        <div class="input-wrapper">
+                            <label for="chargeCode_0" class="theme-label block mb-2 font-medium">Charge Code:</label>
+                            <input type="text" id="chargeCode_0" name="chargeCode_0" class="theme-input w-full p-2 border rounded-md charge-code-input" autocomplete="off">
+                            <div id="chargeSuggestions_0" class="autocomplete-suggestions"></div>
+                        </div>
+                        <div class="jail-time-wrapper">
+                            <label for="jailTime_0" class="theme-label block mb-2 font-medium">Jail Time (Sec):</label>
+                            <input type="number" id="jailTime_0" name="jailTime_0" step="1" min="0" value="0" class="theme-input w-full p-2 border rounded-md jail-time-input" readonly>
+                        </div>
+                    </div>
+                `;
+                chargeGroupCounter = 0; // Reset counter
+
                 // Reset mugshot preview
                 mugshotBase64 = null;
                 mugshotPreview.innerHTML = '<p class="theme-label-small theme-label">No image selected</p>';
@@ -459,58 +471,59 @@
 
             function handleChargeInput(event) {
                 const target = event.target;
-                if (target.classList.contains('charge-code-input')) {
-                    const groupId = target.closest('.charge-group').dataset.groupId;
-                    const suggestionsDiv = document.getElementById(`chargeSuggestions_${groupId}`);
-                    const jailTimeInput = document.getElementById(`jailTime_${groupId}`);
+                const group = target.closest('.charge-group');
+                if (!group) return; // Exit if the event target is not within a charge group
 
-                    // Handle Autocomplete
-                    if (event.type === 'input') {
-                        const query = target.value.toLowerCase();
-                        if (query.length > 0) {
-                            const filtered = penalCodesData.filter(code =>
-                                code.code.toLowerCase().includes(query) ||
-                                (code.description && code.description.toLowerCase().includes(query))
-                            ).slice(0, 5); // Limit suggestions to 5
-                            
-                            suggestionsDiv.innerHTML = '';
-                            if (filtered.length > 0) {
-                                suggestionsDiv.style.display = 'block';
-                                filtered.forEach(item => {
-                                    const suggestion = document.createElement('div');
-                                    suggestion.textContent = `${item.code}: ${item.description || ''}`;
-                                    suggestion.dataset.code = item.code;
-                                    suggestion.dataset.jailTime = item.jail_time_seconds || 0;
-                                    suggestion.dataset.fines = item.amount_due || 0;
-                                    suggestionsDiv.appendChild(suggestion);
-                                });
-                            } else {
-                                suggestionsDiv.style.display = 'none';
-                            }
+                const groupId = group.dataset.groupId;
+                const suggestionsDiv = document.getElementById(`chargeSuggestions_${groupId}`);
+                const jailTimeInput = document.getElementById(`jailTime_${groupId}`);
+                const codeInput = document.getElementById(`chargeCode_${groupId}`);
+
+                // Handle Autocomplete input
+                if (target.classList.contains('charge-code-input')) {
+                    const query = target.value.toLowerCase();
+                    if (query.length > 0) {
+                        const filtered = penalCodesData.filter(code =>
+                            code.code.toLowerCase().includes(query) ||
+                            (code.description && code.description.toLowerCase().includes(query))
+                        ).slice(0, 5); // Limit suggestions to 5
+                        
+                        suggestionsDiv.innerHTML = '';
+                        if (filtered.length > 0) {
+                            suggestionsDiv.style.display = 'block';
+                            filtered.forEach(item => {
+                                const suggestion = document.createElement('div');
+                                suggestion.textContent = `${item.code}: ${item.description || ''}`;
+                                suggestion.dataset.code = item.code;
+                                suggestion.dataset.jailTime = item.jail_time_seconds || 0;
+                                suggestion.dataset.fines = item.amount_due || 0;
+                                suggestionsDiv.appendChild(suggestion);
+                            });
                         } else {
                             suggestionsDiv.style.display = 'none';
                         }
+                    } else {
+                        suggestionsDiv.style.display = 'none';
                     }
+                }
 
-                    // Handle suggestion click
-                    if (event.type === 'click' && event.target.closest('.autocomplete-suggestions div')) {
-                        const suggestionDiv = event.target.closest('.autocomplete-suggestions div');
-                        target.value = suggestionDiv.dataset.code;
-                        jailTimeInput.value = suggestionDiv.dataset.jailTime;
+                // Handle suggestion click
+                if (event.type === 'click' && target.parentElement === suggestionsDiv && target.tagName === 'DIV') {
+                    codeInput.value = target.dataset.code;
+                    jailTimeInput.value = target.dataset.jailTime;
+                    suggestionsDiv.style.display = 'none';
+                    updateTotals();
+                }
+                
+                // Handle Enter keypress for autofill
+                if (event.type === 'keydown' && event.key === 'Enter') {
+                    event.preventDefault(); // Prevent form submission
+                    const firstSuggestion = suggestionsDiv.querySelector('div');
+                    if (firstSuggestion) {
+                        codeInput.value = firstSuggestion.dataset.code;
+                        jailTimeInput.value = firstSuggestion.dataset.jailTime;
                         suggestionsDiv.style.display = 'none';
                         updateTotals();
-                    }
-                    
-                    // Handle Enter keypress for autofill
-                    if (event.type === 'keydown' && event.key === 'Enter') {
-                        event.preventDefault(); // Prevent form submission
-                        const firstSuggestion = suggestionsDiv.querySelector('div');
-                        if (firstSuggestion) {
-                            target.value = firstSuggestion.dataset.code;
-                            jailTimeInput.value = firstSuggestion.dataset.jailTime;
-                            suggestionsDiv.style.display = 'none';
-                            updateTotals();
-                        }
                     }
                 }
                 
@@ -672,12 +685,6 @@
                 }
             }
             
-            // Initial call to add the first charge input group
-            // This is the line that's currently duplicating the input.
-            // A charge group is already present in the HTML, so this is not needed.
-            // If the HTML was empty, this would be necessary.
-            // To prevent the second input from appearing, this line is now removed.
-
             // Initial call to check warrant fields
             toggleWarrantJailTimeField();
         });
