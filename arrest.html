@@ -229,14 +229,16 @@
             <div class="mb-6 p-4 rounded-lg theme-section-bg">
                 <label class="theme-title block mb-2 font-bold text-lg">Warrant Needed?</label>
                 <div class="radio-container">
-                    <input type="radio" id="warrantNeededNo" name="warrantNeeded" value="NO" class="theme-input" checked> <label for="warrantNeededNo" class="theme-label">NO</label>
+                    <input type="radio" id="warrantNeededNo" name="warrantNeeded" value="NO" class="theme-input" checked> <!-- Default to NO -->
+                    <label for="warrantNeededNo" class="theme-label">NO</label>
                     <input type="radio" id="warrantNeededYes" name="warrantNeeded" value="YES" class="theme-input">
                     <label for="warrantNeededYes" class="theme-label">YES</label>
                 </div>
 
                 <label class="theme-title block mb-2 font-bold text-lg mt-4">Serving Warrant?</label>
                 <div class="radio-container">
-                    <input type="radio" id="servingWarrantNo" name="servingWarrant" value="NO" class="theme-input" checked> <label for="servingWarrantNo" class="theme-label">NO</label>
+                    <input type="radio" id="servingWarrantNo" name="servingWarrant" value="NO" class="theme-input" checked> <!-- Default to NO -->
+                    <label for="servingWarrantNo" class="theme-label">NO</label>
                     <input type="radio" id="servingWarrantYes" name="servingWarrant" value="YES" class="theme-input">
                     <label for="servingWarrantYes" class="theme-label">YES</label>
                 </div>
@@ -271,17 +273,20 @@
         </form>
     </div>
 
+    <!-- Penal Code List Modal -->
     <div id="penalCodeListModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
         <div id="penalCodeListModal" class="theme-lookup-box p-6 rounded-lg shadow-xl max-w-lg w-full mx-4 sm:mx-auto">
             <h3 id="penalCodeListModalTitle" class="theme-title text-xl font-bold mb-4">Available Penal Codes (Charges)</h3>
             <div id="penalCodeListModalContent" class="penal-code-list-modal-content mb-6">
-                </div>
+                <!-- Penal codes will be loaded here -->
+            </div>
             <div class="flex justify-end">
                 <button id="penalCodeListModalCloseBtn" class="theme-button-primary py-2 px-4 rounded-md font-semibold">Close</button>
             </div>
         </div>
     </div>
 
+    <!-- Custom Modal for Alerts (from theme.js) -->
     <div id="customModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
         <div id="customModal" class="theme-lookup-box p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 sm:mx-auto">
             <h3 id="customModalTitle" class="theme-title text-xl font-bold mb-4"></h3>
@@ -301,6 +306,66 @@
 
         // --- UTILITY FUNCTIONS ---
         // (Assuming these are provided by theme.js or a separate utils file)
+        if (typeof window.showCustomAlert === 'undefined') {
+            window.showCustomAlert = (message, type = 'info', title = null) => {
+                return new Promise(resolve => {
+                    const modalOverlay = document.getElementById('customModalOverlay');
+                    const modalTitle = document.getElementById('customModalTitle');
+                    const modalMessage = document.getElementById('customModalMessage');
+                    const modalOkBtn = document.getElementById('customModalOkBtn');
+                    const modalCancelBtn = document.getElementById('customModalCancelBtn');
+
+                    modalTitle.textContent = title || (type === 'error' ? 'Error' : 'Information');
+                    modalMessage.innerHTML = message; // Use innerHTML to allow <br> tags
+
+                    modalCancelBtn.classList.add('hidden'); // Hide cancel button for alerts
+                    modalOkBtn.textContent = 'OK';
+                    
+                    const handleOk = () => {
+                        modalOverlay.classList.add('hidden');
+                        modalOkBtn.removeEventListener('click', handleOk);
+                        resolve(true);
+                    };
+                    modalOkBtn.addEventListener('click', handleOk);
+                    modalOverlay.classList.remove('hidden');
+                });
+            };
+        }
+        if (typeof window.showCustomConfirm === 'undefined') {
+            window.showCustomConfirm = (message, title = 'Confirm Action') => {
+                return new Promise(resolve => {
+                    const modalOverlay = document.getElementById('customModalOverlay');
+                    const modalTitle = document.getElementById('customModalTitle');
+                    const modalMessage = document.getElementById('customModalMessage');
+                    const modalOkBtn = document.getElementById('customModalOkBtn');
+                    const modalCancelBtn = document.getElementById('customModalCancelBtn');
+
+                    modalTitle.textContent = title;
+                    modalMessage.innerHTML = message;
+                    
+                    modalCancelBtn.classList.remove('hidden'); // Show cancel button for confirms
+                    modalOkBtn.textContent = 'Confirm';
+
+                    const handleOk = () => {
+                        modalOverlay.classList.add('hidden');
+                        modalOkBtn.removeEventListener('click', handleOk);
+                        modalCancelBtn.removeEventListener('click', handleCancel);
+                        resolve(true);
+                    };
+                    const handleCancel = () => {
+                        modalOverlay.classList.add('hidden');
+                        modalOkBtn.removeEventListener('click', handleOk);
+                        modalCancelBtn.removeEventListener('click', handleCancel);
+                        resolve(false);
+                    };
+
+                    modalOkBtn.addEventListener('click', handleOk);
+                    modalCancelBtn.addEventListener('click', handleCancel);
+                    modalOverlay.classList.remove('hidden');
+                });
+            };
+        }
+
         function redirectToLogin(message = "Your session has expired. Please log in again.") {
             console.warn("Redirecting to login:", message);
             window.showCustomAlert(message, "Session Expired").then(() => {
@@ -420,19 +485,19 @@
                 setTimeout(resetForm, 0); // Use a timeout to allow the native reset to clear fields first
             });
 
-            // Listen for changes on "Warrant Needed?" radio buttons
-            warrantNeededRadios.forEach(radio => {
-                radio.addEventListener('change', () => {
-                    if (document.getElementById('warrantNeededYes').checked) {
-                        window.showCustomConfirm("Selecting 'YES' for 'Warrant Needed?' will redirect you to the Warrant Log Form upon submission. Do you wish to proceed?", "Redirect to Warrant Log").then(confirmed => {
-                            if (!confirmed) {
-                                document.getElementById('warrantNeededNo').checked = true; // Revert to NO if cancelled
-                            }
-                            // No action here, redirection logic is in handleFormSubmit
-                        });
-                    }
-                });
-            });
+            // Removed the confirmation pop-up logic for "Warrant Needed? Yes"
+            // warrantNeededRadios.forEach(radio => {
+            //     radio.addEventListener('change', () => {
+            //         if (document.getElementById('warrantNeededYes').checked) {
+            //             window.showCustomConfirm("Selecting 'YES' for 'Warrant Needed?' will redirect you to the Warrant Log Form upon submission. Do you wish to proceed?", "Redirect to Warrant Log").then(confirmed => {
+            //                 if (!confirmed) {
+            //                     document.getElementById('warrantNeededNo').checked = true; // Revert to NO if cancelled
+            //                 }
+            //                 // No action here, redirection logic is in handleFormSubmit
+            //             });
+            //         }
+            //     });
+            // });
 
 
             // --- FUNCTIONS ---
@@ -707,22 +772,7 @@
                 const formData = new FormData(form);
                 const data = Object.fromEntries(formData.entries());
 
-                // Check if "Warrant Needed?" is "YES"
-                if (data.warrantNeeded === 'YES') {
-                    // Store data in sessionStorage for warrant_log.html
-                    const tempWarrantData = {
-                        userReceivingWarrant: data.suspectName,
-                        jailTime: parseInt(data.totalJailTime, 10),
-                        notes: data.incidentDetails // Carry over incident details as notes for warrant
-                    };
-                    sessionStorage.setItem('tempWarrantData', JSON.stringify(tempWarrantData));
-                    
-                    // Redirect to warrant log form
-                    window.location.href = 'warrant_log.html';
-                    return; // Stop further processing of this form submission
-                }
-
-                // If "Warrant Needed?" is "NO", proceed with arrest report submission
+                // Get dynamic charges data
                 const appliedCharges = [];
                 document.querySelectorAll('.charge-group').forEach(group => {
                     const codeInput = group.querySelector('.charge-code-input');
@@ -772,11 +822,22 @@
                     const result = await response.json();
 
                     if (response.ok) {
-                        const message = result.message + (submissionData.warrantNeeded ? "<br><br><b>A warrant is needed. Please remember to log this warrant in the Discord Warrant Log channel manually.</b>" : "");
-                        window.showCustomAlert(message, 'Success').then(() => {
-                            form.reset(); // Reset the form
-                            resetForm(); // Call custom reset logic
-                        });
+                        // If warrant is needed, save data and redirect
+                        if (submissionData.warrantNeeded) {
+                            const tempWarrantData = {
+                                userReceivingWarrant: submissionData.suspectName,
+                                jailTime: submissionData.totalJailTime,
+                                notes: submissionData.incidentDetails 
+                            };
+                            sessionStorage.setItem('tempWarrantData', JSON.stringify(tempWarrantData));
+                            window.location.href = 'warrant_log.html'; // Redirect to warrant log form
+                        } else {
+                            // Otherwise, show success message and reset form
+                            window.showCustomAlert(result.message, 'Success').then(() => {
+                                form.reset(); // Reset the form
+                                resetForm(); // Call custom reset logic
+                            });
+                        }
                     } else if (response.status === 401 || response.status === 403) {
                         window.showCustomAlert("Authentication failed. Please log in again.", 'Error').then(() => {
                             sessionStorage.clear();
