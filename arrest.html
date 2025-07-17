@@ -153,6 +153,15 @@
         .penal-code-list-modal-content strong {
             color: var(--accent-color);
         }
+        .penal-code-category {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 0.25rem;
+        }
     </style>
 </head>
 <body class="min-h-screen theme-app-container flex items-center justify-center p-4">
@@ -359,6 +368,7 @@
             const mugshotUploadInput = document.getElementById('mugshotUpload');
             const mugshotPreview = document.getElementById('mugshotPreview');
             const pasteMugshotTarget = document.getElementById('pasteMugshotTarget');
+            const warrantNeededRadios = document.querySelectorAll('input[name="warrantNeeded"]'); // Get all warrant needed radios
             const warrantJailTimeContainer = document.getElementById('warrantJailTimeContainer');
             const servingWarrantRadios = document.querySelectorAll('input[name="servingWarrant"]');
             const viewAllPenalCodesBtn = document.getElementById('viewAllPenalCodesBtn');
@@ -381,10 +391,15 @@
             // Fetch penal codes for autocomplete
             const penalCodesResponse = await fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/penal-codes');
             if (penalCodesResponse && penalCodesResponse.ok) {
-                penalCodesData = await penalCodesResponse.json();
-                console.log("Penal codes loaded:", penalCodesData);
+                try {
+                    penalCodesData = await penalCodesResponse.json();
+                    console.log("Penal codes loaded:", penalCodesData);
+                } catch (e) {
+                    console.error("Failed to parse penal codes JSON:", e);
+                    window.showCustomAlert("Failed to parse penal codes. Autocomplete will not work.", "Error");
+                }
             } else {
-                console.error("Failed to fetch penal codes:", penalCodesResponse.status, await penalCodesResponse.text());
+                console.error("Failed to fetch penal codes:", penalCodesResponse?.status, await penalCodesResponse?.text());
                 window.showCustomAlert("Failed to load penal codes. Autocomplete will not work.", "Error");
             }
 
@@ -403,6 +418,20 @@
             });
             document.getElementById('clearFormBtn').addEventListener('click', () => {
                 setTimeout(resetForm, 0); // Use a timeout to allow the native reset to clear fields first
+            });
+
+            // Listen for changes on "Warrant Needed?" radio buttons
+            warrantNeededRadios.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    if (document.getElementById('warrantNeededYes').checked) {
+                        window.showCustomConfirm("Selecting 'YES' for 'Warrant Needed?' will redirect you to the Warrant Log Form upon submission. Do you wish to proceed?", "Redirect to Warrant Log").then(confirmed => {
+                            if (!confirmed) {
+                                document.getElementById('warrantNeededNo').checked = true; // Revert to NO if cancelled
+                            }
+                            // No action here, redirection logic is in handleFormSubmit
+                        });
+                    }
+                });
             });
 
 
@@ -598,14 +627,76 @@
             function handleViewAllPenalCodes() {
                 const modalContent = document.getElementById('penalCodeListModalContent');
                 modalContent.innerHTML = '';
-                penalCodesData.forEach(code => {
-                    const div = document.createElement('div');
-                    div.innerHTML = `
-                        <strong>${code.code}</strong> - ${code.description || 'No description'}<br>
-                        Fines: $${(code.amount_due || 0).toFixed(2)} | Jail: ${code.jail_time_seconds || 0}s
-                    `;
-                    modalContent.appendChild(div);
-                });
+                
+                // Define the categories and their code ranges
+                const categories = {
+                    "Crimes Against Civilian": [100, 199],
+                    "Crimes Against Property": [200, 299],
+                    "Crimes Against Public Decency": [300, 399],
+                    "Crimes Against Public Justice": [400, 499],
+                    "Crimes Against Public Peace": [500, 599],
+                    "Crimes Against Public Health and Safety": [600, 699],
+                    "Crimes Against State Dependents": [700, 799],
+                    "Vehicular Offences": [800, 899],
+                    "Control of Deadly Weapons and Equipment": [900, 999]
+                };
+                
+                if (penalCodesData.length === 0) {
+                    modalContent.innerHTML = '<p class="theme-label">No penal codes available. This could be due to a backend issue or empty database.</p>';
+                } else {
+                    // Sort the penal codes by their numeric value
+                    const sortedPenalCodes = penalCodesData.sort((a, b) => {
+                        const numA = parseInt(a.code, 10);
+                        const numB = parseInt(b.code, 10);
+                        return numA - numB;
+                    });
+                    
+                    let allCategorizedCodes = [];
+
+                    for (const category in categories) {
+                        const [start, end] = categories[category];
+                        const categoryPenalCodes = sortedPenalCodes.filter(code => {
+                            const num = parseInt(code.code, 10);
+                            return num >= start && num <= end;
+                        });
+                        
+                        if (categoryPenalCodes.length > 0) {
+                            const categoryHeader = document.createElement('h4');
+                            categoryHeader.className = 'penal-code-category';
+                            categoryHeader.textContent = category;
+                            modalContent.appendChild(categoryHeader);
+
+                            categoryPenalCodes.forEach(code => {
+                                const div = document.createElement('div');
+                                div.innerHTML = `
+                                    <strong>${code.code}</strong> - ${code.description || 'No description'}<br>
+                                    Fines: $${(code.amount_due || 0).toFixed(2)} | Jail: ${code.jail_time_seconds || 0}s
+                                `;
+                                modalContent.appendChild(div);
+                                allCategorizedCodes.push(code); // Track codes that have been categorized
+                            });
+                        }
+                    }
+                    
+                    // Add any codes that don't fit into a defined category
+                    const uncategorizedCodes = sortedPenalCodes.filter(code => !allCategorizedCodes.includes(code));
+
+                    if (uncategorizedCodes.length > 0) {
+                        const uncategorizedHeader = document.createElement('h4');
+                        uncategorizedHeader.className = 'penal-code-category';
+                        uncategorizedHeader.textContent = 'Uncategorized';
+                        modalContent.appendChild(uncategorizedHeader);
+                        uncategorizedCodes.forEach(code => {
+                            const div = document.createElement('div');
+                            div.innerHTML = `
+                                <strong>${code.code}</strong> - ${code.description || 'No description'}<br>
+                                Fines: $${(code.amount_due || 0).toFixed(2)} | Jail: ${code.jail_time_seconds || 0}s
+                            `;
+                            modalContent.appendChild(div);
+                        });
+                    }
+                }
+                
                 document.getElementById('penalCodeListModalOverlay').classList.remove('hidden');
             }
 
@@ -616,7 +707,22 @@
                 const formData = new FormData(form);
                 const data = Object.fromEntries(formData.entries());
 
-                // Get dynamic charges data
+                // Check if "Warrant Needed?" is "YES"
+                if (data.warrantNeeded === 'YES') {
+                    // Store data in sessionStorage for warrant_log.html
+                    const tempWarrantData = {
+                        userReceivingWarrant: data.suspectName,
+                        jailTime: parseInt(data.totalJailTime, 10),
+                        notes: data.incidentDetails // Carry over incident details as notes for warrant
+                    };
+                    sessionStorage.setItem('tempWarrantData', JSON.stringify(tempWarrantData));
+                    
+                    // Redirect to warrant log form
+                    window.location.href = 'warrant_log.html';
+                    return; // Stop further processing of this form submission
+                }
+
+                // If "Warrant Needed?" is "NO", proceed with arrest report submission
                 const appliedCharges = [];
                 document.querySelectorAll('.charge-group').forEach(group => {
                     const codeInput = group.querySelector('.charge-code-input');
