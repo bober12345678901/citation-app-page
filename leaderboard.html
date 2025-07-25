@@ -29,10 +29,12 @@
         }
         .leaderboard-item {
             display: flex;
-            justify-content: space-between;
+            justify-content: center; /* Changed to center content */
+            align-items: center; /* Align items vertically */
             padding: 0.75rem 0.5rem;
             border-bottom: 1px solid color-mix(in srgb, var(--border-color) 50%, transparent); /* Lighter border for items */
             font-size: 1.1em;
+            text-align: center; /* Center text within the item */
         }
         .leaderboard-item:last-child {
             border-bottom: none; /* No border on the last item */
@@ -43,7 +45,21 @@
         .leaderboard-item span:first-child {
             font-weight: bold;
             color: var(--text-color); /* Rank and username in main text color */
+            flex-grow: 1; /* Allow the username span to take available space */
+            text-align: center; /* Ensure username is centered within its flex item */
         }
+        .leaderboard-item span:last-child {
+            width: 80px; /* Give a fixed width to the count for alignment */
+            text-align: right; /* Align count to the right */
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+        /* Adjust rank width to be consistent */
+        .leaderboard-item .rank-number {
+            width: 30px; /* Fixed width for rank number */
+            text-align: left; /* Align rank to the left */
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+
         /* Ensure custom modal buttons are flex items for proper spacing */
         #customModalButtons button {
             display: flex;
@@ -53,7 +69,7 @@
     </style>
 </head>
 <body class="min-h-screen theme-app-container flex items-center justify-center p-4">
-    <div class="container mx-auto max-w-5xl w-full theme-lookup-box p-8 rounded-xl shadow-lg transition-colors duration-300 border border-solid">
+    <div class="container mx-auto max-w-xl w-full theme-lookup-box p-8 rounded-xl shadow-lg transition-colors duration-300 border border-solid">
         <div class="flex flex-wrap justify-between items-center mb-6">
             <h2 class="theme-title text-3xl font-bold">Leaderboards</h2>
             <div class="flex gap-4">
@@ -294,27 +310,12 @@
                 return; // Stop script execution
             }
 
-            // const userInfoDisplay = document.getElementById('userInfo'); // Removed
             const shiftLogLeaderboardContainer = document.getElementById('shiftLogLeaderboardContainer');
             const citationLeaderboardContainer = document.getElementById('citationLeaderboardContainer');
             const refreshButton = document.getElementById('refreshButton');
-            // const logoutButton = document.getElementById('logoutButton'); // Removed
-
-            // userInfoDisplay.textContent = `Welcome, ${loggedInUser.username}!`; // Removed
-
-            // --- Logout Functionality (Removed) ---
-            // logoutButton.addEventListener('click', function() {
-            //     window.showCustomConfirm("Are you sure you want to log out?", "Confirm Logout").then((confirmed) => {
-            //         if (confirmed) {
-            //             sessionStorage.clear();
-            //             window.location.href = 'index.html';
-            //         }
-            //     });
-            // });
-
+            
             // --- Fetch & Display Leaderboards Function ---
             async function fetchAndDisplayLeaderboards() {
-                // userInfoDisplay.textContent = 'Loading leaderboard data...'; // Removed
                 shiftLogLeaderboardContainer.innerHTML = '<div class="text-center theme-label">Loading data...</div>';
                 citationLeaderboardContainer.innerHTML = '<div class="text-center theme-label">Loading data...</div>';
 
@@ -366,8 +367,10 @@
                         shiftLogLeaderboardData.forEach((stats, index) => {
                             const itemDiv = document.createElement('div');
                             itemDiv.classList.add('leaderboard-item');
+                            // Added a span for the rank number to control its width
                             itemDiv.innerHTML = `
-                                <span>${index + 1}. | ${stats.username}</span>
+                                <span class="rank-number">${index + 1}.</span>
+                                <span>${stats.username}</span>
                                 <span>${stats.count} log(s)</span>
                             `;
                             shiftLogLeaderboardContainer.appendChild(itemDiv);
@@ -400,8 +403,10 @@
                         citationLeaderboardData.forEach((stats, index) => {
                             const itemDiv = document.createElement('div');
                             itemDiv.classList.add('leaderboard-item');
+                            // Added a span for the rank number to control its width
                             itemDiv.innerHTML = `
-                                <span>${index + 1}. | ${stats.username}</span>
+                                <span class="rank-number">${index + 1}.</span>
+                                <span>${stats.username}</span>
                                 <span>${stats.count} citation(s)</span>
                             `;
                             citationLeaderboardContainer.appendChild(itemDiv);
@@ -414,7 +419,7 @@
                     shiftLogLeaderboardContainer.innerHTML = `<div class="text-center theme-label text-red-500">Error loading data.</div>`;
                     citationLeaderboardContainer.innerHTML = `<div class="text-center theme-label text-red-500">Error loading data.</div>`;
                 } finally {
-                    // userInfoDisplay.textContent = `Welcome, ${loggedInUser.username}!`; // Removed
+                    // No user info display needed
                 }
             }
 
