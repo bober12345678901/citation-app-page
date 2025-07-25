@@ -29,12 +29,11 @@
         }
         .leaderboard-item {
             display: flex;
-            justify-content: center; /* Changed to center content */
             align-items: center; /* Align items vertically */
             padding: 0.75rem 0.5rem;
             border-bottom: 1px solid color-mix(in srgb, var(--border-color) 50%, transparent); /* Lighter border for items */
             font-size: 1.1em;
-            text-align: center; /* Center text within the item */
+            /* text-align: center; REMOVED this, individual spans will align their text */
         }
         .leaderboard-item:last-child {
             border-bottom: none; /* No border on the last item */
@@ -42,24 +41,24 @@
         .leaderboard-item:nth-child(even) {
             background-color: color-mix(in srgb, var(--input-bg-color) 95%, var(--border-color)); /* Subtle stripe effect */
         }
-        .leaderboard-item span:first-child {
+        .leaderboard-item .rank-number {
+            width: 40px; /* Increased width for rank number to accommodate "1." and spacing */
+            text-align: left; /* Align rank to the left */
+            flex-shrink: 0; /* Prevent shrinking */
             font-weight: bold;
-            color: var(--text-color); /* Rank and username in main text color */
+            color: var(--text-color);
+        }
+        .leaderboard-item .username-display { /* New class for username span */
             flex-grow: 1; /* Allow the username span to take available space */
             text-align: center; /* Ensure username is centered within its flex item */
+            font-weight: bold; /* Keep username bold */
+            color: var(--text-color); /* Keep username color */
         }
-        .leaderboard-item span:last-child {
-            width: 80px; /* Give a fixed width to the count for alignment */
+        .leaderboard-item .count-display { /* New class for count span */
+            width: 100px; /* Give a consistent width to the count for alignment */
             text-align: right; /* Align count to the right */
             flex-shrink: 0; /* Prevent shrinking */
         }
-        /* Adjust rank width to be consistent */
-        .leaderboard-item .rank-number {
-            width: 30px; /* Fixed width for rank number */
-            text-align: left; /* Align rank to the left */
-            flex-shrink: 0; /* Prevent shrinking */
-        }
-
         /* Ensure custom modal buttons are flex items for proper spacing */
         #customModalButtons button {
             display: flex;
@@ -370,8 +369,8 @@
                             // Added a span for the rank number to control its width
                             itemDiv.innerHTML = `
                                 <span class="rank-number">${index + 1}.</span>
-                                <span>${stats.username}</span>
-                                <span>${stats.count} log(s)</span>
+                                <span class="username-display">${stats.username}</span>
+                                <span class="count-display">${stats.count} log(s)</span>
                             `;
                             shiftLogLeaderboardContainer.appendChild(itemDiv);
                         });
@@ -406,8 +405,8 @@
                             // Added a span for the rank number to control its width
                             itemDiv.innerHTML = `
                                 <span class="rank-number">${index + 1}.</span>
-                                <span>${stats.username}</span>
-                                <span>${stats.count} citation(s)</span>
+                                <span class="username-display">${stats.username}</span>
+                                <span class="count-display">${stats.count} citation(s)</span>
                             `;
                             citationLeaderboardContainer.appendChild(itemDiv);
                         });
