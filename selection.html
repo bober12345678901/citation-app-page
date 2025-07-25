@@ -175,9 +175,10 @@
                     <p id="departmentName" class="text-lg theme-label"></p> <!-- New element for department -->
                 </div>
             </div>
-            <!-- Admin and Log Out buttons -->
+            <!-- Admin, Leaderboard, and Log Out buttons -->
             <div class="flex space-x-4">
                 <button id="adminButton" class="px-6 py-2 rounded-lg font-semibold shadow-md transition-colors hidden theme-button-danger">Admin</button>
+                <button id="leaderboardButton" class="px-6 py-2 rounded-lg font-semibold shadow-md transition-colors hidden theme-button-secondary">Leaderboards</button>
                 <button id="logoutButton" class="px-6 py-2 rounded-lg font-semibold shadow-md transition-colors theme-button-secondary">Log Out</button>
             </div>
         </header>
@@ -323,6 +324,7 @@
             const departmentNameDisplay = document.getElementById('departmentName'); // Get the new department element
             const logoutButton = document.getElementById('logoutButton');
             const adminButton = document.getElementById('adminButton');
+            const leaderboardButton = document.getElementById('leaderboardButton'); // Get new leaderboard button
 
             const openCitationLogBtn = document.getElementById('openCitationLogBtn');
             const openArrestLogBtn = document.getElementById('openArrestLogBtn');
@@ -356,11 +358,13 @@
                 departmentNameDisplay.textContent = `Department: ${userInfo.department || 'N/A'}`;
 
 
-                // Conditional display for Admin button
+                // Conditional display for Admin and Leaderboard buttons
                 if (userInfo.role === 'admin') {
                     adminButton.classList.remove('hidden'); // Show Admin button
+                    leaderboardButton.classList.remove('hidden'); // Show Leaderboard button for admin
                 } else {
-                    adminButton.classList.add('hidden'); // Ensure hidden if not admin
+                    adminButton.classList.add('hidden'); // Hide Admin button for normal users
+                    leaderboardButton.classList.remove('hidden'); // Show Leaderboard button for normal users
                 }
             }
 
@@ -487,6 +491,11 @@
             // Admin button navigation
             adminButton.addEventListener('click', function() {
                 window.location.href = 'admin.html';
+            });
+
+            // Leaderboard button navigation
+            leaderboardButton.addEventListener('click', function() {
+                window.location.href = 'leaderboard.html';
             });
 
             // --- Help Desk Embed Modal Functionality (from tutorials.html) ---
