@@ -59,13 +59,8 @@
             <div class="flex gap-4">
                 <button id="refreshButton" class="theme-button-primary py-2 px-6 rounded-md font-semibold">Refresh Leaderboards</button>
                 <button onclick="window.location.href='selection.html'" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">Back to Selection</button>
-                <button id="logoutButton" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">Logout</button>
             </div>
         </div>
-
-        <p class="theme-label mb-4" id="userInfo">
-            Welcome! Loading leaderboard data...
-        </p>
 
         <!-- Shift Log Leaderboard Section -->
         <div class="leaderboard-section">
@@ -299,27 +294,27 @@
                 return; // Stop script execution
             }
 
-            const userInfoDisplay = document.getElementById('userInfo');
+            // const userInfoDisplay = document.getElementById('userInfo'); // Removed
             const shiftLogLeaderboardContainer = document.getElementById('shiftLogLeaderboardContainer');
             const citationLeaderboardContainer = document.getElementById('citationLeaderboardContainer');
             const refreshButton = document.getElementById('refreshButton');
-            const logoutButton = document.getElementById('logoutButton');
+            // const logoutButton = document.getElementById('logoutButton'); // Removed
 
-            userInfoDisplay.textContent = `Welcome, ${loggedInUser.username}!`;
+            // userInfoDisplay.textContent = `Welcome, ${loggedInUser.username}!`; // Removed
 
-            // --- Logout Functionality ---
-            logoutButton.addEventListener('click', function() {
-                window.showCustomConfirm("Are you sure you want to log out?", "Confirm Logout").then((confirmed) => {
-                    if (confirmed) {
-                        sessionStorage.clear();
-                        window.location.href = 'index.html';
-                    }
-                });
-            });
+            // --- Logout Functionality (Removed) ---
+            // logoutButton.addEventListener('click', function() {
+            //     window.showCustomConfirm("Are you sure you want to log out?", "Confirm Logout").then((confirmed) => {
+            //         if (confirmed) {
+            //             sessionStorage.clear();
+            //             window.location.href = 'index.html';
+            //         }
+            //     });
+            // });
 
             // --- Fetch & Display Leaderboards Function ---
             async function fetchAndDisplayLeaderboards() {
-                userInfoDisplay.textContent = 'Loading leaderboard data...';
+                // userInfoDisplay.textContent = 'Loading leaderboard data...'; // Removed
                 shiftLogLeaderboardContainer.innerHTML = '<div class="text-center theme-label">Loading data...</div>';
                 citationLeaderboardContainer.innerHTML = '<div class="text-center theme-label">Loading data...</div>';
 
@@ -419,7 +414,7 @@
                     shiftLogLeaderboardContainer.innerHTML = `<div class="text-center theme-label text-red-500">Error loading data.</div>`;
                     citationLeaderboardContainer.innerHTML = `<div class="text-center theme-label text-red-500">Error loading data.</div>`;
                 } finally {
-                    userInfoDisplay.textContent = `Welcome, ${loggedInUser.username}!`;
+                    // userInfoDisplay.textContent = `Welcome, ${loggedInUser.username}!`; // Removed
                 }
             }
 
