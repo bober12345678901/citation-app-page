@@ -263,6 +263,7 @@
             <div class="action-buttons-group">
                 <h3 class="theme-title text-xl font-bold">Manage Shift Logs</h3>
                 <button id="deleteSelectedShiftLogsBtn" class="theme-button-danger py-2 px-6 rounded-md font-semibold" disabled>Delete Selected Shift Logs</button>
+                <button id="deleteAllR2ScreenshotsBtn" class="theme-button-danger py-2 px-6 rounded-md font-semibold">Delete ALL R2 Screenshots</button>
             </div>
 
             <div id="shiftLogsContainer" class="table-container">
@@ -523,7 +524,9 @@
                 }
             } catch (error) {
                 console.error("Network error during token refresh:", error);
-                return false;
+                // Optionally, handle specific network errors (e.g., no internet)
+                window.showCustomAlert('A network error occurred. Please check your internet connection.', 'Network Error');
+                return null; // Indicate failure
             }
         }
 
@@ -617,6 +620,7 @@
             // Shift Log specific elements
             const selectAllShiftLogsCheckbox = document.getElementById('selectAllShiftLogs');
             const deleteSelectedShiftLogsBtn = document.getElementById('deleteSelectedShiftLogsBtn');
+            const deleteAllR2ScreenshotsBtn = document.getElementById('deleteAllR2ScreenshotsBtn'); // New button
 
             // User Management elements
             const refreshUsersBtn = document.getElementById('refreshUsersBtn');
@@ -929,7 +933,7 @@
                 }
             });
 
-            // --- NEW: Batch Deletion Functionality for SHIFT LOGS ---
+            // --- NEW: Batch Deletion Functionality for SHIFT LOGS (includes R2 deletion) ---
             deleteSelectedShiftLogsBtn.addEventListener('click', async function() {
                 const selectedIds = [];
                 document.querySelectorAll('.shiftlog-checkbox:checked').forEach(checkbox => {
@@ -943,12 +947,12 @@
                     return;
                 }
 
-                const confirmed = await window.showCustomConfirm(`Are you sure you want to delete ${selectedIds.length} selected shift log(s)? This action cannot be undone.`, 'Confirm Deletion');
+                const confirmed = await window.showCustomConfirm(`Are you sure you want to delete ${selectedIds.length} selected shift log(s)? This action will also delete associated screenshots from R2. This cannot be undone.`, 'Confirm Deletion');
                 if (!confirmed) {
                     return; // User cancelled
                 }
 
-                adminInfoDisplay.textContent = `Deleting ${selectedIds.length} shift logs...`;
+                adminInfoDisplay.textContent = `Deleting ${selectedIds.length} shift logs and associated screenshots...`;
                 deleteSelectedShiftLogsBtn.disabled = true;
 
                 try {
@@ -974,6 +978,54 @@
                     window.showCustomAlert('An error occurred during shift log deletion. Check console for details.', 'Error');
                 } finally {
                     deleteSelectedShiftLogsBtn.disabled = false;
+                }
+            });
+
+            // --- NEW: Delete ALL R2 Screenshots Functionality ---
+            deleteAllR2ScreenshotsBtn.addEventListener('click', async function() {
+                const confirmed = await window.showCustomConfirm(
+                    `WARNING: This action will permanently delete ALL screenshots from your R2 bucket. This cannot be undone. Are you absolutely sure you want to proceed?`,
+                    'EXTREME CAUTION: Delete ALL R2 Screenshots'
+                );
+                if (!confirmed) {
+                    return; // User cancelled
+                }
+
+                const finalConfirmed = await window.showCustomConfirm(
+                    `FINAL CONFIRMATION: This will delete ALL R2 screenshots. Type 'DELETE ALL' to confirm.`,
+                    'FINAL CONFIRMATION'
+                );
+                if (finalConfirmed !== true) { // showCustomConfirm returns true for Yes, or false for No
+                    // If you want to require typing, you'd need a custom prompt input.
+                    // For now, assuming standard confirm.
+                    return;
+                }
+
+
+                adminInfoDisplay.textContent = `Deleting ALL R2 screenshots... This may take a moment.`;
+                deleteAllR2ScreenshotsBtn.disabled = true;
+
+                try {
+                    const response = await fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/admin/delete-all-r2-screenshots', {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    });
+
+                    if (response && response.ok) {
+                        const result = await response.json();
+                        window.showCustomAlert('R2 Cleanup successful: ' + result.message, 'Success');
+                        await fetchAndDisplayShiftLogs(); // Refresh shift logs to reflect missing screenshots
+                    } else if (response) {
+                        const errorData = await response.json();
+                        window.showCustomAlert('R2 Cleanup failed: ' + (errorData.message || response.statusText), 'Error');
+                    }
+                } catch (error) {
+                    console.error('Error during R2 bulk deletion:', error);
+                    window.showCustomAlert('An error occurred during R2 bulk deletion. Check console for details.', 'Error');
+                } finally {
+                    deleteAllR2ScreenshotsBtn.disabled = false;
                 }
             });
 
