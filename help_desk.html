@@ -4,17 +4,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agency Documentation Hub</title>
-    <!-- Load Tailwind CSS from CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Base styling for the embedded page */
+        /* CRITICAL: Import the theme variables from the parent page. 
+           Since this is in an iframe, we define fallback/default values 
+           and rely on the parent's theme.js for real values if it was a same-origin iframe, 
+           but here we'll use a direct approach if the parent is setting theme in an inline style, 
+           which it is not. The parent applies styles to the modal wrapper. 
+           For an iframe to truly adopt the parent's *CSS variables*, it needs to be served from the same origin 
+           and the theme variables defined globally or passed. 
+           As a common practice, we'll redefine the necessary custom classes 
+           to pick up the variables from the modal wrapper's context (card-bg-color, etc.)
+           which is set in selectionexp.html: fullscreenEmbedContent.style.backgroundColor = 'var(--card-bg-color)'; 
+        */
+
+        /* Fallback/Generic styles when in an iframe */
         body {
-            /* Use a neutral background for the embedded page */
-            background-color: #f7f7f7; 
-            color: #1f2937;
             font-family: Inter, sans-serif;
-            padding: 2rem;
         }
+
+        /* Classes to inherit theme from parent's CSS variables */
+        .theme-section-bg {
+            background-color: var(--card-bg-color); /* Matches the outer modal content bg */
+            border-color: var(--border-color);
+            color: var(--text-color);
+        }
+        .theme-text-color {
+            color: var(--text-color);
+        }
+        .theme-subtle-text {
+            color: var(--subtle-text-color);
+        }
+        .theme-button-primary {
+            background-color: var(--accent-color);
+            color: var(--button-text-color);
+        }
+        .theme-button-primary:hover {
+            background-color: var(--accent-hover-color);
+        }
+        
         .container {
             max-width: 900px;
             margin: 0 auto;
@@ -27,23 +55,21 @@
         }
         /* Custom styling for the procedure categories */
         .help-category {
+            /* Now using theme classes for background, border, and text */
             padding: 1rem;
-            border: 1px solid #e5e7eb; /* gray-200 */
-            border-radius: 0.75rem; /* rounded-xl */
-            background-color: #ffffff; /* bg-white */
+            border-radius: 0.75rem;
         }
         .help-category h3 {
-            font-size: 1.25rem; /* text-xl */
-            font-weight: 700; /* font-bold */
-            color: #1f2937; /* gray-800 */
-            margin-bottom: 0.75rem; /* mb-3 */
-            border-bottom: 1px solid #eff6ff; /* blue-100 */
-            padding-bottom: 0.25rem; /* pb-1 */
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-color); /* Use a theme-based border */
+            padding-bottom: 0.25rem;
         }
         .toggle-embed-group {
             display: flex;
             flex-direction: column;
-            gap: 0.75rem; /* space-y-3 */
+            gap: 0.75rem;
         }
         @media (min-width: 640px) { /* sm breakpoint */
             .toggle-embed-group {
@@ -52,26 +78,24 @@
         }
     </style>
 </head>
-<body class="p-6 md:p-10 bg-gray-50">
-    <div class="container">
-        <h1 class="text-4xl font-extrabold text-blue-800 mb-6 border-b pb-2">Agency Documentation Hub</h1>
-        <p class="text-gray-600 mb-8">Welcome to the official documentation and training resource center. Please use the resources below for guidance on standard operating procedures and system usage.</p>
+<body class="theme-section-bg p-6 md:p-10 min-h-full">
+    <div class="container theme-text-color">
+        <h1 class="text-4xl font-extrabold mb-6 border-b pb-2">Agency Documentation Hub</h1>
+        <p class="theme-subtle-text mb-8">Welcome to the official documentation and training resource center. Please use the resources below for guidance on standard operating procedures and system usage.</p>
 
-        <!-- Documentation and Training Resources -->
-        <section class="mb-10 p-6 bg-white rounded-xl shadow-lg border border-gray-200">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center space-x-2 border-b pb-3">
-                <svg class="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm6 9a1 1 0 100 2h2a1 1 0 100-2h-2z" clip-rule="evenodd"></path></svg>
+        <section class="mb-10 p-6 rounded-xl shadow-lg border theme-section-bg border-gray-200">
+            <h2 class="text-2xl font-bold mb-6 flex items-center space-x-2 border-b pb-3">
+                <svg class="w-6 h-6 text-green-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm6 9a1 1 0 100 2h2a1 1 0 100-2h-2z" clip-rule="evenodd"></path></svg>
                 <span>Standard Operating Procedures & Guides</span>
             </h2>
             
             <div class="grid grid-cols-1 gap-6">
 
-                <!-- Group: Citations -->
-                <div class="help-category hover:shadow-md transition duration-200">
+                <div class="help-category theme-section-bg border theme-text-color hover:shadow-md transition duration-200">
                     <h3>Citations</h3>
                     <div class="toggle-embed-group">
                         <button 
-                            class="r2-embed-link flex-1 px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition"
+                            class="r2-embed-link flex-1 px-4 py-2 theme-button-primary font-semibold rounded-lg transition"
                             data-embed-type="pdf" 
                             data-url="/cite/citations_step_by_step.pdf">Open PDF Guide</button>
                         <button 
@@ -81,12 +105,11 @@
                     </div>
                 </div>
 
-                <!-- Group: Arrests (Standard Procedure) -->
-                <div class="help-category hover:shadow-md transition duration-200">
+                <div class="help-category theme-section-bg border theme-text-color hover:shadow-md transition duration-200">
                     <h3>Arrests (Standard Procedure)</h3>
                     <div class="toggle-embed-group">
                         <button 
-                            class="r2-embed-link flex-1 px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition"
+                            class="r2-embed-link flex-1 px-4 py-2 theme-button-primary font-semibold rounded-lg transition"
                             data-embed-type="pdf" 
                             data-url="/arrest no warrant/arrests_step_by_step.pdf">Open PDF Guide</button>
                         <button 
@@ -96,12 +119,11 @@
                     </div>
                 </div>
 
-                <!-- Group: Arrests w/ Warrants -->
-                <div class="help-category hover:shadow-md transition duration-200">
+                <div class="help-category theme-section-bg border theme-text-color hover:shadow-md transition duration-200">
                     <h3>Arrests w/ Warrants</h3>
                     <div class="toggle-embed-group">
                         <button 
-                            class="r2-embed-link flex-1 px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition"
+                            class="r2-embed-link flex-1 px-4 py-2 theme-button-primary font-semibold rounded-lg transition"
                             data-embed-type="pdf" 
                             data-url="/arrest w warrant/arrests_w_warrants_step_by_step.pdf">Open PDF Guide</button>
                         <button 
@@ -114,7 +136,6 @@
             </div>
         </section>
 
-        <!-- Contact Section -->
         <section class="p-6 bg-yellow-50 rounded-xl shadow-inner border border-yellow-200">
             <h2 class="text-xl font-bold text-yellow-800 mb-2">Support & Ticket Submission</h2>
             <p class="text-yellow-700">
