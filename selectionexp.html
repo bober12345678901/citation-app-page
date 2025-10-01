@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" href="favicon.png" type="image/png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <!-- Load Tailwind CSS from CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Link to your custom styles.css for theme variables -->
+    <link rel="stylesheet" href="styles.css">
+    <!-- Link to theme.js for theme switching functionality -->
+    <script src="theme.js"></script>
+    <style>
+        /* Any custom overrides or specific element styles not covered by themes */
+        /* These styles will apply regardless of the selected theme */
+        a {
+            text-decoration: none;
+        }
+        /* Specific styling for the user icon border */
+        .user-icon-border {
+            border-color: var(--text-color); /* Use theme's text color for border */
+        }
+        /* Custom styling for the N/A boxes to use theme variables */
+        .theme-na-box {
+            background-color: var(--input-bg-color); /* Using input-bg-color for inner boxes */
+            border-color: var(--accent-color); /* Border color from accent */
+        }
+        /* Custom styling for section backgrounds to use theme variables */
+        .theme-section-bg {
+            background-color: var(--box-bg-color); /* Use the main box background color */
+        }
+        /* Style for the tiles */
+        .theme-tile-bg {
+            background-color: var(--card-bg-color);
+        }
+        .theme-tile-border {
+            border: 1px solid var(--border-color);
+        }
+        .theme-text-color {
+            color: var(--text-color);
+        }
+        .theme-subtle-text {
+            color: var(--subtle-text-color);
+        }
+        /* Modal backdrop for embedded content */
+        .fullscreen-embed-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .fullscreen-embed-modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .fullscreen-embed-content {
+            background-color: var(--bg-color);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            max-width: 90%;
+            max-height: 90%;
+            overflow: auto;
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+        .fullscreen-embed-modal.show .fullscreen-embed-content {
+            transform: scale(1);
+        }
+        .fullscreen-embed-content iframe,
+        .fullscreen-embed-content video {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        .close-embed-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            cursor: pointer;
+            z-index: 1010;
+        }
+    </style>
+</head>
+<body class="theme-bg-color min-h-screen transition-colors duration-300 font-sans">
+
+    <!-- Header and User Info -->
+    <header class="theme-section-bg shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <h1 class="text-3xl font-bold theme-text-color">Dashboard</h1>
+            <div class="flex items-center space-x-4">
+                <p class="theme-text-color font-medium">Welcome, <span id="userNameDisplay">User</span></p>
+                <!-- Placeholder for user icon / profile -->
+                <div class="w-10 h-10 rounded-full border-2 user-icon-border flex items-center justify-center theme-text-color">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                </div>
+                <button id="themeToggle" class="p-2 rounded-full theme-text-color hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-colors">
+                    <svg id="sunIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    <svg id="moonIcon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h2 class="text-2xl font-semibold mb-6 theme-text-color">Modules & Resources</h2>
+
+        <div class="grid grid-cols-12 gap-6">
+
+            <!-- Admin and Leaderboard Buttons (New) -->
+            <!-- Note: 'hidden' class applied initially, visibility is controlled by JS below based on user role -->
+            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
+                <a href="admin.html" id="adminButton" class="hidden block p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
+                    <div class="flex items-center space-x-4">
+                        <svg class="w-8 h-8 text-red-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M10 2a2 2 0 00-2 2v3H4a2 2 0 00-2 2v7a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-4V4a2 2 0 00-2-2zM8 4a1 1 0 011-1h2a1 1 0 011 1v3H8V4z"></path>
+                        </svg>
+                        <span class="text-lg font-semibold">Admin Panel</span>
+                    </div>
+                </a>
+            </div>
+            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
+                <a href="leaderboard.html" id="leaderboardButton" class="hidden block p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
+                    <div class="flex items-center space-x-4">
+                        <svg class="w-8 h-8 text-yellow-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" d="M10 2a8 8 0 100 16A8 8 0 0010 2zm1 11a1 1 0 10-2 0v-2a1 1 0 002 0v2zm0-4a1 1 0 10-2 0v-2a1 1 0 002 0v2z" clip-rule="evenodd"></path>
+                            <path d="M13.5 8.75a.75.75 0 00-1.5 0v3.5a.75.75 0 001.5 0v-3.5zM6.5 12.25a.75.75 0 00-1.5 0v.5a.75.75 0 001.5 0v-.5z"></path>
+                        </svg>
+                        <span class="text-lg font-semibold">Leaderboard</span>
+                    </div>
+                </a>
+            </div>
+            
+            <!-- Citation Form Tile -->
+            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
+                <a href="citation.html" class="block p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
+                    <div class="flex items-center space-x-4">
+                        <svg class="w-8 h-8 text-blue-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm10 2a1 1 0 11-2 0 1 1 0 012 0zm-7 4a1 1 0 011 1v4a1 1 0 11-2 0v-4a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+                        <span class="text-lg font-semibold">Issue Citation</span>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Arrest Form Tile -->
+            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
+                <a href="arrest.html" class="block p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
+                    <div class="flex items-center space-x-4">
+                        <svg class="w-8 h-8 text-red-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 2a8 8 0 100 16A8 8 0 0010 2zM9 9a1 1 0 00-1 1v4a1 1 0 102 0v-4a1 1 0 00-1-1zm3-3a1 1 0 10-2 0v1a1 1 0 102 0V6z" clip-rule="evenodd"></path></svg>
+                        <span class="text-lg font-semibold">Process Arrest</span>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Report Log Tile -->
+            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
+                <a href="report_log.html" class="block p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
+                    <div class="flex items-center space-x-4">
+                        <svg class="w-8 h-8 text-green-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 9v10a2 2 0 002 2h8a2 2 0 002-2V9a2 2 0 00-2-2H6a2 2 0 00-2 2zm3 5a1 1 0 100 2h6a1 1 0 100-2H7z"></path></svg>
+                        <span class="text-lg font-semibold">View Report Log</span>
+                    </div>
+                </a>
+            </div>
+            
+            <!-- N/A Placeholder Tiles -->
+            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
+                <div class="block p-6 rounded-xl shadow-lg theme-tile-bg theme-tile-border theme-text-color opacity-75 cursor-not-allowed">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-8 h-8 text-gray-400 theme-na-box p-1 rounded-md border-2 flex items-center justify-center">N/A</div>
+                        <span class="text-lg font-semibold theme-subtle-text">Traffic Tracker</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
+                <div class="block p-6 rounded-xl shadow-lg theme-tile-bg theme-tile-border theme-text-color opacity-75 cursor-not-allowed">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-8 h-8 text-gray-400 theme-na-box p-1 rounded-md border-2 flex items-center justify-center">N/A</div>
+                        <span class="text-lg font-semibold theme-subtle-text">Dispatch Interface</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
+                <div class="block p-6 rounded-xl shadow-lg theme-tile-bg theme-tile-border theme-text-color opacity-75 cursor-not-allowed">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-8 h-8 text-gray-400 theme-na-box p-1 rounded-md border-2 flex items-center justify-center">N/A</div>
+                        <span class="text-lg font-semibold theme-subtle-text">Vehicle Management</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Help Desk Tile (Embeds the external help page) -->
+            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
+                <button id="helpDeskTile" class="w-full text-left p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
+                    <div class="flex items-center space-x-4">
+                        <svg class="w-8 h-8 text-purple-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-1 1v4a1 1 0 102 0v-4a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                        <span class="text-lg font-semibold">Help Desk (Docs)</span>
+                    </div>
+                </button>
+            </div>
+
+
+        </div>
+    </main>
+
+    <!-- Fullscreen Embed Modal -->
+    <div id="fullscreenEmbedModal" class="fullscreen-embed-modal">
+        <button id="closeEmbedBtn" class="close-embed-btn">Close (Esc)</button>
+        <div id="fullscreenEmbedContent" class="fullscreen-embed-content">
+            <!-- Content (iframe/video) will be injected here -->
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- User Authentication and Display ---
+            const userInfoString = sessionStorage.getItem('userInfo');
+            if (userInfoString) {
+                const userInfo = JSON.parse(userInfoString);
+                // Update user name display
+                const userNameDisplay = document.getElementById('userNameDisplay');
+                if (userNameDisplay) {
+                    userNameDisplay.textContent = userInfo.userName || 'User';
+                }
+
+                // --- Start Admin/Leaderboard Button Visibility Logic (Your Logic) ---
+                const adminButton = document.getElementById('adminButton');
+                const leaderboardButton = document.getElementById('leaderboardButton');
+
+                if (adminButton && leaderboardButton) {
+                    // Conditional display based on the logic provided by the user
+                    if (userInfo.role === 'admin') {
+                        adminButton.classList.remove('hidden'); // Show Admin button
+                        leaderboardButton.classList.remove('hidden'); // Show Leaderboard button for admin
+                    } else {
+                        adminButton.classList.add('hidden'); // Hide Admin button for normal users
+                        leaderboardButton.classList.remove('hidden'); // Show Leaderboard button for normal users
+                    }
+                } else {
+                    console.warn("Admin or Leaderboard button elements not found. Check selection.html HTML structure.");
+                }
+                // --- End Admin/Leaderboard Button Visibility Logic ---
+
+            } else {
+                // If no user info, redirect to login (assuming index.html is login)
+                window.location.href = 'index.html';
+            }
+
+
+            // --- Help Desk Embed Modal Functionality ---
+            const helpDeskTile = document.getElementById('helpDeskTile');
+            const fullscreenEmbedModal = document.getElementById('fullscreenEmbedModal');
+            const fullscreenEmbedContent = document.getElementById('fullscreenEmbedContent');
+            const closeEmbedBtn = document.getElementById('closeEmbedBtn');
+
+            const helpDeskUrl = 'help_desk.html'; // Assuming a separate help_desk.html file
+
+            function openFullscreenEmbedModal(url) {
+                // Load content into the modal (using iframe for external content)
+                fullscreenEmbedContent.innerHTML = `<iframe src="${url}" frameborder="0" allowfullscreen class="w-full h-full min-h-[50vh] md:min-h-[80vh]"></iframe>`;
+                
+                // Show the modal with transition
+                fullscreenEmbedModal.classList.add('show');
+                // Hide scroll on body for better modal experience
+                document.body.style.overflow = 'hidden';
+            }
+
+            if (helpDeskTile) {
+                helpDeskTile.addEventListener('click', () => {
+                    openFullscreenEmbedModal(helpDeskUrl);
+                });
+            }
+
+            function closeFullscreenEmbedModal() {
+                if (!fullscreenEmbedModal || !fullscreenEmbedContent) return;
+                
+                // Restore body scroll
+                document.body.style.overflow = '';
+                
+                // Hide the modal with transition
+                fullscreenEmbedModal.classList.remove('show');
+
+                // Pause video content if present (optional, but good practice)
+                const videoElement = fullscreenEmbedContent.querySelector('video');
+                if (videoElement) videoElement.pause(); // Pause video when closing
+
+                // Clear content after transition for smoother experience
+                setTimeout(() => {
+                    // Ensure fullscreenEmbedContent is not null before clearing
+                    if (fullscreenEmbedContent) fullscreenEmbedContent.innerHTML = '';
+                }, 300);
+            }
+
+            // Ensure closeEmbedBtn is not null before attaching listener
+            if (closeEmbedBtn) {
+                closeEmbedBtn.addEventListener('click', closeFullscreenEmbedModal);
+            } else {
+                console.error("Error: closeEmbedBtn element not found.");
+            }
+
+            // Close modal on Escape key
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' && fullscreenEmbedModal && fullscreenEmbedModal.classList.contains('show')) {
+                    closeFullscreenEmbedModal();
+                }
+            });
+
+            // Close modal on outside click
+            document.addEventListener('click', function(event) {
+                if (event.target === fullscreenEmbedModal && fullscreenEmbedModal) {
+                    closeFullscreenEmbedModal();
+                }
+            });
+            // --- End Help Desk Embed Modal Functionality ---
+        });
+    </script>
+</body>
+</html>
