@@ -163,6 +163,11 @@
                     </div>
                 </div>
 
+                <button id="logoutButton" class="ml-4 px-4 py-2 rounded-full bg-red-600 text-white font-semibold hover:bg-red-700 transition duration-200 shadow-md flex items-center space-x-1">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    <span class="hidden sm:inline">Logout</span>
+                </button>
+
             </div>
         </div>
     </header>
@@ -331,12 +336,11 @@
             toggleThemeDropdown();
         }
         
-        // --- HELP DESK SELECTION LOGIC (NEW) ---
+        // --- HELP DESK SELECTION LOGIC ---
         function handleHelpDeskClick() {
             // Assume 'customConfirm' is available in theme.js
             if (typeof customConfirm !== 'function') {
                 console.error("customConfirm function is not defined. Ensure theme.js is loaded and includes it.");
-                // Fallback to directly opening the help desk if the custom function is missing
                 openFullscreenEmbedModal(helpDeskUrl);
                 return;
             }
@@ -352,10 +356,17 @@
                 },
                 onCancel: () => {
                     // Technical Support (Cancel button)
-                    // The path for the technical support resource is assumed to be 'tech_support.html'
                     openFullscreenEmbedModal('tech_support.html'); 
                 }
             });
+        }
+        
+        // --- LOGOUT LOGIC (NEW) ---
+        function handleLogout() {
+            // Clear the login state
+            sessionStorage.removeItem('loggedInUser');
+            // Redirect to the login page
+            window.location.href = 'index.html'; 
         }
 
         // --- DOM Event Listeners ---
@@ -410,9 +421,16 @@
                 // --- End Theme Dropdown Setup ---
 
 
+                // --- Logout Setup (NEW) ---
+                const logoutButton = document.getElementById('logoutButton');
+                if (logoutButton) {
+                    logoutButton.addEventListener('click', handleLogout);
+                }
+                // --- End Logout Setup ---
+
+
                 // --- Modal/Help Desk Setup ---
                 if (helpDeskTile) {
-                    // Attach the new help desk function to the tile
                     helpDeskTile.addEventListener('click', handleHelpDeskClick);
                 }
 
