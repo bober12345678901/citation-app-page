@@ -36,18 +36,6 @@
             color: var(--subtle-text-color);
         }
 
-        /* New class for the larger tiles (20% increase) */
-        .large-tile-padding {
-            padding: 1.5rem; /* Base padding */
-            font-size: 1.125rem; /* Base text size */
-        }
-        .large-tile-padding .text-lg {
-             font-size: 1.35rem; /* Scale up the text inside */
-        }
-        .large-tile-padding .w-8 {
-             width: 2.5rem; /* Scale up icon size */
-             height: 2.5rem;
-        }
         /* --- Modal Styles --- */
         .fullscreen-embed-modal {
             position: fixed;
@@ -58,26 +46,25 @@
             background-color: rgba(0, 0, 0, 0.9);
             z-index: 1000;
             display: flex;
-            flex-direction: column; /* Allows content and close button to stack */
+            flex-direction: column; 
             justify-content: center;
             align-items: center;
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s ease, visibility 0.3s ease;
-            padding-top: 4rem; /* Space for the header */
+            padding-top: 4rem; 
         }
         .fullscreen-embed-modal.show {
             opacity: 1;
             visibility: visible;
         }
-        /* NOTE: The ID #fullscreenEmbedContent is now the wrapper for content and title. */
         .modal-content {
-            background-color: var(--bg-color); /* This will be the content's background color when showing iframes/videos/pdfs */
+            background-color: var(--bg-color); 
             padding: 2rem;
             border-radius: 0.75rem;
             width: 95%;
             max-width: 90vw;
-            height: 90vh; /* Use height for fullscreen display */
+            height: 90vh; 
             max-height: 90vh;
             overflow: hidden;
             transform: scale(0.95);
@@ -107,29 +94,31 @@
             border-bottom: 1px solid var(--border-color);
         }
         /* Style for content inside the modal (iframe or dynamic content) */
-        /* NOTE: Now targetting #dynamicEmbedContent's children */
         #dynamicEmbedContent > iframe, 
         #dynamicEmbedContent > embed, 
         #dynamicEmbedContent > .aspect-video {
-            flex-grow: 1; /* Allows the content to fill the remaining space */
+            flex-grow: 1; 
             border: none;
             width: 100%;
         }
         
-        /* Ensure the dynamic content area also acts as a flex container to manage its children */
         #dynamicEmbedContent {
             flex-grow: 1; 
             display: flex;
             flex-direction: column;
             width: 100%;
         }
+        /* Added class for the modal overlay for proper JS/CSS toggling */
+        .modal-overlay.show {
+            display: flex;
+        }
     </style>
 </head>
 <body class="theme-bg-color min-h-screen transition-colors duration-300 font-sans">
 
-    <div id="customModalOverlay" class="modal-overlay">
-        <div class="custom-modal">
-            <h3 id="customModalTitle" class="custom-modal-header">Alert</h3>
+    <div id="customModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 items-center justify-center hidden z-50 modal-overlay">
+        <div id="customModal" class="theme-lookup-box p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 sm:mx-auto custom-modal">
+            <h3 id="customModalTitle" class="custom-modal-header theme-text-color">Alert</h3>
             <p id="customModalMessage" class="custom-modal-body theme-text-color"></p>
             <div class="custom-modal-footer">
                 <button id="customModalCancelBtn" class="modal-button theme-button-secondary transition hidden">Cancel</button>
@@ -157,6 +146,8 @@
                             </div>
                     </div>
                 </div>
+                
+                <button id="logoutButton" class="theme-button-danger py-2 px-4 rounded-md font-semibold text-sm">Logout</button>
             </div>
         </div>
     </header>
@@ -164,99 +155,56 @@
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-20">
         <h2 class="text-2xl font-semibold mb-6 theme-text-color">Modules & Resources</h2>
 
-        <div class="grid grid-cols-12 gap-6">
+        <div id="topActionTiles" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
-            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
-                <a href="leaderboard.html" id="leaderboardButton" class="hidden block p-6 large-tile-padding rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
+            <a href="citation.html" class="block p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
+                <div class="flex items-center space-x-4">
+                    <svg class="w-8 h-8 text-blue-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm10 2a1 1 0 11-2 0 1 1 0 012 0zm-7 4a1 1 0 011 1v4a1 1 0 11-2 0v-4a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+                    <span class="text-lg font-semibold">Issue Citation</span>
+                </div>
+            </a>
+
+            <a href="arrest.html" class="block p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
+                <div class="flex items-center space-x-4">
+                    <svg class="w-8 h-8 text-red-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 2a8 8 0 100 16A8 8 0 0010 2zM9 9a1 1 0 00-1 1v4a1 1 0 102 0v-4a1 1 0 00-1-1zm3-3a1 1 0 10-2 0v1a1 1 0 102 0V6z" clip-rule="evenodd"></path></svg>
+                    <span class="text-lg font-semibold">Process Arrest</span>
+                </div>
+            </a>
+
+            <a href="shift_log.html" class="block p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
+                <div class="flex items-center space-x-4">
+                    <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="text-lg font-semibold">Submit Shift Log</span>
+                </div>
+            </a>
+        </div>
+        
+        <div id="lowerActionTiles" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
+
+            <div class="col-span-1">
+                <a href="leaderboard.html" id="leaderboardButton" class="hidden block p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
                     <div class="flex items-center space-x-4">
-                        <svg class="w-8 h-8 text-yellow-500" version="1.0" viewBox="0 0 225 225" preserveAspectRatio="xMidYMid meet" fill="currentColor">
-                            <g transform="translate(0.000000,225.000000) scale(0.100000,-0.100000)" stroke="none">
-                                <path d="M900 2243 c0 -4 30 -77 67 -161 l67 -153 55 3 55 3 46 115 c25 63 54 134 63 158 l17 42 -185 0 c-102 0 -185 -3 -185 -7z"/>
-                                <path d="M1230 1991 l-103 -260 88 -201 c54 -122 91 -196 96 -188 3 7 69 156 144 331 l138 319 -130 129 -129 130 -104 -260z"/>
-                                <path d="M699 2113 l-127 -128 179 -365 178 -365 170 -3 171 -2 -23 52 c-13 29 -111 252 -218 495 -107 244 -196 443 -199 443 -3 0 -62 -57 -131 -127z"/>
-                                <path d="M992 1195 c-169 -37 -333 -165 -406 -318 -135 -280 -52 -598 202 -771 299 -204 713 -95 877 231 39 79 55 139 61 233 23 346 -258 642 -606 639 -36 0 -93 -7 -128 -14z m210 -462 l3 -278 58 -3 57 -3 0 -44 0 -45 -201 0 -200 0 3 43 3 42 60 5 60 5 3 203 2 202 -65 0 -65 0 0 43 0 44 86 17 c47 9 100 23 117 30 18 8 42 15 54 15 l23 1 2 -277z m-474 95 c30 -49 36 -98 18 -143 l-16 -38 -25 23 c-40 37 -53 139 -22 178 15 19 24 15 45 -20z m839 20 c31 -39 18 -141 -22 -178 l-25 -23 -16 38 c-18 45 -12 94 18 143 21 35 30 39 45 20z m63 -186 c0 -38 -48 -120 -80 -137 -39 -20 -40 -20 -40 20 0 51 22 96 65 134 40 35 55 31 55 -17z m-943 6 c37 -38 53 -76 53 -124 0 -39 -1 -39 -40 -19 -47 24 -99 143 -73 168 13 14 30 6 60 -25z m21 -158 c37 -23 72 -75 72 -107 0 -26 -7 -28 -47 -12 -48 18 -113 92 -113 129 0 17 53 11 88 -10z m922 10 c0 -36 -64 -111 -110 -129 l-25 -10 30 -1 c53 -1 60 -13 29 -50 -16 -18 -43 -39 -61 -46 -43 -19 -113 -19 -113 0 0 18 76 86 98 87 10 0 12 3 5 6 -34 13 4 99 59 133 35 21 88 27 88 10z m-861 -150 c37 -10 101 -66 101 -87 0 -18 -71 -17 -113 1 -44 18 -93 76 -75 87 17 11 46 11 87 -1z m181 -128 c18 -11 35 -23 37 -29 6 -16 -45 -33 -100 -33 -55 0 -124 31 -111 51 19 32 122 38 174 11z m517 -4 c39 -40 -112 -78 -182 -46 -32 14 -28 26 16 50 42 24 140 21 166 -4z m-359 -46 c21 -14 3 -40 -42 -62 -46 -22 -106 -26 -137 -9 -17 9 -18 13 -7 26 27 33 73 53 123 53 28 0 56 -4 63 -8z m170 -6 c15 -8 35 -23 45 -34 18 -20 18 -21 -2 -31 -29 -16 -84 -13 -131 5 -46 19 -70 51 -49 65 22 14 107 10 137 -5z m-116 -67 c11 -14 18 -37 16 -50 l-3 -24 -26 28 c-21 21 -28 24 -32 13 -3 -8 -15 -20 -26 -26 -19 -9 -21 -8 -21 13 0 31 37 79 58 75 8 -2 24 -15 34 -29z"/>
-                            </g>
+                        <svg class="w-8 h-8 text-yellow-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" d="M10 2a8 8 0 100 16A8 8 0 0010 2zm1 11a1 1 0 10-2 0v-2a1 1 0 002 0v2zm0-4a1 1 0 10-2 0v-2a1 1 0 002 0v2z" clip-rule="evenodd"></path>
+                            <path d="M13.5 8.75a.75.75 0 00-1.5 0v3.5a.75.75 0 001.5 0v-3.5zM6.5 12.25a.75.75 0 00-1.5 0v.5a.75.75 0 001.5 0v-.5z"></path>
                         </svg>
                         <span class="text-lg font-semibold">Leaderboard</span>
                     </div>
                 </a>
             </div>
-            
-            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
-                <a href="citation.html" class="block p-6 large-tile-padding rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
-                    <div class="flex items-center space-x-4">
-                        <svg class="w-8 h-8 text-blue-500" version="1.0" viewBox="0 0 512 512" preserveAspectRatio="xMidYMid meet" fill="currentColor">
-                            <g transform="translate(0.000000,512.000000) scale(0.100000,-0.100000)" stroke="none">
-                                <path d="M866 5104 c-69 -22 -156 -110 -182 -184 -18 -54 -19 -117 -19 -2360 0 -2639 -10 -2366 95 -2472 96 -96 -67 -88 1800 -88 1867 0 1704 -8 1800 88 105 106 95 -123 98 2110 l2 1952 -172 188 c-95 103 -296 321 -447 485 l-274 297 -1326 -1 c-1151 0 -1332 -2 -1375 -15z m2494 -626 c0 -205 5 -391 10 -413 6 -25 22 -52 44 -72 l36 -33 365 0 365 0 0 -1835 c0 -1803 0 -1834 -19 -1845 -27 -14 -3175 -14 -3202 0 -19 11 -19 47 -19 2280 0 2150 1 2270 18 2279 11 7 418 10 1210 11 l1192 0 0 -372z m479 -60 l173 -188 -186 0 -186 0 0 202 c0 169 2 200 13 188 8 -8 91 -99 186 -202z"/>
-                                <path d="M1332 3695 c-34 -29 -44 -63 -30 -111 19 -69 -70 -64 1213 -64 1284 0 1192 -5 1215 65 9 26 9 44 0 70 -23 69 55 65 -1219 65 l-1149 0 -30 -25z"/>
-                                <path d="M1364 3053 c-66 -13 -91 -121 -40 -172 l26 -26 1165 0 1165 0 27 28 c40 39 40 105 0 144 l-27 28 -1148 1 c-631 1 -1157 0 -1168 -3z"/>
-                                <path d="M1363 2409 c-67 -20 -90 -117 -39 -167 l26 -27 1143 -3 c815 -2 1153 0 1180 8 30 9 42 19 53 46 19 45 10 95 -23 126 l-25 23 -1141 2 c-695 1 -1155 -2 -1174 -8z"/>
-                                <path d="M1348 1744 c-34 -18 -48 -43 -48 -86 0 -41 20 -71 57 -87 21 -8 327 -11 1176 -9 l1149 3 24 28 c33 38 33 96 0 134 l-24 28 -1154 2 c-1004 2 -1157 0 -1180 -13z"/>
-                            </g>
-                        </svg>
-                        <span class="text-lg font-semibold">Issue Citation</span>
-                    </div>
-                </a>
-            </div>
 
-            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
-                <a href="arrest.html" class="block p-6 large-tile-padding rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
-                    <div class="flex items-center space-x-4">
-                        <svg class="w-8 h-8 text-red-500" version="1.0" viewBox="0 0 612 612" preserveAspectRatio="xMidYMid meet" fill="currentColor">
-                            <g transform="translate(0.000000,612.000000) scale(0.100000,-0.100000)" stroke="none">
-                                <path d="M1965 5464 c-76 -91 -142 -167 -146 -170 -4 -2 -100 63 -213 146 -113 82 -207 150 -209 150 -4 0 65 -349 88 -447 l5 -23 -199 -2 -200 -3 181 -129 182 -130 -25 -18 c-13 -10 -87 -63 -163 -118 l-139 -100 368 0 367 0 -5 27 c-6 31 44 246 72 307 24 56 76 103 133 124 l47 16 3 264 c2 145 1 265 -2 267 -3 2 -68 -71 -145 -161z"/>
-                                <path d="M4010 5363 l0 -271 28 -7 c47 -11 107 -52 135 -92 33 -49 101 -301 92 -344 l-7 -29 369 0 368 0 -87 63 c-47 34 -120 87 -162 117 -42 30 -76 55 -76 56 0 1 81 60 181 130 l180 129 -201 3 c-185 2 -201 4 -196 20 3 9 24 107 46 217 22 110 43 209 46 220 7 19 6 19 -22 0 -16 -10 -112 -79 -213 -153 -177 -129 -184 -133 -201 -116 -9 11 -70 82 -135 159 -65 77 -124 147 -131 155 -12 12 -14 -28 -14 -257z"/>
-                                <path d="M2104 4993 c-12 -2 -35 -16 -53 -31 -28 -23 -37 -44 -67 -152 -39 -142 -40 -153 -18 -174 14 -14 127 -16 1094 -16 967 0 1080 2 1094 16 21 21 20 30 -13 162 -31 121 -46 152 -88 179 -25 17 -88 18 -978 19 -522 1 -959 0 -971 -3z m1188 -85 c19 -15 45 -185 30 -200 -4 -4 -125 -7 -268 -6 l-259 3 2 40 c5 88 15 146 29 160 13 12 53 15 233 15 158 0 222 -3 233 -12z"/>
-                                <path d="M1765 4515 c-170 -38 -326 -136 -419 -264 -18 -25 -89 -140 -156 -256 -68 -115 -163 -279 -213 -362 l-89 -153 -315 0 -315 0 -35 -35 c-32 -32 -35 -40 -30 -78 2 -23 19 -82 37 -130 43 -117 75 -150 217 -221 l112 -56 -38 -72 c-77 -145 -148 -367 -177 -558 -14 -91 -16 -217 -14 -935 1 -913 -3 -855 63 -896 30 -18 48 -19 334 -17 l302 3 30 29 c44 42 51 79 51 259 l0 157 1955 0 1955 0 0 -184 c0 -182 0 -185 25 -214 43 -51 57 -53 377 -50 l296 3 27 25 c15 14 31 33 37 43 12 23 18 1522 6 1672 -17 215 -78 440 -172 631 l-52 106 106 53 c163 82 174 94 230 246 33 92 37 127 16 168 -26 49 -43 51 -375 51 l-308 0 -133 228 c-309 530 -311 533 -390 612 -84 85 -170 139 -288 179 l-77 26 -1260 2 c-1019 1 -1271 -1 -1320 -12z m2615 -239 c160 -69 171 -83 505 -642 162 -271 300 -503 306 -518 16 -35 1 -87 -31 -103 -20 -10 -463 -13 -2103 -13 l-2079 0 -30 30 c-22 23 -29 38 -26 58 2 15 123 227 269 472 146 245 278 466 293 492 81 140 217 232 366 246 36 4 610 5 1275 2 1167 -5 1212 -6 1255 -24z m-3160 -1861 c325 -84 354 -97 404 -178 25 -41 30 -61 34 -133 4 -78 3 -87 -18 -109 l-23 -25 -448 0 -447 0 -30 28 c-17 16 -34 41 -38 56 -7 31 57 287 87 348 24 47 90 88 145 88 22 0 172 -34 334 -75z m4090 55 c57 -29 75 -62 120 -223 44 -162 47 -192 24 -225 -36 -52 -40 -52 -513 -52 l-440 0 -20 26 c-16 20 -21 41 -21 84 0 115 46 202 133 246 48 26 575 161 630 163 30 1 62 -6 87 -19z m-1296 -991 c26 -20 26 -22 26 -149 0 -120 -2 -131 -22 -150 -22 -20 -30 -20 -954 -20 -927 0 -931 0 -958 21 -26 20 -26 22 -26 148 0 133 4 147 50 164 8 3 430 6 936 6 918 1 921 1 948 -20z"/>
-                            </g>
-                        </svg>
-                        <span class="text-lg font-semibold">Process Arrest</span>
-                    </div>
-                </a>
-            </div>
-
-            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
-                <a href="shift_log.html" class="block p-6 large-tile-padding rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
-                    <div class="flex items-center space-x-4">
-                        <svg class="w-8 h-8 text-green-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 9v10a2 2 0 002 2h8a2 2 0 002-2V9a2 2 0 00-2-2H6a2 2 0 00-2 2zm3 5a1 1 0 100 2h6a1 1 0 100-2H7z"></path></svg>
-                        <span class="text-lg font-semibold">Submit Shift Log</span>
-                    </div>
-                </a>
-            </div>
-            
-            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
+            <div class="col-span-1">
                 <button id="helpDeskTile" class="w-full text-left p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
                     <div class="flex items-center space-x-4">
-                        <svg class="w-8 h-8 text-purple-500" version="1.0" viewBox="0 0 800 800" preserveAspectRatio="xMidYMid meet" fill="currentColor">
-                            <g transform="translate(0.000000,800.000000) scale(0.100000,-0.100000)" stroke="none">
-                                <path d="M3885 7584 c-436 -41 -813 -192 -1135 -451 -108 -87 -274 -263 -352 -373 -78 -109 -184 -318 -222 -435 -55 -171 -96 -443 -81 -545 16 -112 94 -213 195 -251 43 -17 71 -20 130 -17 86 5 135 26 194 84 63 62 86 125 96 267 20 271 132 508 336 710 257 255 598 397 954 397 573 0 1105 -380 1256 -895 50 -169 44 -437 -13 -634 -82 -284 -205 -443 -678 -871 -257 -233 -334 -309 -439 -434 -196 -234 -337 -523 -395 -811 -25 -121 -45 -363 -36 -425 16 -112 94 -213 195 -251 71 -27 184 -23 245 8 59 31 114 89 142 151 21 45 27 77 34 197 18 308 97 508 295 745 81 97 203 216 439 427 373 334 538 530 673 798 206 412 246 918 106 1350 -38 117 -144 326 -222 435 -78 110 -244 286 -352 373 -276 223 -616 374 -967 431 -94 15 -326 27 -398 20z"/>
-                                <path d="M3902 1800 c-244 -52 -409 -304 -358 -546 46 -224 229 -374 456 -374 377 0 596 419 382 730 -47 67 -141 141 -218 170 -66 24 -195 34 -262 20z"/>
-                            </g>
-                        </svg>
+                        <svg class="w-8 h-8 text-purple-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-1 1v4a1 1 0 102 0v-4a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
                         <span class="text-lg font-semibold">Help Desk (Docs)</span>
                     </div>
                 </button>
             </div>
-
-            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
-                <div class="block p-6 rounded-xl shadow-lg theme-tile-bg theme-tile-border theme-text-color opacity-75 cursor-not-allowed">
-                    <div class="flex items-center space-x-4">
-                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <span class="text-lg font-semibold theme-subtle-text">Coming Soon</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
-                <div class="block p-6 rounded-xl shadow-lg theme-tile-bg theme-tile-border theme-text-color opacity-75 cursor-not-allowed">
-                    <div class="flex items-center space-x-4">
-                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <span class="text-lg font-semibold theme-subtle-text">Coming Soon</span>
-                    </div>
-                </div>
-            </div>
             
-            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
+            <div class="col-span-1">
                 <div class="block p-6 rounded-xl shadow-lg theme-tile-bg theme-tile-border theme-text-color opacity-75 cursor-not-allowed">
                     <div class="flex items-center space-x-4">
                         <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -265,19 +213,17 @@
                 </div>
             </div>
 
-            <div class="col-span-12 mt-4 flex justify-center">
-                <div class="w-full sm:w-1/2 md:w-1/3 lg:w-1/4"> <a href="admin.html" id="adminButton" class="hidden block p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
-                        <div class="flex items-center space-x-4">
-                            <svg class="w-8 h-8 text-red-500" version="1.0" viewBox="0 0 600 600" preserveAspectRatio="xMidYMid meet" fill="currentColor">
-                                <g transform="translate(0.000000,600.000000) scale(0.100000,-0.100000)" stroke="none">
-                                    <path d="M1985 4966 c-550 -166 -1008 -305 -1018 -309 -17 -6 -18 -16 -13 -94 3 -49 11 -162 17 -253 67 -1064 309 -1925 714 -2545 306 -469 734 -820 1219 -1000 l100 -37 110 43 c533 203 942 555 1263 1087 357 592 584 1459 652 2497 6 88 13 190 16 227 3 37 1 69 -3 72 -12 7 -2039 616 -2049 615 -4 -1 -458 -137 -1008 -303z"/>
-                                </g>
-                            </svg>
-                            <span class="text-lg font-semibold">Admin Panel</span>
-                        </div>
-                    </a>
-                </div>
+            <div class="col-span-1">
+                <a href="admin.html" id="adminButton" class="hidden w-full text-left block p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
+                    <div class="flex items-center space-x-4">
+                        <svg class="w-8 h-8 text-red-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M10 2a2 2 0 00-2 2v3H4a2 2 0 00-2 2v7a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-4V4a2 2 0 00-2-2zM8 4a1 1 0 011-1h2a1 1 0 011 1v3H8V4z"></path>
+                        </svg>
+                        <span class="text-lg font-semibold">Admin Panel</span>
+                    </div>
+                </a>
             </div>
+
         </div>
     </main>
 
@@ -295,9 +241,7 @@
         const R2_BASE_URL = "https://pub-a91d9d22a6264a88b02227540eadf4cb.r2.dev/tutorials"; 
 
         const fullscreenEmbedModal = document.getElementById('fullscreenEmbedModal');
-        // REVISED: fullscreenEmbedContent is now the wrapper element
         const fullscreenEmbedContent = document.getElementById('fullscreenEmbedContent');
-        // NEW: dynamicEmbedContent is the target for content injection
         const dynamicEmbedContent = document.getElementById('dynamicEmbedContent');
         const helpDeskTile = document.getElementById('helpDeskTile');
         const closeEmbedBtn = document.getElementById('closeEmbedBtn');
@@ -311,37 +255,31 @@
          * @param {string} title - The title of the document/video
          */
         function openFullscreenEmbedModal(embedType, relativeUrl, title) {
-            // Check dynamicEmbedContent instead of fullscreenEmbedContent (which is the wrapper)
             if (!fullscreenEmbedModal || !dynamicEmbedContent) return; 
 
             const fullUrl = R2_BASE_URL + relativeUrl;
 
-            // Clear previous content (only the dynamic content area)
             dynamicEmbedContent.innerHTML = '';
-            // Reset background on the wrapper
             fullscreenEmbedContent.style.backgroundColor = 'var(--bg-color)'; 
 
-            // Set the title (This will now work as modalTitle is NOT cleared)
             document.getElementById('modalTitle').textContent = title || 'Resource Viewer';
 
-            // Use a container for 16:9 aspect ratio if it's a video
             const container = document.createElement('div');
             container.classList.add('w-full', 'h-full', 'flex', 'items-center', 'justify-center');
 
 
             if (embedType === 'pdf') {
-                fullscreenEmbedContent.style.padding = '0'; // Remove padding for full PDF view
+                fullscreenEmbedContent.style.padding = '0'; 
                 const embed = document.createElement('embed');
                 embed.src = fullUrl;
                 embed.type = 'application/pdf';
                 embed.style.width = '100%';
                 embed.style.height = '100%';
                 embed.style.flexGrow = '1';
-                dynamicEmbedContent.appendChild(embed); // Use dynamic content area
+                dynamicEmbedContent.appendChild(embed); 
             } else if (embedType === 'video') {
-                fullscreenEmbedContent.style.padding = '2rem'; // Restore padding for video spacing
+                fullscreenEmbedContent.style.padding = '2rem'; 
                 
-                // Create a 16:9 responsive wrapper for the video, centered in the modal
                 const videoWrapper = document.createElement('div');
                 videoWrapper.classList.add('relative', 'w-full', 'max-w-4xl', 'mx-auto', 'aspect-video', 'flex-grow');
 
@@ -359,24 +297,21 @@
                 video.classList.add('absolute', 'inset-0', 'w-full', 'h-full', 'rounded-xl', 'shadow-2xl');
 
                 videoWrapper.appendChild(video);
-                dynamicEmbedContent.appendChild(videoWrapper); // Use dynamic content area
+                dynamicEmbedContent.appendChild(videoWrapper); 
             } else if (embedType === 'iframe') {
-                // This is used for the Help Desk initial page (help_desk.html)
                 fullscreenEmbedContent.style.padding = '0'; 
                 fullscreenEmbedContent.style.backgroundColor = 'var(--card-bg-color)';
-                // Title is already set above, but override with a specific one for the initial screen
                 document.getElementById('modalTitle').textContent = 'Help Desk Documentation';
                 const iframe = document.createElement('iframe');
                 iframe.id = 'helpDeskIframe';
                 iframe.src = relativeUrl;
                 iframe.frameborder = '0';
                 iframe.classList.add('w-full', 'h-full', 'flex-grow');
-                dynamicEmbedContent.appendChild(iframe); // Use dynamic content area
+                dynamicEmbedContent.appendChild(iframe); 
             }
 
-            // Show the modal
             fullscreenEmbedModal.classList.add('show');
-            document.body.style.overflow = 'hidden'; // Prevent scrolling background
+            document.body.style.overflow = 'hidden'; 
         }
 
         /**
@@ -384,28 +319,22 @@
          */
         function closeFullscreenEmbedModal() {
 			if (!fullscreenEmbedModal) return;
-			document.body.style.overflow = ''; // Restore scrolling
+			document.body.style.overflow = ''; 
 			fullscreenEmbedModal.classList.remove('show');
     
-			// Find any video element in the dynamic content area and pause it to stop sound
 			const videoElement = dynamicEmbedContent.querySelector('video');
 			if (videoElement) {
-			videoElement.pause();
+			    videoElement.pause();
 			}
     
-			// ------------------------------------------------------------------
-			// FIX: Clear content IMMEDIATELY, not after a setTimeout delay. 
-			// This prevents the content of the new modal from being cleared later.
-			// ------------------------------------------------------------------
-			dynamicEmbedContent.innerHTML = ''; // Clear dynamic content immediately
-			fullscreenEmbedContent.style.padding = '2rem'; // Reset padding on the wrapper immediately
+			dynamicEmbedContent.innerHTML = ''; 
+			fullscreenEmbedContent.style.padding = '2rem'; 
         }
 
         
         // --- DOM Event Listeners ---
         document.addEventListener('DOMContentLoaded', function() {
             
-            // Added try...catch block to prevent uncaught errors from crashing the page
             try { 
                 // --- User Authentication and Display (Existing Logic) ---
                 const loggedInUserString = sessionStorage.getItem('loggedInUser');
@@ -415,15 +344,13 @@
                     const userNameDisplay = document.getElementById('userNameDisplay');
                     
                     if (userNameDisplay) {
-                        // Use userName property from the loggedInUser object
-                        userNameDisplay.textContent = loggedInUser.userName || 'User';
+                        userNameDisplay.textContent = loggedInUser.userName || loggedInUser.username || 'User';
                     }
 
                     const adminButton = document.getElementById('adminButton');
                     const leaderboardButton = document.getElementById('leaderboardButton');
 
                     if (adminButton && leaderboardButton) {
-                        // Check user role for showing Admin and Leaderboard links
                         if (loggedInUser.role === 'admin') {
                             adminButton.classList.remove('hidden');
                             leaderboardButton.classList.remove('hidden');
@@ -433,20 +360,31 @@
                         }
                     }
                 } else {
-                    // Redirect if no user info is found (unauthenticated state)
                     window.location.href = 'index.html';
                 }
                 // --- End Existing Logic ---
+                
+                // --- NEW LOGOUT LOGIC (1) ---
+                const logoutButton = document.getElementById('logoutButton');
+                if (logoutButton) {
+                    logoutButton.addEventListener('click', () => {
+                        window.showCustomConfirm('Are you sure you want to log out?', 'Confirm Logout').then((confirmed) => {
+                            if (confirmed) {
+                                sessionStorage.removeItem('authToken');
+                                sessionStorage.removeItem('loggedInUser');
+                                window.location.href = 'index.html'; // Redirect to login page
+                            }
+                        });
+                    });
+                }
+                // --- END NEW LOGOUT LOGIC ---
 
 
                 // --- Help Desk/Modal Setup ---
                 if (helpDeskTile) {
                     helpDeskTile.addEventListener('click', () => {
-                        // 1. Open the primary modal with the help_desk.html iframe
-                        // FIX: openFullscreenEmbedModal now works correctly even without the title argument for iframe
                         openFullscreenEmbedModal('iframe', helpDeskUrl);
 
-                        // 2. Attach a listener to the iframe once it's loaded to handle nested R2 link clicks
                         const helpDeskIframe = document.getElementById('helpDeskIframe');
                         
                         if (helpDeskIframe) {
@@ -454,25 +392,20 @@
                                 try {
                                     const iframeDocument = helpDeskIframe.contentDocument || helpDeskIframe.contentWindow.document;
                                     
-                                    // Check if we already attached the listener to prevent duplicates
                                     if (!iframeDocument.body.getAttribute('data-r2-listener-attached')) {
                                         
                                         iframeDocument.body.addEventListener('click', function(event) {
                                             const target = event.target.closest('.r2-embed-link');
 
                                             if (target) {
-                                                event.preventDefault(); // Stop default button action
+                                                event.preventDefault(); 
 
                                                 const type = target.getAttribute('data-embed-type');
                                                 const url = target.getAttribute('data-url');
                                                 const title = target.textContent;
                                                 
-                                                // Close the current iframe modal (the one showing help_desk.html)
                                                 closeFullscreenEmbedModal(); 
                                                 
-                                                // Open the new fullscreen embed modal with the PDF/Video
-                                                // We add a slight delay to ensure the modal is fully closed before re-opening 
-                                                // (to prevent visual glitches during rapid transition)
                                                 setTimeout(() => {
                                                     openFullscreenEmbedModal(type, url, title); 
                                                 }, 100); 
@@ -495,14 +428,8 @@
                 // Close modals on Escape key
                 document.addEventListener('keydown', function(event) {
                     if (event.key === 'Escape') {
-                        // Check for fullscreen modal
                         if (fullscreenEmbedModal && fullscreenEmbedModal.classList.contains('show')) {
                             closeFullscreenEmbedModal();
-                        }
-                        // Check for custom alert modal
-                        const customModalOverlay = document.getElementById('customModalOverlay');
-                        if (customModalOverlay && customModalOverlay.classList.contains('show')) {
-                             // Logic to handle ESC key for custom alert is now in theme.js
                         }
                     }
                 });
@@ -516,7 +443,6 @@
                 // --- End Modal Setup ---
             } catch (error) {
                 console.error("Dashboard Initialization Failed Gracefully:", error);
-                // The page will remain visually available, but critical functions might be disabled.
             }
         });
     </script>
