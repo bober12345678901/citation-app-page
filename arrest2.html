@@ -34,7 +34,7 @@
         /* Style for dynamically added charge groups (similar to penal-code-group) */
         .charge-group {
             display: grid;
-            grid-template-columns: 1fr 1fr auto; /* Charge, Jail Time, Remove Button */
+            grid-template-columns: 1fr 1fr auto; /* Charge, Jail Time, Remove Button/Spacer */
             gap: 1.5rem; /* Tailwind's gap-x-6 gap-y-4 */
             margin-bottom: 1rem; /* Tailwind's mb-4 */
             align-items: end; /* Align buttons to bottom of input */
@@ -199,17 +199,7 @@
             <div class="mb-6 p-4 rounded-lg theme-section-bg">
                 <h3 class="theme-title font-bold text-lg mb-4">Charge(s) & Jail Time (Seconds):</h3>
                 <div id="chargeInputsContainer">
-                    <div class="charge-group" data-group-id="0">
-                        <div class="input-wrapper">
-                            <label for="chargeCode_0" class="theme-label block mb-2 font-medium">Charge Code:</label>
-                            <input type="text" id="chargeCode_0" name="chargeCode_0" class="theme-input w-full p-2 border rounded-md charge-code-input" autocomplete="off">
-                            <div id="chargeSuggestions_0" class="autocomplete-suggestions"></div>
-                        </div>
-                        <div class="jail-time-wrapper">
-                            <label for="jailTime_0" class="theme-label block mb-2 font-medium">Jail Time (Sec):</label>
-                            <input type="number" id="jailTime_0" name="jailTime_0" step="1" min="0" value="0" class="theme-input w-full p-2 border rounded-md jail-time-input" readonly>
-                        </div>
-                    </div>
+                    <!-- Initial charge group will be dynamically generated in JS with ID 0 -->
                 </div>
                 <div class="flex flex-wrap gap-4 mt-4 justify-center">
                     <button type="button" id="addChargeBtn" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">Add Another Charge</button>
@@ -430,6 +420,17 @@
             chargeGroupCounter++;
             const groupId = chargeGroupCounter;
             
+            // The remove button should only be visible for groups added after the first one (ID 0).
+            const isInitialEmptyGroup = groupId === 0 && code === '';
+
+            // The element to occupy the button's space in the grid
+            const removeElement = isInitialEmptyGroup ?
+                // Placeholder div to maintain grid column for layout consistency. Must have the button-remove class for CSS
+                '<div class="button-remove"></div>' : 
+                // Actual remove button
+                `<button type="button" class="theme-button-danger py-2 px-2 rounded-md font-semibold button-remove" data-group-id="${groupId}">Remove</button>`;
+
+
             const newChargeGroupHtml = `
                 <div class="charge-group" data-group-id="${groupId}">
                     <div class="input-wrapper">
@@ -441,7 +442,7 @@
                         <label for="jailTime_${groupId}" class="theme-label block mb-2 font-medium">Jail Time (Sec):</label>
                         <input type="number" id="jailTime_${groupId}" name="jailTime_${groupId}" step="1" min="0" value="${jailTime}" class="theme-input w-full p-2 border rounded-md jail-time-input" readonly>
                     </div>
-                    <button type="button" class="theme-button-danger py-2 px-2 rounded-md font-semibold button-remove" data-group-id="${groupId}">Remove</button>
+                    ${removeElement}
                     <!-- Hidden field to store fine amount if needed later, set by updateChargeData -->
                     <input type="hidden" id="fineAmount_${groupId}" name="fineAmount_${groupId}" value="${fines}"> 
                 </div>
@@ -516,7 +517,7 @@
         function clearAllChargeInputs() {
             chargeInputsContainer.innerHTML = '';
             chargeGroupCounter = -1; // Next call to addChargeInputGroup will result in ID 0
-            addChargeInputGroup('', 0, 0); // Add the first blank input group back
+            addChargeInputGroup('', 0, 0); // Add the first blank input group back (ID 0)
         }
 
         /**
@@ -532,16 +533,20 @@
             window.showCustomConfirm(`This will add all ${penalCodesData.length} penal codes to the charges list. Are you sure?`, 'Confirm Admin Action')
                 .then(confirmed => {
                     if (confirmed) {
-                        clearAllChargeInputs(); // Start with a clean slate
+                        clearAllChargeInputs(); // Start with a clean slate (creates one empty group with ID 0)
+                        
                         // Remove the blank charge group (ID 0) created by clearAllChargeInputs
                         const firstGroup = chargeInputsContainer.querySelector('.charge-group');
                         if (firstGroup) {
                             firstGroup.remove();
+                            // Reset counter so the first code added starts at ID 0
+                            chargeGroupCounter = -1; 
                         }
 
                         // Add all codes
                         penalCodesData.forEach(codeData => {
                             // JailTime is stored as a number, Fine is stored as a number
+                            // Note: Since 'code' is provided, addChargeInputGroup will correctly include the Remove button for ALL of these.
                             addChargeInputGroup(codeData.Code, codeData.JailTime || 0, codeData.Fine || 0);
                         });
                         calculateTotals();
@@ -553,16 +558,18 @@
         
         function handleChargeInput(event) {
             const input = event.target;
-            const groupId = input.closest('.charge-group')?.getAttribute('data-group-id');
+            const group = input.closest('.charge-group');
+            const groupId = group?.getAttribute('data-group-id');
             if (!groupId) return;
 
             // 1. Handle remove button clicks
             if (event.target.classList.contains('button-remove') && event.type === 'click') {
                 if (document.querySelectorAll('.charge-group').length > 1) {
-                    event.target.closest('.charge-group').remove();
+                    // Only remove the group if there is more than one present
+                    group.remove();
                 } else {
                     // If only one group is left, just clear the inputs
-                    const chargeInput = document.getElementById(`chargeCode_${groupId}`);
+                    const chargeInput = group.querySelector('.charge-code-input');
                     chargeInput.value = '';
                     // Clear suggestions and update data/totals
                     hideSuggestions(groupId);
@@ -779,8 +786,12 @@
             if (!isValid) return;
 
             if (charges.length === 0) {
-                window.showCustomAlert('Please add at least one valid charge before submitting.', 'Error', 'Missing Charges');
-                return;
+                // If there's only one empty charge group, this check is sufficient
+                const firstChargeInput = document.querySelector('.charge-code-input');
+                if (!firstChargeInput || firstChargeInput.value.trim() === '') {
+                     window.showCustomAlert('Please add at least one valid charge before submitting.', 'Error', 'Missing Charges');
+                     return;
+                }
             }
 
             const isWarrantNeeded = document.getElementById('warrantNeededYes').checked;
@@ -894,7 +905,6 @@
             const arrestingOfficerBadgeInput = document.getElementById('arrestingOfficerBadge');
             const yourUsernameInput = document.getElementById('yourUsername');
             const officerDepartmentDisplayInput = document.getElementById('officerDepartmentDisplay');
-            const suspectNameInput = document.getElementById('suspectName');
             const chargeInputsContainer = document.getElementById('chargeInputsContainer');
             const totalJailTimeSumInput = document.getElementById('totalJailTimeSum');
             const totalFinesSumInput = document.getElementById('totalFinesSum');
@@ -918,9 +928,12 @@
                 arrestingOfficerBadgeInput.value = loggedInUser.badgeNumber || '';
                 officerDepartmentDisplayInput.value = loggedInUser.department || 'N/A';
                 
-                // ADMIN CHECK: Show 'Add All Penal Codes' button if rank is Admin
-                if (loggedInUser.rank && loggedInUser.rank.toLowerCase() === 'admin') {
+                console.log("Logged in user rank:", loggedInUser.rank); 
+
+                // ADMIN CHECK: Show 'Add All Penal Codes' button if rank is Admin (case-insensitive and trimmed)
+                if (loggedInUser.rank && loggedInUser.rank.toLowerCase().trim() === 'admin') {
                     addAllPenalCodesButton.classList.remove('hidden');
+                    console.log("Admin privileges detected. Showing 'Add All Penal Codes' button."); 
                 }
             } else {
                 redirectToLogin("User session data not found.");
@@ -957,7 +970,7 @@
             servingWarrantRadios.forEach(radio => radio.addEventListener('change', toggleWarrantJailTimeField));
             viewAllPenalCodesBtn.addEventListener('click', handleViewAllPenalCodes);
             
-            // New Admin Button Listener
+            // Admin Button Listener
             addAllPenalCodesButton.addEventListener('click', addAllPenalCodes);
 
             document.getElementById('penalCodeListModalCloseBtn').addEventListener('click', () => { 
