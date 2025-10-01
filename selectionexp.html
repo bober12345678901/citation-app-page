@@ -181,7 +181,7 @@
             </a>
         </div>
         
-        <div id="lowerActionTiles" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
+        <div id="middleActionTiles" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
 
             <div class="col-span-1">
                 <a href="leaderboard.html" id="leaderboardButton" class="hidden block p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
@@ -204,16 +204,15 @@
                 </button>
             </div>
             
-            <div class="col-span-1">
-                <div class="block p-6 rounded-xl shadow-lg theme-tile-bg theme-tile-border theme-text-color opacity-75 cursor-not-allowed">
-                    <div class="flex items-center space-x-4">
-                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <span class="text-lg font-semibold theme-subtle-text">Coming Soon</span>
-                    </div>
-                </div>
-            </div>
+            <div class="col-span-1 hidden lg:block"></div>
+            <div class="col-span-1 hidden lg:block"></div>
+        </div>
 
-            <div class="col-span-1">
+        <div id="bottomUtilityTiles" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
+
+            <div class="col-span-1 hidden lg:block"></div>
+
+            <div class="col-span-1 sm:col-span-1 lg:col-span-1">
                 <a href="admin.html" id="adminButton" class="hidden w-full text-left block p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
                     <div class="flex items-center space-x-4">
                         <svg class="w-8 h-8 text-red-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -224,7 +223,27 @@
                 </a>
             </div>
 
+            <div class="col-span-1 sm:col-span-1 lg:col-span-1">
+                <div class="block p-6 rounded-xl shadow-lg theme-tile-bg theme-tile-border theme-text-color opacity-75 cursor-not-allowed">
+                    <div class="flex items-center space-x-4">
+                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span class="text-lg font-semibold theme-subtle-text">Coming Soon</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-span-1 sm:col-span-2 lg:col-span-1">
+                <div class="block p-6 rounded-xl shadow-lg theme-tile-bg theme-tile-border theme-text-color opacity-75 cursor-not-allowed">
+                    <div class="flex items-center space-x-4">
+                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span class="text-lg font-semibold theme-subtle-text">Coming Soon 2</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-span-1 hidden lg:block"></div>
         </div>
+
     </main>
 
     <div id="fullscreenEmbedModal" class="fullscreen-embed-modal">
@@ -250,23 +269,19 @@
         
         /**
          * Dynamically loads PDF or Video content into the fullscreen modal.
-         * @param {string} embedType - 'pdf' or 'video'
-         * @param {string} relativeUrl - The R2 path (e.g., '/cite/citations_video.mp4')
+         * @param {string} embedType - 'pdf' or 'video' or 'iframe'
+         * @param {string} relativeUrl - The R2 path or internal URL ('help_desk.html')
          * @param {string} title - The title of the document/video
          */
         function openFullscreenEmbedModal(embedType, relativeUrl, title) {
             if (!fullscreenEmbedModal || !dynamicEmbedContent) return; 
 
-            const fullUrl = R2_BASE_URL + relativeUrl;
+            const fullUrl = embedType === 'iframe' ? relativeUrl : R2_BASE_URL + relativeUrl;
 
             dynamicEmbedContent.innerHTML = '';
             fullscreenEmbedContent.style.backgroundColor = 'var(--bg-color)'; 
 
             document.getElementById('modalTitle').textContent = title || 'Resource Viewer';
-
-            const container = document.createElement('div');
-            container.classList.add('w-full', 'h-full', 'flex', 'items-center', 'justify-center');
-
 
             if (embedType === 'pdf') {
                 fullscreenEmbedContent.style.padding = '0'; 
@@ -350,13 +365,15 @@
                     const adminButton = document.getElementById('adminButton');
                     const leaderboardButton = document.getElementById('leaderboardButton');
 
-                    if (adminButton && leaderboardButton) {
+                    // Visibility logic
+                    if (leaderboardButton) {
+                        leaderboardButton.classList.remove('hidden');
+                    }
+                    if (adminButton) {
                         if (loggedInUser.role === 'admin') {
                             adminButton.classList.remove('hidden');
-                            leaderboardButton.classList.remove('hidden');
                         } else {
                             adminButton.classList.add('hidden');
-                            leaderboardButton.classList.remove('hidden');
                         }
                     }
                 } else {
@@ -364,7 +381,7 @@
                 }
                 // --- End Existing Logic ---
                 
-                // --- NEW LOGOUT LOGIC (1) ---
+                // --- LOGOUT LOGIC ---
                 const logoutButton = document.getElementById('logoutButton');
                 if (logoutButton) {
                     logoutButton.addEventListener('click', () => {
@@ -377,13 +394,13 @@
                         });
                     });
                 }
-                // --- END NEW LOGOUT LOGIC ---
+                // --- END LOGOUT LOGIC ---
 
 
                 // --- Help Desk/Modal Setup ---
                 if (helpDeskTile) {
                     helpDeskTile.addEventListener('click', () => {
-                        openFullscreenEmbedModal('iframe', helpDeskUrl);
+                        openFullscreenEmbedModal('iframe', helpDeskUrl, 'Help Desk Documentation');
 
                         const helpDeskIframe = document.getElementById('helpDeskIframe');
                         
@@ -402,7 +419,7 @@
 
                                                 const type = target.getAttribute('data-embed-type');
                                                 const url = target.getAttribute('data-url');
-                                                const title = target.textContent;
+                                                const title = target.textContent.trim();
                                                 
                                                 closeFullscreenEmbedModal(); 
                                                 
