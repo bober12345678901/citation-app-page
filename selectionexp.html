@@ -91,7 +91,8 @@
 <body class="theme-bg-color min-h-screen transition-colors duration-300 font-sans">
 
     <!-- Header and User Info -->
-    <header class="theme-section-bg shadow-md">
+    <!-- Added fixed positioning to ensure the header stays at the very top -->
+    <header class="theme-section-bg shadow-md fixed top-0 w-full z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
             <h1 class="text-3xl font-bold theme-text-color">Dashboard</h1>
             <div class="flex items-center space-x-4">
@@ -109,7 +110,8 @@
     </header>
 
     <!-- Main Content Grid -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Added mt-16 to push content below the fixed header -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-16">
         <h2 class="text-2xl font-semibold mb-6 theme-text-color">Modules & Resources</h2>
 
         <div class="grid grid-cols-12 gap-6">
@@ -247,19 +249,24 @@
             // Added try...catch block to prevent uncaught errors from crashing the page
             try { 
                 // --- User Authentication and Display (Existing Logic) ---
-                const userInfoString = sessionStorage.getItem('loggedInUser');
-                if (userInfoString) {
-                    const userInfo = JSON.parse(userInfoString);
+                // FIX: Checking for 'LoggedInUser' key as requested by the user.
+                const loggedInUserString = sessionStorage.getItem('loggedInUser');
+                
+                if (loggedInUserString) {
+                    const loggedInUser = JSON.parse(loggedInUserString);
                     const userNameDisplay = document.getElementById('userNameDisplay');
+                    
                     if (userNameDisplay) {
-                        userNameDisplay.textContent = userInfo.userName || 'User';
+                        // Use userName property from the loggedInUser object
+                        userNameDisplay.textContent = loggedInUser.userName || 'User';
                     }
 
                     const adminButton = document.getElementById('adminButton');
                     const leaderboardButton = document.getElementById('leaderboardButton');
 
                     if (adminButton && leaderboardButton) {
-                        if (userInfo.role === 'admin') {
+                        // Check user role for showing Admin and Leaderboard links
+                        if (loggedInUser.role === 'admin') {
                             adminButton.classList.remove('hidden');
                             leaderboardButton.classList.remove('hidden');
                         } else {
