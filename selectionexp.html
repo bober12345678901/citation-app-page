@@ -83,14 +83,6 @@
             cursor: pointer;
             z-index: 1010;
         }
-        /* Custom class for the theme dropdown menu to ensure rounded corners */
-        .theme-dropdown-menu {
-            border-radius: 0.5rem; /* Ensures rounded edges for the menu box */
-        }
-        .theme-dropdown-item:hover {
-            background-color: var(--accent-color);
-            color: var(--bg-color); /* Swap text color on hover for contrast */
-        }
     </style>
 </head>
 <body class="theme-bg-color min-h-screen transition-colors duration-300 font-sans">
@@ -115,59 +107,16 @@
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                 </div>
                 
-                <div class="relative inline-block text-left z-20">
-                    <button id="themeToggle" type="button" class="p-2 rounded-full theme-text-color border border-transparent hover:border-gray-500/50 hover:shadow-lg transition-all duration-200 flex items-center justify-center space-x-1" aria-expanded="false" aria-haspopup="true">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M16 7.5l-2.75 3 2.75 3m-9 0h9"></path></svg>
+                <div class="relative inline-block text-left">
+                    <button id="themeToggle" type="button" class="p-2 rounded-full theme-text-color hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-colors flex items-center justify-center space-x-1" aria-expanded="false" aria-haspopup="true">
+                        <span id="currentThemeIcon" class="w-6 h-6 flex items-center justify-center"></span>
                         <svg id="dropdownArrow" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
-
-                    <div id="themeDropdownMenu" class="absolute right-0 mt-2 w-40 theme-dropdown-menu shadow-2xl theme-section-bg ring-1 ring-black ring-opacity-10 origin-top-right hidden">
-                        <div class="py-1 theme-text-color" role="menu" aria-orientation="vertical" aria-labelledby="themeToggle" id="themeOptionsContainer">
-                            <a href="#" class="theme-dropdown-item block px-4 py-2 text-sm" data-theme="light">Light</a>
-                            <a href="#" class="theme-dropdown-item block px-4 py-2 text-sm" data-theme="dark">Dark</a>
-                            <a href="#" class="theme-dropdown-item block px-4 py-2 text-sm" data-theme="sunset">Sunset</a>
-                            <a href="#" class="theme-dropdown-item block px-4 py-2 text-sm" data-theme="ocean">Ocean</a>
-                            <a href="#" class="theme-dropdown-item block px-4 py-2 text-sm" data-theme="forest">Forest</a>
-                            <a href="#" class="theme-dropdown-item block px-4 py-2 text-sm" data-theme="midnight">Midnight</a>
-                            <a href="#" class="theme-dropdown-item block px-4 py-2 text-sm" data-theme="dracula">Dracula</a>
-                            <a href="#" class="theme-dropdown-item block px-4 py-2 text-sm" data-theme="cyberpunk">Cyberpunk</a>
-                            <a href="#" class="theme-dropdown-item block px-4 py-2 text-sm border-t border-gray-500/50 mt-1 pt-1" data-theme="custom">Custom...</a>
-                        </div>
+                    <div id="themeDropdownMenu" class="absolute right-0 mt-2 w-48 rounded-lg shadow-2xl theme-section-bg ring-1 ring-black ring-opacity-10 origin-top-right hidden theme-dropdown-menu">
+                        <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="themeToggle" id="themeOptions">
+                            </div>
                     </div>
                 </div>
-
-                <select id="themeSelector" class="absolute h-0 w-0 opacity-0 pointer-events-none">
-                    <option value="light">Light</option>
-                    <option value="dark">Dark</option>
-                    <option value="sunset">Sunset</option>
-                    <option value="ocean">Ocean</option>
-                    <option value="forest">Forest</option>
-                    <option value="midnight">Midnight</option>
-                    <option value="dracula">Dracula</option>
-                    <option value="cyberpunk">Cyberpunk</option>
-                    <option value="custom">Custom...</option>
-                </select>
-                
-                <div id="customColorsContainer" class="absolute right-0 top-16 mt-2 p-4 rounded-lg shadow-xl theme-section-bg hidden z-50 flex-col space-y-2 w-48 border border-gray-600/50">
-                    <div>
-                        <label for="customBgColor" class="theme-text-color block mb-1 text-sm">BG Color:</label>
-                        <input type="color" id="customBgColor" value="#f3f4f6" class="w-full h-8 p-0 border rounded-md cursor-pointer theme-input" />
-                    </div>
-                    <div>
-                        <label for="customTextColor" class="theme-text-color block mb-1 text-sm">Text Color:</label>
-                        <input type="color" id="customTextColor" value="#1f2937" class="w-full h-8 p-0 border rounded-md cursor-pointer theme-input" />
-                    </div>
-                    <div>
-                        <label for="customAccentColor" class="theme-text-color block mb-1 text-sm">Accent Color:</label>
-                        <input type="color" id="customAccentColor" value="#3b82f6" class="w-full h-8 p-0 border rounded-md cursor-pointer theme-input" />
-                    </div>
-                </div>
-
-                <button id="logoutButton" class="ml-4 px-4 py-2 rounded-full bg-red-600 text-white font-semibold hover:bg-red-700 transition duration-200 shadow-md flex items-center space-x-1">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                    <span class="hidden sm:inline">Logout</span>
-                </button>
-
             </div>
         </div>
     </header>
@@ -177,16 +126,6 @@
 
         <div class="grid grid-cols-12 gap-6">
 
-            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
-                <a href="admin.html" id="adminButton" class="hidden block p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
-                    <div class="flex items-center space-x-4">
-                        <svg class="w-8 h-8 text-red-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M10 2a2 2 0 00-2 2v3H4a2 2 0 00-2 2v7a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-4V4a2 2 0 00-2-2zM8 4a1 1 0 011-1h2a1 1 0 011 1v3H8V4z"></path>
-                        </svg>
-                        <span class="text-lg font-semibold">Admin Panel</span>
-                    </div>
-                </a>
-            </div>
             <div class="col-span-12 sm:col-span-6 lg:col-span-3">
                 <a href="leaderboard.html" id="leaderboardButton" class="hidden block p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
                     <div class="flex items-center space-x-4">
@@ -218,41 +157,14 @@
             </div>
 
             <div class="col-span-12 sm:col-span-6 lg:col-span-3">
-                <a href="report_log.html" class="block p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
+                <a href="shift_log.html" class="block p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
                     <div class="flex items-center space-x-4">
                         <svg class="w-8 h-8 text-green-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 9v10a2 2 0 002 2h8a2 2 0 002-2V9a2 2 0 00-2-2H6a2 2 0 00-2 2zm3 5a1 1 0 100 2h6a1 1 0 100-2H7z"></path></svg>
-                        <span class="text-lg font-semibold">View Report Log</span>
+                        <span class="text-lg font-semibold">Submit Shift Log</span>
                     </div>
                 </a>
             </div>
             
-            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
-                <div class="block p-6 rounded-xl shadow-lg theme-tile-bg theme-tile-border theme-text-color opacity-75 cursor-not-allowed">
-                    <div class="flex items-center space-x-4">
-                        <div class="w-8 h-8 text-gray-400 theme-na-box p-1 rounded-md border-2 flex items-center justify-center">N/A</div>
-                        <span class="text-lg font-semibold theme-subtle-text">Traffic Tracker</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
-                <div class="block p-6 rounded-xl shadow-lg theme-tile-bg theme-tile-border theme-text-color opacity-75 cursor-not-allowed">
-                    <div class="flex items-center space-x-4">
-                        <div class="w-8 h-8 text-gray-400 theme-na-box p-1 rounded-md border-2 flex items-center justify-center">N/A</div>
-                        <span class="text-lg font-semibold theme-subtle-text">Dispatch Interface</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
-                <div class="block p-6 rounded-xl shadow-lg theme-tile-bg theme-tile-border theme-text-color opacity-75 cursor-not-allowed">
-                    <div class="flex items-center space-x-4">
-                        <div class="w-8 h-8 text-gray-400 theme-na-box p-1 rounded-md border-2 flex items-center justify-center">N/A</div>
-                        <span class="text-lg font-semibold theme-subtle-text">Vehicle Management</span>
-                    </div>
-                </div>
-            </div>
-
             <div class="col-span-12 sm:col-span-6 lg:col-span-3">
                 <button id="helpDeskTile" class="w-full text-left p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
                     <div class="flex items-center space-x-4">
@@ -262,7 +174,44 @@
                 </button>
             </div>
 
+            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
+                <div class="block p-6 rounded-xl shadow-lg theme-tile-bg theme-tile-border theme-text-color opacity-75 cursor-not-allowed">
+                    <div class="flex items-center space-x-4">
+                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span class="text-lg font-semibold theme-subtle-text">Coming Soon</span>
+                    </div>
+                </div>
+            </div>
 
+            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
+                <div class="block p-6 rounded-xl shadow-lg theme-tile-bg theme-tile-border theme-text-color opacity-75 cursor-not-allowed">
+                    <div class="flex items-center space-x-4">
+                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span class="text-lg font-semibold theme-subtle-text">Coming Soon</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
+                <div class="block p-6 rounded-xl shadow-lg theme-tile-bg theme-tile-border theme-text-color opacity-75 cursor-not-allowed">
+                    <div class="flex items-center space-x-4">
+                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span class="text-lg font-semibold theme-subtle-text">Coming Soon</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-span-12 mt-4 flex justify-center">
+                <div class="w-full sm:w-1/2 md:w-1/3 lg:w-1/4"> <a href="admin.html" id="adminButton" class="hidden block p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
+                        <div class="flex items-center space-x-4">
+                            <svg class="w-8 h-8 text-red-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M10 2a2 2 0 00-2 2v3H4a2 2 0 00-2 2v7a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-4V4a2 2 0 00-2-2zM8 4a1 1 0 011-1h2a1 1 0 011 1v3H8V4z"></path>
+                            </svg>
+                            <span class="text-lg font-semibold">Admin Panel</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
         </div>
     </main>
 
@@ -295,83 +244,11 @@
                 if (fullscreenEmbedContent) fullscreenEmbedContent.innerHTML = '';
             }, 300);
         }
-
-        // --- CUSTOM THEME DROPDOWN LOGIC ---
-        const themeToggleBtn = document.getElementById('themeToggle');
-        const themeDropdownMenu = document.getElementById('themeDropdownMenu');
-        const dropdownArrow = document.getElementById('dropdownArrow');
-        const themeOptionsContainer = document.getElementById('themeOptionsContainer');
-        const themeSelector = document.getElementById('themeSelector'); // The hidden <select>
-
-        function toggleThemeDropdown() {
-            const isExpanded = themeToggleBtn.getAttribute('aria-expanded') === 'true';
-            
-            if (isExpanded) {
-                // Close the dropdown
-                themeDropdownMenu.classList.add('hidden');
-                themeToggleBtn.setAttribute('aria-expanded', 'false');
-                dropdownArrow.classList.remove('rotate-180');
-            } else {
-                // Open the dropdown
-                themeDropdownMenu.classList.remove('hidden');
-                themeToggleBtn.setAttribute('aria-expanded', 'true');
-                dropdownArrow.classList.add('rotate-180');
-            }
-        }
-
-        function handleThemeSelection(event) {
-            event.preventDefault();
-            const selectedItem = event.target.closest('.theme-dropdown-item');
-            if (!selectedItem) return;
-
-            const themeValue = selectedItem.getAttribute('data-theme');
-            
-            // 1. Update the value of the HIDDEN <select> element
-            themeSelector.value = themeValue;
-            
-            // 2. Programmatically dispatch the 'change' event on the <select>
-            themeSelector.dispatchEvent(new Event('change'));
-
-            // 3. Close the custom dropdown menu
-            toggleThemeDropdown();
-        }
         
-        // --- HELP DESK SELECTION LOGIC ---
-        function handleHelpDeskClick() {
-            // Assume 'customConfirm' is available in theme.js
-            if (typeof customConfirm !== 'function') {
-                console.error("customConfirm function is not defined. Ensure theme.js is loaded and includes it.");
-                openFullscreenEmbedModal(helpDeskUrl);
-                return;
-            }
-
-            customConfirm({
-                title: 'Help Desk Selection',
-                message: 'Do you need **Technical Support** or access to the **User Documentation**?',
-                okText: 'Documentation',
-                cancelText: 'Tech Support',
-                onConfirm: () => {
-                    // Documentation (OK/Confirm button)
-                    openFullscreenEmbedModal(helpDeskUrl);
-                },
-                onCancel: () => {
-                    // Technical Support (Cancel button)
-                    openFullscreenEmbedModal('tech_support.html'); 
-                }
-            });
-        }
-        
-        // --- LOGOUT LOGIC (NEW) ---
-        function handleLogout() {
-            // Clear the login state
-            sessionStorage.removeItem('loggedInUser');
-            // Redirect to the login page
-            window.location.href = 'index.html'; 
-        }
-
         // --- DOM Event Listeners ---
         document.addEventListener('DOMContentLoaded', function() {
             
+            // Added try...catch block to prevent uncaught errors from crashing the page
             try { 
                 // --- User Authentication and Display (Existing Logic) ---
                 const loggedInUserString = sessionStorage.getItem('loggedInUser');
@@ -381,6 +258,7 @@
                     const userNameDisplay = document.getElementById('userNameDisplay');
                     
                     if (userNameDisplay) {
+                        // Use userName property from the loggedInUser object
                         userNameDisplay.textContent = loggedInUser.userName || 'User';
                     }
 
@@ -388,6 +266,7 @@
                     const leaderboardButton = document.getElementById('leaderboardButton');
 
                     if (adminButton && leaderboardButton) {
+                        // Check user role for showing Admin and Leaderboard links
                         if (loggedInUser.role === 'admin') {
                             adminButton.classList.remove('hidden');
                             leaderboardButton.classList.remove('hidden');
@@ -397,41 +276,15 @@
                         }
                     }
                 } else {
+                    // Redirect if no user info is found (unauthenticated state)
                     window.location.href = 'index.html';
                 }
                 // --- End Existing Logic ---
 
 
-                // --- Theme Dropdown Setup ---
-                if (themeToggleBtn) {
-                    themeToggleBtn.addEventListener('click', toggleThemeDropdown);
-                }
-
-                if (themeOptionsContainer) {
-                    themeOptionsContainer.addEventListener('click', handleThemeSelection);
-                }
-
-                // Close the dropdown if the user clicks anywhere outside of it
-                document.addEventListener('click', function(event) {
-                    const isClickInside = themeToggleBtn.contains(event.target) || themeDropdownMenu.contains(event.target);
-                    if (!isClickInside && !themeDropdownMenu.classList.contains('hidden')) {
-                        toggleThemeDropdown();
-                    }
-                });
-                // --- End Theme Dropdown Setup ---
-
-
-                // --- Logout Setup (NEW) ---
-                const logoutButton = document.getElementById('logoutButton');
-                if (logoutButton) {
-                    logoutButton.addEventListener('click', handleLogout);
-                }
-                // --- End Logout Setup ---
-
-
-                // --- Modal/Help Desk Setup ---
+                // --- Modal Setup ---
                 if (helpDeskTile) {
-                    helpDeskTile.addEventListener('click', handleHelpDeskClick);
+                    helpDeskTile.addEventListener('click', () => openFullscreenEmbedModal(helpDeskUrl));
                 }
 
                 if (closeEmbedBtn) {
@@ -445,11 +298,11 @@
                         if (fullscreenEmbedModal && fullscreenEmbedModal.classList.contains('show')) {
                             closeFullscreenEmbedModal();
                         }
-                        // Close custom theme dropdown
-                        if (themeDropdownMenu && !themeDropdownMenu.classList.contains('hidden')) {
-                            toggleThemeDropdown();
+                        // Check for custom alert modal
+                        const customModalOverlay = document.getElementById('customModalOverlay');
+                        if (customModalOverlay && customModalOverlay.classList.contains('show')) {
+                             // Logic to handle ESC key for custom alert is now in theme.js
                         }
-                        // Custom alert modal check is handled in theme.js
                     }
                 });
 
@@ -459,9 +312,10 @@
                         closeFullscreenEmbedModal();
                     }
                 });
-                // --- End Modal/Help Desk Setup ---
+                // --- End Modal Setup ---
             } catch (error) {
                 console.error("Dashboard Initialization Failed Gracefully:", error);
+                // The page will remain visually available, but critical functions might be disabled.
             }
         });
     </script>
