@@ -13,24 +13,19 @@
     <script src="theme.js"></script>
     <style>
         /* Any custom overrides or specific element styles not covered by themes */
-        /* These styles will apply regardless of the selected theme */
         a {
             text-decoration: none;
         }
-        /* Specific styling for the user icon border */
         .user-icon-border {
-            border-color: var(--text-color); /* Use theme's text color for border */
+            border-color: var(--text-color);
         }
-        /* Custom styling for the N/A boxes to use theme variables */
         .theme-na-box {
-            background-color: var(--input-bg-color); /* Using input-bg-color for inner boxes */
-            border-color: var(--accent-color); /* Border color from accent */
+            background-color: var(--input-bg-color);
+            border-color: var(--accent-color);
         }
-        /* Custom styling for section backgrounds to use theme variables */
         .theme-section-bg {
-            background-color: var(--box-bg-color); /* Use the main box background color */
+            background-color: var(--box-bg-color);
         }
-        /* Style for the tiles */
         .theme-tile-bg {
             background-color: var(--card-bg-color);
         }
@@ -43,7 +38,8 @@
         .theme-subtle-text {
             color: var(--subtle-text-color);
         }
-        /* Modal backdrop for embedded content */
+
+        /* --- Modal Styles --- */
         .fullscreen-embed-modal {
             position: fixed;
             top: 0;
@@ -63,24 +59,20 @@
             opacity: 1;
             visibility: visible;
         }
-        .fullscreen-embed-content {
+        .modal-content {
             background-color: var(--bg-color);
-            padding: 1rem;
-            border-radius: 0.5rem;
-            max-width: 90%;
-            max-height: 90%;
-            overflow: auto;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            width: 95%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
             transform: scale(0.95);
             transition: transform 0.3s ease;
+            position: relative;
         }
-        .fullscreen-embed-modal.show .fullscreen-embed-content {
+        .fullscreen-embed-modal.show .modal-content {
             transform: scale(1);
-        }
-        .fullscreen-embed-content iframe,
-        .fullscreen-embed-content video {
-            display: block;
-            width: 100%;
-            height: 100%;
         }
         .close-embed-btn {
             position: absolute;
@@ -122,8 +114,7 @@
 
         <div class="grid grid-cols-12 gap-6">
 
-            <!-- Admin and Leaderboard Buttons (New) -->
-            <!-- Note: 'hidden' class applied initially, visibility is controlled by JS below based on user role -->
+            <!-- Admin and Leaderboard Buttons -->
             <div class="col-span-12 sm:col-span-6 lg:col-span-3">
                 <a href="admin.html" id="adminButton" class="hidden block p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
                     <div class="flex items-center space-x-4">
@@ -218,115 +209,100 @@
         </div>
     </main>
 
-    <!-- Fullscreen Embed Modal -->
+    <!-- Generic Fullscreen Embed Modal (For Help Desk) -->
     <div id="fullscreenEmbedModal" class="fullscreen-embed-modal">
         <button id="closeEmbedBtn" class="close-embed-btn">Close (Esc)</button>
-        <div id="fullscreenEmbedContent" class="fullscreen-embed-content">
+        <div id="fullscreenEmbedContent" class="modal-content p-0">
             <!-- Content (iframe/video) will be injected here -->
         </div>
     </div>
-
+    
     <script>
+        // --- Modal Control Functions (Generic) ---
+        const fullscreenEmbedModal = document.getElementById('fullscreenEmbedModal');
+        const fullscreenEmbedContent = document.getElementById('fullscreenEmbedContent');
+        const helpDeskTile = document.getElementById('helpDeskTile');
+        const closeEmbedBtn = document.getElementById('closeEmbedBtn');
+        const helpDeskUrl = 'help_desk.html';
+
+        function openFullscreenEmbedModal(url) {
+            // Used for help_desk.html
+            fullscreenEmbedContent.innerHTML = `<iframe src="${url}" frameborder="0" allowfullscreen class="w-full h-full min-h-[50vh] md:min-h-[80vh]"></iframe>`;
+            fullscreenEmbedModal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeFullscreenEmbedModal() {
+            if (!fullscreenEmbedModal) return;
+            document.body.style.overflow = '';
+            fullscreenEmbedModal.classList.remove('show');
+            setTimeout(() => {
+                if (fullscreenEmbedContent) fullscreenEmbedContent.innerHTML = '';
+            }, 300);
+        }
+        
+        // --- DOM Event Listeners ---
         document.addEventListener('DOMContentLoaded', function() {
-            // --- User Authentication and Display ---
-            const userInfoString = sessionStorage.getItem('userInfo');
-            if (userInfoString) {
-                const userInfo = JSON.parse(userInfoString);
-                // Update user name display
-                const userNameDisplay = document.getElementById('userNameDisplay');
-                if (userNameDisplay) {
-                    userNameDisplay.textContent = userInfo.userName || 'User';
-                }
+            
+            // Added try...catch block to prevent uncaught errors from crashing the page
+            try { 
+                // --- User Authentication and Display (Existing Logic) ---
+                const userInfoString = sessionStorage.getItem('userInfo');
+                if (userInfoString) {
+                    const userInfo = JSON.parse(userInfoString);
+                    const userNameDisplay = document.getElementById('userNameDisplay');
+                    if (userNameDisplay) {
+                        userNameDisplay.textContent = userInfo.userName || 'User';
+                    }
 
-                // --- Start Admin/Leaderboard Button Visibility Logic (Your Logic) ---
-                const adminButton = document.getElementById('adminButton');
-                const leaderboardButton = document.getElementById('leaderboardButton');
+                    const adminButton = document.getElementById('adminButton');
+                    const leaderboardButton = document.getElementById('leaderboardButton');
 
-                if (adminButton && leaderboardButton) {
-                    // Conditional display based on the logic provided by the user
-                    if (userInfo.role === 'admin') {
-                        adminButton.classList.remove('hidden'); // Show Admin button
-                        leaderboardButton.classList.remove('hidden'); // Show Leaderboard button for admin
-                    } else {
-                        adminButton.classList.add('hidden'); // Hide Admin button for normal users
-                        leaderboardButton.classList.remove('hidden'); // Show Leaderboard button for normal users
+                    if (adminButton && leaderboardButton) {
+                        if (userInfo.role === 'admin') {
+                            adminButton.classList.remove('hidden');
+                            leaderboardButton.classList.remove('hidden');
+                        } else {
+                            adminButton.classList.add('hidden');
+                            leaderboardButton.classList.remove('hidden');
+                        }
                     }
                 } else {
-                    console.warn("Admin or Leaderboard button elements not found. Check selection.html HTML structure.");
+                    // Redirect if no user info is found (unauthenticated state)
+                    window.location.href = 'index.html';
                 }
-                // --- End Admin/Leaderboard Button Visibility Logic ---
-
-            } else {
-                // If no user info, redirect to login (assuming index.html is login)
-                window.location.href = 'index.html';
-            }
+                // --- End Existing Logic ---
 
 
-            // --- Help Desk Embed Modal Functionality ---
-            const helpDeskTile = document.getElementById('helpDeskTile');
-            const fullscreenEmbedModal = document.getElementById('fullscreenEmbedModal');
-            const fullscreenEmbedContent = document.getElementById('fullscreenEmbedContent');
-            const closeEmbedBtn = document.getElementById('closeEmbedBtn');
+                // --- Modal Setup ---
+                if (helpDeskTile) {
+                    helpDeskTile.addEventListener('click', () => openFullscreenEmbedModal(helpDeskUrl));
+                }
 
-            const helpDeskUrl = 'help_desk.html'; // Assuming a separate help_desk.html file
+                if (closeEmbedBtn) {
+                    closeEmbedBtn.addEventListener('click', closeFullscreenEmbedModal);
+                }
 
-            function openFullscreenEmbedModal(url) {
-                // Load content into the modal (using iframe for external content)
-                fullscreenEmbedContent.innerHTML = `<iframe src="${url}" frameborder="0" allowfullscreen class="w-full h-full min-h-[50vh] md:min-h-[80vh]"></iframe>`;
-                
-                // Show the modal with transition
-                fullscreenEmbedModal.classList.add('show');
-                // Hide scroll on body for better modal experience
-                document.body.style.overflow = 'hidden';
-            }
-
-            if (helpDeskTile) {
-                helpDeskTile.addEventListener('click', () => {
-                    openFullscreenEmbedModal(helpDeskUrl);
+                // Close modals on Escape key
+                document.addEventListener('keydown', function(event) {
+                    if (event.key === 'Escape') {
+                        if (fullscreenEmbedModal && fullscreenEmbedModal.classList.contains('show')) {
+                            closeFullscreenEmbedModal();
+                        }
+                    }
                 });
+
+                // Close modals on outside click
+                document.addEventListener('click', function(event) {
+                    if (event.target === fullscreenEmbedModal) {
+                        closeFullscreenEmbedModal();
+                    }
+                });
+                // --- End Modal Setup ---
+            } catch (error) {
+                console.error("Dashboard Initialization Failed Gracefully:", error);
+                // The page will remain visually available, but critical functions might be disabled.
             }
-
-            function closeFullscreenEmbedModal() {
-                if (!fullscreenEmbedModal || !fullscreenEmbedContent) return;
-                
-                // Restore body scroll
-                document.body.style.overflow = '';
-                
-                // Hide the modal with transition
-                fullscreenEmbedModal.classList.remove('show');
-
-                // Pause video content if present (optional, but good practice)
-                const videoElement = fullscreenEmbedContent.querySelector('video');
-                if (videoElement) videoElement.pause(); // Pause video when closing
-
-                // Clear content after transition for smoother experience
-                setTimeout(() => {
-                    // Ensure fullscreenEmbedContent is not null before clearing
-                    if (fullscreenEmbedContent) fullscreenEmbedContent.innerHTML = '';
-                }, 300);
-            }
-
-            // Ensure closeEmbedBtn is not null before attaching listener
-            if (closeEmbedBtn) {
-                closeEmbedBtn.addEventListener('click', closeFullscreenEmbedModal);
-            } else {
-                console.error("Error: closeEmbedBtn element not found.");
-            }
-
-            // Close modal on Escape key
-            document.addEventListener('keydown', function(event) {
-                if (event.key === 'Escape' && fullscreenEmbedModal && fullscreenEmbedModal.classList.contains('show')) {
-                    closeFullscreenEmbedModal();
-                }
-            });
-
-            // Close modal on outside click
-            document.addEventListener('click', function(event) {
-                if (event.target === fullscreenEmbedModal && fullscreenEmbedModal) {
-                    closeFullscreenEmbedModal();
-                }
-            });
-            // --- End Help Desk Embed Modal Functionality ---
         });
     </script>
 </body>
