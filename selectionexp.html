@@ -342,11 +342,11 @@
                 
                 if (loggedInUserString) {
                     const loggedInUser = JSON.parse(loggedInUserString);
-                    const userNameDisplay = document.getElementById('userInfo.username');
+                    const userNameDisplay = document.getElementById('userNameDisplay');
                     
                     if (userNameDisplay) {
                         // Use userName property from the loggedInUser object
-                        userNameDisplay.textContent = loggedInUser.userName || 'User';
+                        userNameDisplay.textContent = loggedInUser.username || 'User';
                     }
 
                     const adminButton = document.getElementById('adminButton');
