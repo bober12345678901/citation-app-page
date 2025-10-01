@@ -482,6 +482,164 @@
                 console.error("Dashboard Initialization Failed Gracefully:", error);
             }
         });
+		const R2_BASE_URL = "https://pub-a91d9d22a6264a88b02227540eadf4cb.r2.dev/tutorials"; 
+
+const fullscreenEmbedModal = document.getElementById('fullscreenEmbedModal');
+const fullscreenEmbedContent = document.getElementById('fullscreenEmbedContent');
+const helpDeskTile = document.getElementById('helpDeskTile');
+const closeEmbedBtn = document.getElementById('closeEmbedBtn');
+
+/**
+ * Dynamically loads PDF or Video content into the fullscreen modal.
+ * This function recreates the core functionality from your original selection.html script.
+ * @param {string} embedType - 'pdf' or 'video'
+ * @param {string} relativeUrl - The R2 path (e.g., '/cite/citations_video.mp4')
+ */
+function openFullscreenEmbedModal(embedType, relativeUrl) {
+    if (!fullscreenEmbedModal || !fullscreenEmbedContent) return;
+
+    const fullUrl = R2_BASE_URL + relativeUrl;
+
+    // Clear previous content
+    fullscreenEmbedContent.innerHTML = '';
+    
+    // Extracts filename and replaces underscores with spaces for a clean title
+    const title = relativeUrl.split('/').pop().replace(/_/g, ' ').replace(/\.[^/.]+$/, ""); // Remove extension
+    document.getElementById('modalTitle').textContent = title;
+
+    // Use a container for 16:9 aspect ratio if it's a video
+    const container = document.createElement('div');
+    container.classList.add('w-full', 'h-full', 'flex', 'items-center', 'justify-center');
+
+
+    if (embedType === 'pdf') {
+        const embed = document.createElement('embed');
+        embed.src = fullUrl;
+        embed.type = 'application/pdf';
+        embed.style.width = '100%';
+        embed.style.height = '100%';
+        fullscreenEmbedContent.appendChild(embed);
+    } else if (embedType === 'video') {
+        // Create a 16:9 responsive wrapper for the video
+        const videoWrapper = document.createElement('div');
+        videoWrapper.classList.add('relative', 'w-full', 'max-w-4xl', 'mx-auto', 'aspect-video');
+
+        const video = document.createElement('video');
+        video.controls = true;
+        video.autoplay = true;
+        video.preload = 'auto';
+        video.setAttribute('allowfullscreen', '');
+        
+        const source = document.createElement('source');
+        source.src = fullUrl;
+        source.type = relativeUrl.includes('.mp4') ? 'video/mp4' : 'video/webm'; 
+        
+        video.appendChild(source);
+        video.classList.add('absolute', 'inset-0', 'w-full', 'h-full', 'rounded-xl', 'shadow-2xl');
+
+        videoWrapper.appendChild(video);
+        fullscreenEmbedContent.appendChild(videoWrapper);
+    } else {
+        fullscreenEmbedContent.innerHTML = `<p class="text-red-500 p-4">Unsupported embed type: ${embedType}</p>`;
+    }
+
+    // Show the modal
+    fullscreenEmbedModal.classList.add('show');
+    document.body.style.overflow = 'hidden'; // Prevent scrolling background
+}
+
+/**
+ * Function to close the fullscreen modal and stop video playback.
+ */
+function closeFullscreenEmbedModal() {
+    if (!fullscreenEmbedModal) return;
+    document.body.style.overflow = ''; // Restore scrolling
+    fullscreenEmbedModal.classList.remove('show');
+    
+    // Find any video element and pause it to stop sound
+    const videoElement = fullscreenEmbedContent.querySelector('video');
+    if (videoElement) {
+        videoElement.pause();
+    }
+    
+    // Clear content after transition
+    setTimeout(() => {
+        fullscreenEmbedContent.innerHTML = '';
+    }, 300);
+}
+
+// --- Cross-Iframe Click Listener ---
+document.addEventListener('DOMContentLoaded', function() {
+    // Other DOMContentLoaded logic...
+    
+    // Find the Help Desk iframe element inside the modal
+    const helpDeskIframe = document.getElementById('helpDeskIframe');
+
+    // Attach listener to the main Help Desk tile
+    if (helpDeskTile) {
+        helpDeskTile.addEventListener('click', () => {
+            // Note: The click listener for the Help Desk tile would typically open a primary modal 
+            // that contains the iframe. Since we don't have that primary modal logic, we'll
+            // assume that the 'helpDeskIframe' element is somehow ready or available to attach the listener to.
+
+            // Set up the listener AFTER the iframe content has loaded
+            // We need to wait for the iframe to load to access its document
+            if (helpDeskIframe) {
+                helpDeskIframe.onload = function() {
+                    try {
+                        const iframeDocument = helpDeskIframe.contentDocument || helpDeskIframe.contentWindow.document;
+                        
+                        // Check if we already attached the listener to prevent duplicates
+                        if (!iframeDocument.body.getAttribute('data-r2-listener-attached')) {
+                            
+                            iframeDocument.body.addEventListener('click', function(event) {
+                                const target = event.target.closest('.r2-embed-link');
+
+                                if (target) {
+                                    event.preventDefault(); // Stop default button action
+
+                                    const type = target.getAttribute('data-embed-type');
+                                    const url = target.getAttribute('data-url');
+                                    
+                                    // Close the primary modal (containing the iframe) if needed, 
+                                    // then open the fullscreen embed modal
+                                    // Assuming a 'closeTileModal' function exists for the outer modal:
+                                    // if (typeof closeTileModal === 'function') {
+                                    //     closeTileModal();
+                                    // }
+                                    
+                                    openFullscreenEmbedModal(type, url); 
+                                }
+                            });
+                            iframeDocument.body.setAttribute('data-r2-listener-attached', 'true');
+                        }
+                    } catch (error) {
+                        console.error("Error setting up iframe listener. Ensure help_desk.html is served from the same origin as the dashboard.", error);
+                    }
+                };
+            }
+        });
+    }
+
+    // Attach close listener to the close button for the fullscreen embed modal
+    if (closeEmbedBtn) {
+        closeEmbedBtn.addEventListener('click', closeFullscreenEmbedModal);
+    }
+    
+    // Add event listener for the Escape key to close the fullscreen modal
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' && fullscreenEmbedModal && fullscreenEmbedModal.classList.contains('show')) {
+            closeFullscreenEmbedModal();
+        }
+    });
+
+    // Add event listener to close the fullscreen modal on outside click
+    document.addEventListener('click', function(event) {
+        if (event.target === fullscreenEmbedModal) {
+            closeFullscreenEmbedModal();
+        }
+    });
+});
     </script>
 </body>
 </html>

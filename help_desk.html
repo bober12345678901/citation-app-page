@@ -1,115 +1,128 @@
-// IMPORTANT: Replace this placeholder with your actual Cloudflare R2 public URL
-const R2_BASE_URL = "YOUR_CLOUDFLARE_R2_PUBLIC_URL_HERE"; 
-
-const fullscreenEmbedModal = document.getElementById('fullscreenEmbedModal');
-const fullscreenEmbedContent = document.getElementById('fullscreenEmbedContent');
-const helpDeskTile = document.getElementById('helpDeskTile');
-const closeEmbedBtn = document.getElementById('closeEmbedBtn');
-
-/**
- * Dynamically loads PDF or Video content into the fullscreen modal.
- * This function recreates the core functionality from your original selection.html script.
- * @param {string} embedType - 'pdf' or 'video'
- * @param {string} relativeUrl - The R2 path (e.g., '/cite/citations_video.mp4')
- */
-function openFullscreenEmbedModal(embedType, relativeUrl) {
-    if (!fullscreenEmbedModal || !fullscreenEmbedContent) return;
-
-    const fullUrl = R2_BASE_URL + relativeUrl;
-
-    // Clear previous content
-    fullscreenEmbedContent.innerHTML = '';
-    
-    // Set the modal title (optional, adjust as needed)
-    const title = relativeUrl.split('/').pop().replace(/_/g, ' ');
-    document.getElementById('modalTitle').textContent = title;
-
-    if (embedType === 'pdf') {
-        const embed = document.createElement('embed');
-        embed.src = fullUrl;
-        embed.type = 'application/pdf';
-        embed.style.width = '100%';
-        embed.style.height = '100%';
-        fullscreenEmbedContent.appendChild(embed);
-    } else if (embedType === 'video') {
-        const video = document.createElement('video');
-        video.controls = true;
-        video.autoplay = true;
-        video.preload = 'auto';
-        video.setAttribute('allowfullscreen', '');
-        
-        const source = document.createElement('source');
-        source.src = fullUrl;
-        source.type = relativeUrl.includes('.mp4') ? 'video/mp4' : ''; 
-        
-        video.appendChild(source);
-        video.style.width = '100%';
-        video.style.height = '100%';
-        video.classList.add('rounded-xl', 'shadow-2xl');
-
-        fullscreenEmbedContent.appendChild(video);
-    } else {
-        fullscreenEmbedContent.innerHTML = `<p class="text-red-500 p-4">Unsupported embed type: ${embedType}</p>`;
-    }
-
-    fullscreenEmbedModal.classList.add('show');
-}
-
-/**
- * Sets up the cross-iframe listener when the help desk tile is clicked.
- */
-if (helpDeskTile) {
-    helpDeskTile.addEventListener('click', () => {
-        // Wait for the iframe to load
-        const helpDeskIframe = document.getElementById('helpDeskIframe');
-
-        helpDeskIframe.onload = function() {
-            try {
-                // Get the iframe's document body
-                const iframeDocument = helpDeskIframe.contentDocument || helpDeskIframe.contentWindow.document;
-
-                // Add a listener to the iframe document that looks for clicks on the buttons
-                iframeDocument.body.addEventListener('click', function(event) {
-                    const target = event.target.closest('.r2-embed-link');
-
-                    if (target) {
-                        event.preventDefault(); // Stop default button action
-
-                        const type = target.getAttribute('data-embed-type');
-                        const url = target.getAttribute('data-url');
-                        
-                        // Use the core function to open the content in the main modal
-                        openFullscreenEmbedModal(type, url); 
-                    }
-                });
-            } catch (error) {
-                console.error("Error setting up iframe listener. This may be due to cross-origin restrictions if the help desk content is served from a different domain.", error);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agency Documentation Hub</title>
+    <!-- Load Tailwind CSS from CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Base styling for the embedded page */
+        body {
+            /* Use a neutral background for the embedded page */
+            background-color: #f7f7f7; 
+            color: #1f2937;
+            font-family: Inter, sans-serif;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        /* CRITICAL: Custom style for links that should be handled by the parent modal */
+        /* This is the class the parent script is listening for! */
+        .r2-embed-link {
+            cursor: pointer;
+            text-decoration: none;
+        }
+        /* Custom styling for the procedure categories */
+        .help-category {
+            padding: 1rem;
+            border: 1px solid #e5e7eb; /* gray-200 */
+            border-radius: 0.75rem; /* rounded-xl */
+            background-color: #ffffff; /* bg-white */
+        }
+        .help-category h3 {
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 700; /* font-bold */
+            color: #1f2937; /* gray-800 */
+            margin-bottom: 0.75rem; /* mb-3 */
+            border-bottom: 1px solid #eff6ff; /* blue-100 */
+            padding-bottom: 0.25rem; /* pb-1 */
+        }
+        .toggle-embed-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem; /* space-y-3 */
+        }
+        @media (min-width: 640px) { /* sm breakpoint */
+            .toggle-embed-group {
+                flex-direction: row;
             }
-        };
+        }
+    </style>
+</head>
+<body class="p-6 md:p-10 bg-gray-50">
+    <div class="container">
+        <h1 class="text-4xl font-extrabold text-blue-800 mb-6 border-b pb-2">Agency Documentation Hub</h1>
+        <p class="text-gray-600 mb-8">Welcome to the official documentation and training resource center. Please use the resources below for guidance on standard operating procedures and system usage.</p>
 
-        // Standard modal open for the help desk iframe
-        openTileModal(helpDeskTile.getAttribute('data-url'), helpDeskTile.getAttribute('data-title'));
-    });
-}
+        <!-- Documentation and Training Resources -->
+        <section class="mb-10 p-6 bg-white rounded-xl shadow-lg border border-gray-200">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center space-x-2 border-b pb-3">
+                <svg class="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm6 9a1 1 0 100 2h2a1 1 0 100-2h-2z" clip-rule="evenodd"></path></svg>
+                <span>Standard Operating Procedures & Guides</span>
+            </h2>
+            
+            <div class="grid grid-cols-1 gap-6">
 
-// Attach close listener to the close button
-if (closeEmbedBtn) {
-    closeEmbedBtn.addEventListener('click', closeFullscreenEmbedModal);
-}
+                <!-- Group: Citations -->
+                <div class="help-category hover:shadow-md transition duration-200">
+                    <h3>Citations</h3>
+                    <div class="toggle-embed-group">
+                        <button 
+                            class="r2-embed-link flex-1 px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition"
+                            data-embed-type="pdf" 
+                            data-url="/cite/citations_step_by_step.pdf">Open PDF Guide</button>
+                        <button 
+                            class="r2-embed-link flex-1 px-4 py-2 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition"
+                            data-embed-type="video" 
+                            data-url="/cite/citations_video.mp4">Open Video Guide</button>
+                    </div>
+                </div>
 
-// Function to close the fullscreen modal and stop video playback
-function closeFullscreenEmbedModal() {
-    if (!fullscreenEmbedModal) return;
-    fullscreenEmbedModal.classList.remove('show');
-    
-    // Find any video element and pause it to stop sound
-    const videoElement = fullscreenEmbedContent.querySelector('video');
-    if (videoElement) {
-        videoElement.pause();
-    }
-    
-    // Clear content after transition
-    setTimeout(() => {
-        fullscreenEmbedContent.innerHTML = '';
-    }, 300);
-}
+                <!-- Group: Arrests (Standard Procedure) -->
+                <div class="help-category hover:shadow-md transition duration-200">
+                    <h3>Arrests (Standard Procedure)</h3>
+                    <div class="toggle-embed-group">
+                        <button 
+                            class="r2-embed-link flex-1 px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition"
+                            data-embed-type="pdf" 
+                            data-url="/arrest no warrant/arrests_step_by_step.pdf">Open PDF Guide</button>
+                        <button 
+                            class="r2-embed-link flex-1 px-4 py-2 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition"
+                            data-embed-type="video" 
+                            data-url="/arrest no warrant/arrests_video.mp4">Open Video Guide</button>
+                    </div>
+                </div>
+
+                <!-- Group: Arrests w/ Warrants -->
+                <div class="help-category hover:shadow-md transition duration-200">
+                    <h3>Arrests w/ Warrants</h3>
+                    <div class="toggle-embed-group">
+                        <button 
+                            class="r2-embed-link flex-1 px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition"
+                            data-embed-type="pdf" 
+                            data-url="/arrest w warrant/arrests_w_warrants_step_by_step.pdf">Open PDF Guide</button>
+                        <button 
+                            class="r2-embed-link flex-1 px-4 py-2 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition"
+                            data-embed-type="video" 
+                            data-url="/arrest w warrant/arrests_w_warrants_video.mp4">Open Video Guide</button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section class="p-6 bg-yellow-50 rounded-xl shadow-inner border border-yellow-200">
+            <h2 class="text-xl font-bold text-yellow-800 mb-2">Support & Ticket Submission</h2>
+            <p class="text-yellow-700">
+                Please contact the overseers or make a ticket at 
+                <a href="https://discord.com/channels/879975990871347200/1031015742075846697" target="_blank" class="text-blue-600 font-bold hover:underline">Ticket Creation</a>.
+            </p>
+        </section>
+
+    </div>
+</body>
+</html>
