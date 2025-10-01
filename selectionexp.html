@@ -272,7 +272,7 @@
             // Added try...catch block to prevent uncaught errors from crashing the page
             try { 
                 // --- User Authentication and Display (Existing Logic) ---
-                const loggedInUserString = sessionStorage.getItem('LoggedInUser');
+                const loggedInUserString = sessionStorage.getItem('loggedInUser');
                 
                 if (loggedInUserString) {
                     const loggedInUser = JSON.parse(loggedInUserString);
