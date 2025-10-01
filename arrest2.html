@@ -46,7 +46,8 @@
         .charge-group .jail-time-wrapper {
              grid-column: span 1;
         }
-        .charge-group .button-remove {
+        /* Specific styling for the button or its spacer to ensure it takes space in the grid */
+        .charge-group .button-remove-container { 
             grid-column: span 1;
             justify-self: end;
             width: auto;
@@ -60,7 +61,7 @@
             .charge-group .jail-time-wrapper {
                 grid-column: span 1;
             }
-            .charge-group .button-remove {
+            .charge-group .button-remove-container {
                 grid-column: span 1;
                 width: 100%;
                 justify-self: stretch;
@@ -296,8 +297,7 @@
         // Track dynamically added charge input groups
         let chargeGroupCounter = 0;
 
-        // --- UTILITY FUNCTIONS ---
-        // (Assuming these are provided by theme.js or a separate utils file)
+        // --- UTILITY FUNCTIONS (Re-defined for completeness/safety) ---
         if (typeof window.showCustomAlert === 'undefined') {
             window.showCustomAlert = (message, type = 'info', title = null) => {
                 return new Promise(resolve => {
@@ -308,9 +308,9 @@
                     const modalCancelBtn = document.getElementById('customModalCancelBtn');
 
                     modalTitle.textContent = title || (type === 'error' ? 'Error' : 'Information');
-                    modalMessage.innerHTML = message; // Use innerHTML to allow <br> tags
+                    modalMessage.innerHTML = message;
 
-                    modalCancelBtn.classList.add('hidden'); // Hide cancel button for alerts
+                    modalCancelBtn.classList.add('hidden');
                     modalOkBtn.textContent = 'OK';
                     
                     const handleOk = () => {
@@ -335,7 +335,7 @@
                     modalTitle.textContent = title;
                     modalMessage.innerHTML = message;
                     
-                    modalCancelBtn.classList.remove('hidden'); // Show cancel button for confirms
+                    modalCancelBtn.classList.remove('hidden');
                     modalOkBtn.textContent = 'Confirm';
 
                     const handleOk = () => {
@@ -407,28 +407,37 @@
                 return null;
             }
         }
-
+        
         // --- CHARGE MANAGEMENT FUNCTIONS ---
 
         /**
          * Adds a new charge input group to the form.
          * @param {string} [code=''] - Optional initial value for the charge code input.
          * @param {number} [jailTime=0] - Optional initial value for the jail time input.
-         * @param {number} [fines=0] - Optional initial value for the fines input (not currently displayed but useful for tracking).
+         * @param {number} [fines=0] - Optional initial value for the fines input.
          */
         function addChargeInputGroup(code = '', jailTime = 0, fines = 0) {
             chargeGroupCounter++;
             const groupId = chargeGroupCounter;
             
-            // The remove button should only be visible for groups added after the first one (ID 0).
+            // The remove button should only be visible for groups added after the first one (ID 0) 
+            // AND only if the first group is initially empty. If a code is provided (e.g., via Admin 'Add All'), we show the remove button.
             const isInitialEmptyGroup = groupId === 0 && code === '';
 
             // The element to occupy the button's space in the grid
             const removeElement = isInitialEmptyGroup ?
-                // Placeholder div to maintain grid column for layout consistency. Must have the button-remove class for CSS
-                '<div class="button-remove"></div>' : 
+                // Placeholder that is functionally the same size as the button but hidden and non-interactive.
+                `<div class="button-remove-container">
+                    <button type="button" class="py-2 px-2 opacity-0 pointer-events-none theme-button-danger rounded-md font-semibold" aria-hidden="true">
+                        Spacer
+                    </button>
+                </div>` : 
                 // Actual remove button
-                `<button type="button" class="theme-button-danger py-2 px-2 rounded-md font-semibold button-remove" data-group-id="${groupId}">Remove</button>`;
+                `<div class="button-remove-container">
+                    <button type="button" class="theme-button-danger py-2 px-2 rounded-md font-semibold" data-group-id="${groupId}">
+                        Remove
+                    </button>
+                </div>`;
 
 
             const newChargeGroupHtml = `
@@ -443,7 +452,7 @@
                         <input type="number" id="jailTime_${groupId}" name="jailTime_${groupId}" step="1" min="0" value="${jailTime}" class="theme-input w-full p-2 border rounded-md jail-time-input" readonly>
                     </div>
                     ${removeElement}
-                    <!-- Hidden field to store fine amount if needed later, set by updateChargeData -->
+                    <!-- Hidden field to store fine amount if needed later -->
                     <input type="hidden" id="fineAmount_${groupId}" name="fineAmount_${groupId}" value="${fines}"> 
                 </div>
             `;
@@ -457,8 +466,8 @@
                 updateChargeData(groupId, code);
             }
 
-            // Manually focus the new input for a smoother UX if it's a manual add
-            if (!code) {
+            // Manually focus the new input for a smoother UX if it's a manual add and not the initial setup
+            if (!code && groupId > 0) {
                  document.getElementById(`chargeCode_${groupId}`).focus();
             }
         }
@@ -529,7 +538,6 @@
                 return;
             }
 
-            // Confirm with admin first due to potential performance impact and form complexity
             window.showCustomConfirm(`This will add all ${penalCodesData.length} penal codes to the charges list. Are you sure?`, 'Confirm Admin Action')
                 .then(confirmed => {
                     if (confirmed) {
@@ -546,7 +554,6 @@
                         // Add all codes
                         penalCodesData.forEach(codeData => {
                             // JailTime is stored as a number, Fine is stored as a number
-                            // Note: Since 'code' is provided, addChargeInputGroup will correctly include the Remove button for ALL of these.
                             addChargeInputGroup(codeData.Code, codeData.JailTime || 0, codeData.Fine || 0);
                         });
                         calculateTotals();
@@ -557,13 +564,13 @@
         // --- EVENT HANDLERS ---
         
         function handleChargeInput(event) {
-            const input = event.target;
-            const group = input.closest('.charge-group');
+            const target = event.target;
+            const group = target.closest('.charge-group');
             const groupId = group?.getAttribute('data-group-id');
             if (!groupId) return;
 
-            // 1. Handle remove button clicks
-            if (event.target.classList.contains('button-remove') && event.type === 'click') {
+            // 1. Handle remove button clicks (Delegation check)
+            if (target.closest('.button-remove-container') && target.textContent.trim() === 'Remove' && event.type === 'click') {
                 if (document.querySelectorAll('.charge-group').length > 1) {
                     // Only remove the group if there is more than one present
                     group.remove();
@@ -580,13 +587,13 @@
             }
 
             // Only proceed if the event originated from a charge code input field
-            if (!input.classList.contains('charge-code-input')) return;
+            if (!target.classList.contains('charge-code-input') && !target.closest('.autocomplete-suggestions')) return;
 
+            const input = group.querySelector('.charge-code-input');
             const code = input.value.toUpperCase();
-            const suggestionsDiv = document.getElementById(`chargeSuggestions_${groupId}`);
 
             // 2. Handle Autocomplete Logic
-            if (event.type === 'input' || event.type === 'keydown') {
+            if (target.classList.contains('charge-code-input') && (event.type === 'input' || event.type === 'keydown')) {
                 if (code.length > 1) {
                     const matches = penalCodesData.filter(pc => 
                         pc.Code.toUpperCase().includes(code) || 
@@ -610,8 +617,8 @@
             }
             
             // 3. Handle suggestion clicks (event delegation)
-            if (event.target.closest('.autocomplete-suggestions') && event.type === 'click') {
-                const suggestionDiv = event.target.closest('div');
+            if (target.closest('.autocomplete-suggestions') && event.type === 'click') {
+                const suggestionDiv = target.closest('div');
                 const selectedCode = suggestionDiv?.getAttribute('data-code');
                 
                 if (selectedCode) {
@@ -691,7 +698,6 @@
             }
 
             if (!foundImage) {
-                // If it wasn't an image, let the text paste (if target allows) or just ignore.
                 console.log("Pasted content was not an image.");
             }
         }
@@ -749,6 +755,71 @@
             document.getElementById('penalCodeListModalOverlay').classList.remove('hidden');
         }
 
+        async function submitArrestReport(formData, form, submitButton) {
+            const isWarrantNeeded = document.getElementById('warrantNeededYes').checked;
+            
+            // Placeholder API endpoint: REPLACE WITH YOUR ACTUAL BACKEND ENDPOINT
+            const apiUrl = 'YOUR_API_ENDPOINT/arrests'; 
+
+            try {
+                // Ensure fetchWithAuth is defined globally or defined here if it was missing in the environment
+                if (typeof fetchWithAuth === 'undefined') {
+                    console.error("fetchWithAuth is not defined. Cannot submit.");
+                    window.showCustomAlert('Authentication service is unavailable.', 'Error');
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Submit Arrest Report';
+                    return;
+                }
+                
+                const response = await fetchWithAuth(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                
+                // If fetchWithAuth handled the auth error and redirected, response will be null
+                if (!response) {
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Submit Arrest Report';
+                    return;
+                }
+                
+                const result = await response.json();
+
+                submitButton.disabled = false;
+                submitButton.textContent = 'Submit Arrest Report';
+
+                if (response.ok) { // Check for 2xx status codes
+                    if (isWarrantNeeded) {
+                        // Store necessary data in session storage to pass to the warrant log form
+                        const tempWarrantData = {
+                            suspectUserId: formData.suspectUserId,
+                            incidentDetails: formData.incidentDetails,
+                            charges: formData.charges,
+                            arrestReportId: result.arrestId || "N/A" // Assuming the submission returns the new Arrest ID
+                        };
+                        sessionStorage.setItem('tempWarrantData', JSON.stringify(tempWarrantData));
+                        window.location.href = 'warrant_log.html'; // Redirect to warrant log form
+                    } else {
+                        // Otherwise, show success message and reset form
+                        window.showCustomAlert(result.message || "Arrest report submitted successfully!", 'Success').then(() => {
+                            form.reset(); // Reset the form
+                            resetForm(); // Call custom reset logic
+                        });
+                    }
+                } else if (response.status === 401 || response.status === 403) {
+                    redirectToLogin("Authentication failed. Please log in again.");
+                } else {
+                    window.showCustomAlert('Submission failed: ' + (result.message || response.statusText), 'Error');
+                }
+            } catch (error) {
+                console.error('Error submitting arrest report:', error);
+                submitButton.disabled = false;
+                submitButton.textContent = 'Submit Arrest Report';
+                window.showCustomAlert('An unexpected error occurred during submission. Check console for details.', 'Error');
+            }
+        }
+
         function handleFormSubmit(event) {
             event.preventDefault();
             const form = event.target;
@@ -786,12 +857,8 @@
             if (!isValid) return;
 
             if (charges.length === 0) {
-                // If there's only one empty charge group, this check is sufficient
-                const firstChargeInput = document.querySelector('.charge-code-input');
-                if (!firstChargeInput || firstChargeInput.value.trim() === '') {
-                     window.showCustomAlert('Please add at least one valid charge before submitting.', 'Error', 'Missing Charges');
-                     return;
-                }
+                 window.showCustomAlert('Please add at least one valid charge before submitting.', 'Error', 'Missing Charges');
+                 return;
             }
 
             const isWarrantNeeded = document.getElementById('warrantNeededYes').checked;
@@ -827,62 +894,6 @@
             submitArrestReport(formData, form, submitButton);
         }
         
-        async function submitArrestReport(formData, form, submitButton) {
-            // Note: The actual submission endpoint/logic is missing, so we'll simulate a successful/failed API call.
-            // Replace this simulated logic with a real fetch to your backend.
-            
-            await new Promise(r => setTimeout(r, 1000)); // Simulate network delay
-
-            const isWarrantNeeded = document.getElementById('warrantNeededYes').checked;
-
-            // SIMULATED API RESPONSE (Assume success for now)
-            const success = true; 
-            const result = {
-                message: "Arrest report submitted successfully!",
-                arrestId: "AR-12345",
-                shouldRedirectToWarrant: isWarrantNeeded
-            };
-            const responseStatus = 200; // Simulate HTTP 200 OK
-
-            submitButton.disabled = false;
-            submitButton.textContent = 'Submit Arrest Report';
-
-            try {
-                // In a real app, you'd handle the response from your fetch call here:
-                // const response = await fetchWithAuth('YOUR_API_ENDPOINT/arrests', { method: 'POST', body: JSON.stringify(formData) });
-                
-                if (success && responseStatus === 200) {
-                    if (result.shouldRedirectToWarrant) {
-                        // Store necessary data in session storage to pass to the warrant log form
-                        const tempWarrantData = {
-                            suspectUserId: formData.suspectUserId,
-                            incidentDetails: formData.incidentDetails,
-                            charges: formData.charges,
-                            arrestReportId: result.arrestId // Assuming the submission returns the new Arrest ID
-                        };
-                        sessionStorage.setItem('tempWarrantData', JSON.stringify(tempWarrantData));
-                        window.location.href = 'warrant_log.html'; // Redirect to warrant log form
-                    } else {
-                        // Otherwise, show success message and reset form
-                        window.showCustomAlert(result.message, 'Success').then(() => {
-                            form.reset(); // Reset the form
-                            resetForm(); // Call custom reset logic
-                        });
-                    }
-                } else if (responseStatus === 401 || responseStatus === 403) {
-                    window.showCustomAlert("Authentication failed. Please log in again.", 'Error').then(() => {
-                        sessionStorage.clear();
-                        window.location.href = 'index.html';
-                    });
-                } else {
-                    window.showCustomAlert('Submission failed: ' + (result.message || "Unknown Error"), 'Error');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                window.showCustomAlert('An error occurred. Check console for details.', 'Error');
-            }
-        }
-        
         function resetForm() {
             // Manually clear dynamic elements/state not handled by native form.reset()
             mugshotBase64 = null;
@@ -915,12 +926,12 @@
             const servingWarrantRadios = document.querySelectorAll('input[name="servingWarrant"]');
             const warrantJailTimeContainer = document.getElementById('warrantJailTimeContainer');
             const viewAllPenalCodesBtn = document.getElementById('viewAllPenalCodesBtn');
-            const addAllPenalCodesButton = document.getElementById('addAllPenalCodesBtn'); // New button
+            const addAllPenalCodesButton = document.getElementById('addAllPenalCodesBtn'); 
 
             // --- State Variables --- 
             let mugshotBase64 = null; 
-
-            // --- Initial Setup --- 
+            
+            // --- Admin Rank Check ---
             const loggedInUserString = sessionStorage.getItem('loggedInUser');
             if (loggedInUserString) {
                 const loggedInUser = JSON.parse(loggedInUserString);
@@ -928,10 +939,13 @@
                 arrestingOfficerBadgeInput.value = loggedInUser.badgeNumber || '';
                 officerDepartmentDisplayInput.value = loggedInUser.department || 'N/A';
                 
-                console.log("Logged in user rank:", loggedInUser.rank); 
+                const userRank = loggedInUser.rank ? loggedInUser.rank.toLowerCase().trim() : '';
+                console.log("Logged in user rank for admin check:", userRank);
 
-                // ADMIN CHECK: Show 'Add All Penal Codes' button if rank is Admin (case-insensitive and trimmed)
-                if (loggedInUser.rank && loggedInUser.rank.toLowerCase().trim() === 'admin') {
+                // Use a list of common high-level ranks that qualify as 'admin' access
+                const adminRanks = ['admin', 'chief', 'commander', 'supervisor']; 
+
+                if (adminRanks.includes(userRank)) {
                     addAllPenalCodesButton.classList.remove('hidden');
                     console.log("Admin privileges detected. Showing 'Add All Penal Codes' button."); 
                 }
@@ -939,13 +953,15 @@
                 redirectToLogin("User session data not found.");
                 return;
             }
+            
+            // --- Initial Setup --- 
 
             // Fetch penal codes for autocomplete
             const penalCodesResponse = await fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/penal-codes');
             if (penalCodesResponse && penalCodesResponse.ok) {
                 try {
                     penalCodesData = await penalCodesResponse.json();
-                    console.log("Penal codes loaded:", penalCodesData);
+                    console.log("Penal codes loaded:", penalCodesData.length);
                 } catch (e) {
                     console.error("Failed to parse penal codes JSON:", e);
                     window.showCustomAlert("Failed to parse penal codes. Autocomplete will not work.", "Error");
@@ -961,7 +977,7 @@
 
             // --- Event Listeners --- 
             arrestForm.addEventListener('submit', handleFormSubmit);
-            addChargeBtn.addEventListener('click', () => addChargeInputGroup()); // Simplified call
+            addChargeBtn.addEventListener('click', () => addChargeInputGroup());
             chargeInputsContainer.addEventListener('input', handleChargeInput);
             chargeInputsContainer.addEventListener('click', handleChargeInput);
             chargeInputsContainer.addEventListener('keydown', handleChargeInput);
@@ -971,13 +987,17 @@
             viewAllPenalCodesBtn.addEventListener('click', handleViewAllPenalCodes);
             
             // Admin Button Listener
-            addAllPenalCodesButton.addEventListener('click', addAllPenalCodes);
+            if (!addAllPenalCodesButton.classList.contains('hidden')) {
+                addAllPenalCodesButton.addEventListener('click', addAllPenalCodes);
+            }
 
             document.getElementById('penalCodeListModalCloseBtn').addEventListener('click', () => { 
                 document.getElementById('penalCodeListModalOverlay').classList.add('hidden'); 
             });
-            document.getElementById('clearFormBtn').addEventListener('click', () => { 
-                setTimeout(resetForm, 0); // Use a timeout to allow the native reset to clear fields first 
+            document.getElementById('clearFormBtn').addEventListener('click', (e) => { 
+                e.preventDefault();
+                arrestForm.reset();
+                resetForm();
             });
 
             // Initial call to check warrant fields
