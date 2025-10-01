@@ -49,6 +49,21 @@
              height: 2.5rem;
         }
 
+        /* --- Theme Dropdown Styling --- */
+        .theme-dropdown-menu {
+            /* Makes the dropdown background match the theme */
+            background-color: var(--box-bg-color); 
+            /* Adds a subtle border ring */
+            border: 1px solid var(--border-color); 
+            /* Applies the desired rounding */
+            border-radius: 0.75rem; /* Equivalent to rounded-xl in Tailwind */
+            overflow: hidden; /* Ensures options stay within border-radius */
+        }
+        .theme-dropdown-menu button {
+            color: var(--text-color);
+        }
+
+
         /* --- Modal Styles --- */
         .fullscreen-embed-modal {
             position: fixed;
@@ -151,11 +166,11 @@
                 <div class="relative inline-block text-left">
                     <button id="themeToggle" type="button" class="p-2 rounded-full theme-text-color hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-colors flex items-center justify-center space-x-1" aria-expanded="false" aria-haspopup="true">
                         <span id="currentThemeIcon" class="w-6 h-6 flex items-center justify-center">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21l4-8-4-8H3l4 8-4 8h4zm16-8l-4 8H13l4-8-4-8h4l4 8z"></path></svg>
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"></path></svg>
                         </span>
                         <svg id="dropdownArrow" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
-                    <div id="themeDropdownMenu" class="absolute right-0 mt-2 w-48 rounded-lg shadow-2xl theme-section-bg ring-1 ring-black ring-opacity-10 origin-top-right hidden theme-dropdown-menu">
+                    <div id="themeDropdownMenu" class="absolute right-0 mt-2 w-48 rounded-xl shadow-2xl ring-1 ring-black ring-opacity-10 origin-top-right hidden theme-dropdown-menu">
                         <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="themeToggle" id="themeOptions">
                             </div>
                     </div>
@@ -270,12 +285,17 @@
         const closeEmbedBtn = document.getElementById('closeEmbedBtn');
         const helpDeskUrl = 'help_desk.html';
         
-        // --- Theme Management Variables (Assume these are defined in theme.js/styles.css environment) ---
-        // Mock data for theme logic (replace with actual theme.js content if available)
-        const themes = [
+        // --- Theme Management Variables (FIX #1: Themes list taken from selection.html) ---
+        const THEMES = [
             { id: 'light', name: 'Light Mode', icon: '☀️' },
             { id: 'dark', name: 'Dark Mode', icon: '🌙' },
-            { id: 'blue', name: 'Blue Steel', icon: '🔷' },
+            { id: 'sunset', name: 'Sunset', icon: '🌅' },
+            { id: 'ocean', name: 'Ocean', icon: '🌊' },
+            { id: 'forest', name: 'Forest', icon: '🌲' },
+            { id: 'midnight', name: 'Midnight', icon: '🌌' },
+            { id: 'dracula', name: 'Dracula', icon: '🧛' },
+            { id: 'cyberpunk', name: 'Cyberpunk', icon: '👾' },
+            { id: 'custom', name: 'Custom...', icon: '🎨' }
         ];
 
 
@@ -385,11 +405,12 @@
                 // Clear existing options
                 themeOptions.innerHTML = ''; 
                 
-                // Check if the global themes array from theme.js is available
-                const availableThemes = (typeof window.THEMES !== 'undefined') ? window.THEMES : themes;
+                // Use the defined THEMES list
+                const availableThemes = THEMES;
                 
                 availableThemes.forEach(theme => {
                     const button = document.createElement('button');
+                    // Use theme-text-color and hover classes for theme consistency
                     button.classList.add('block', 'w-full', 'text-left', 'px-4', 'py-2', 'theme-text-color', 'hover:bg-gray-100/50', 'dark:hover:bg-gray-700/50', 'transition-colors');
                     button.setAttribute('role', 'menuitem');
                     button.setAttribute('data-theme', theme.id);
@@ -400,7 +421,7 @@
                         if (typeof window.setTheme === 'function') {
                             window.setTheme(theme.id);
                         } else {
-                            // Fallback for demonstration if theme.js is not loaded
+                            // Fallback if theme.js is not loaded
                             console.warn(`setTheme function not found. Applying theme class: ${theme.id}`);
                             document.body.className = `${theme.id}-theme min-h-screen transition-colors duration-300 font-sans`;
                         }
@@ -487,6 +508,7 @@
                         if (helpDeskIframe) {
                             helpDeskIframe.onload = function() {
                                 try {
+                                    // Use 'window' as a fallback if 'contentDocument' is not accessible (though typically it should be same-origin)
                                     const iframeDocument = helpDeskIframe.contentDocument || helpDeskIframe.contentWindow.document;
                                     
                                     // Check if we already attached the listener to prevent duplicates
