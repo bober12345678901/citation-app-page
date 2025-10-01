@@ -325,17 +325,42 @@
             themeSelector.value = themeValue;
             
             // 2. Programmatically dispatch the 'change' event on the <select>
-            // This is what triggers your theme.js script to run and apply the theme!
             themeSelector.dispatchEvent(new Event('change'));
 
             // 3. Close the custom dropdown menu
             toggleThemeDropdown();
         }
         
+        // --- HELP DESK SELECTION LOGIC (NEW) ---
+        function handleHelpDeskClick() {
+            // Assume 'customConfirm' is available in theme.js
+            if (typeof customConfirm !== 'function') {
+                console.error("customConfirm function is not defined. Ensure theme.js is loaded and includes it.");
+                // Fallback to directly opening the help desk if the custom function is missing
+                openFullscreenEmbedModal(helpDeskUrl);
+                return;
+            }
+
+            customConfirm({
+                title: 'Help Desk Selection',
+                message: 'Do you need **Technical Support** or access to the **User Documentation**?',
+                okText: 'Documentation',
+                cancelText: 'Tech Support',
+                onConfirm: () => {
+                    // Documentation (OK/Confirm button)
+                    openFullscreenEmbedModal(helpDeskUrl);
+                },
+                onCancel: () => {
+                    // Technical Support (Cancel button)
+                    // The path for the technical support resource is assumed to be 'tech_support.html'
+                    openFullscreenEmbedModal('tech_support.html'); 
+                }
+            });
+        }
+
         // --- DOM Event Listeners ---
         document.addEventListener('DOMContentLoaded', function() {
             
-            // Added try...catch block to prevent uncaught errors from crashing the page
             try { 
                 // --- User Authentication and Display (Existing Logic) ---
                 const loggedInUserString = sessionStorage.getItem('loggedInUser');
@@ -345,15 +370,13 @@
                     const userNameDisplay = document.getElementById('userNameDisplay');
                     
                     if (userNameDisplay) {
-                        // Use userName property from the loggedInUser object
-                        userNameDisplay.textContent = loggedInUser.username || 'User';
+                        userNameDisplay.textContent = loggedInUser.userName || 'User';
                     }
 
                     const adminButton = document.getElementById('adminButton');
                     const leaderboardButton = document.getElementById('leaderboardButton');
 
                     if (adminButton && leaderboardButton) {
-                        // Check user role for showing Admin and Leaderboard links
                         if (loggedInUser.role === 'admin') {
                             adminButton.classList.remove('hidden');
                             leaderboardButton.classList.remove('hidden');
@@ -363,7 +386,6 @@
                         }
                     }
                 } else {
-                    // Redirect if no user info is found (unauthenticated state)
                     window.location.href = 'index.html';
                 }
                 // --- End Existing Logic ---
@@ -388,9 +410,10 @@
                 // --- End Theme Dropdown Setup ---
 
 
-                // --- Modal Setup ---
+                // --- Modal/Help Desk Setup ---
                 if (helpDeskTile) {
-                    helpDeskTile.addEventListener('click', () => openFullscreenEmbedModal(helpDeskUrl));
+                    // Attach the new help desk function to the tile
+                    helpDeskTile.addEventListener('click', handleHelpDeskClick);
                 }
 
                 if (closeEmbedBtn) {
@@ -408,11 +431,7 @@
                         if (themeDropdownMenu && !themeDropdownMenu.classList.contains('hidden')) {
                             toggleThemeDropdown();
                         }
-                        // Check for custom alert modal
-                        const customModalOverlay = document.getElementById('customModalOverlay');
-                        if (customModalOverlay && customModalOverlay.classList.contains('show')) {
-                             // Logic to handle ESC key for custom alert is now in theme.js
-                        }
+                        // Custom alert modal check is handled in theme.js
                     }
                 });
 
@@ -422,10 +441,9 @@
                         closeFullscreenEmbedModal();
                     }
                 });
-                // --- End Modal Setup ---
+                // --- End Modal/Help Desk Setup ---
             } catch (error) {
                 console.error("Dashboard Initialization Failed Gracefully:", error);
-                // The page will remain visually available, but critical functions might be disabled.
             }
         });
     </script>
