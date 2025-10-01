@@ -1,4 +1,4 @@
-// theme.js - CONSOLIDATED FOR BOTH <select> AND CUSTOM DROPDOWN
+// theme.js - CONSOLIDATED FOR BOTH <select> AND CUSTOM DROPDOWN, AND MODAL FIX
 
 // Global reference to the modal elements (for custom alert system)
 let _customModalOverlay;
@@ -48,10 +48,8 @@ document.addEventListener('DOMContentLoaded', () => {
             theme = themePresets[themeName];
         }
 
-        // 1. Set Body Class (always required)
         body.className = `min-h-screen theme-app-container theme-${themeName} flex items-center justify-center`; 
 
-        // 2. Custom Theme Handling
         if (themeName === 'custom') {
             const customColors = JSON.parse(sessionStorage.getItem('customThemeColors')) || {
                 bg: '#f3f4f6', text: '#1f2937', accent: '#3b82f6', boxBg: '#ffffff', border: '#d1d5db', inputBg: '#ffffff', inputText: '#1f2937', buttonText: '#ffffff', buttonPrimaryHover: '#2563eb', buttonSecondary: '#6b7280', buttonSecondaryHover: '#4b5563', buttonDanger: '#dc2626', buttonDangerHover: '#b91c1c'
@@ -66,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (theme) {
-            // 3. Set all necessary CSS Variables on the HTML root element
+            // Set all necessary CSS Variables on the HTML root element
             document.documentElement.style.setProperty('--bg-color', theme.bg);
             document.documentElement.style.setProperty('--text-color', theme.text);
             document.documentElement.style.setProperty('--accent-color', theme.accent);
@@ -82,12 +80,11 @@ document.addEventListener('DOMContentLoaded', () => {
             document.documentElement.style.setProperty('--button-danger-bg', theme.buttonDanger);
             document.documentElement.style.setProperty('--button-danger-hover-bg', theme.buttonDangerHover);
 
-            // Additional variables for dashboard consistency
             document.documentElement.style.setProperty('--card-bg-color', theme.boxBg);
             document.documentElement.style.setProperty('--subtle-text-color', theme.border);
 
 
-            // 4. Special handling for dark mode class on HTML element
+            // Special handling for dark mode class on HTML element
             if (['dark', 'midnight', 'dracula', 'cyberpunk'].includes(themeName)) {
                 document.documentElement.classList.add('dark');
             } else {
@@ -128,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         Object.keys(themePresets).forEach(themeKey => {
             const theme = themePresets[themeKey];
-            if (!theme) return; // Skip the custom entry which doesn't have an icon here
+            if (!theme) return; 
 
             const button = document.createElement('button');
             button.className = 'w-full text-left px-4 py-2 text-sm theme-text-color hover:bg-gray-100/50 dark:hover:bg-gray-700/50 transition duration-150 flex items-center space-x-2';
@@ -138,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             button.addEventListener('click', () => {
                 applyTheme(themeKey);
-                if (menu) menu.classList.add('hidden'); // Hide the dropdown after selection
+                if (menu) menu.classList.add('hidden');
             });
 
             container.appendChild(button);
@@ -157,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
             themeSelector.addEventListener('change', (event) => {
                 applyTheme(event.target.value);
             });
-            themeSelector.value = savedTheme; // Set the dropdown value on load
+            themeSelector.value = savedTheme;
         } 
         
         // --- 2. Custom Button Dropdown logic (selectionexp.html) ---
@@ -167,21 +164,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentThemeIcon = document.getElementById('currentThemeIcon');
         
         if (themeToggle && themeDropdownMenu && themeOptionsContainer) {
-            // Update the toggle button's icon on load
             if (currentThemeIcon && themePresets[savedTheme]) {
                 currentThemeIcon.innerHTML = themePresets[savedTheme].icon;
             }
             
-            // Render options and attach listeners
             renderThemeOptions(themeOptionsContainer, themeDropdownMenu);
 
-            // Toggle Dropdown Menu
             themeToggle.addEventListener('click', (event) => {
                 event.stopPropagation();
                 themeDropdownMenu.classList.toggle('hidden');
             });
             
-            // Close dropdown when clicking outside
             document.addEventListener('click', (event) => {
                 if (!themeToggle.contains(event.target) && !themeDropdownMenu.contains(event.target)) {
                     themeDropdownMenu.classList.add('hidden');
@@ -201,7 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // START THEME LOGIC
     initializeThemePicker();
 
-    // --- CUSTOM ALERT SYSTEM (UNCHANGED) ---
+    // --- CUSTOM ALERT SYSTEM ---
     _customModalOverlay = document.getElementById('customModalOverlay');
     _customModalTitle = document.getElementById('customModalTitle');
     _customModalMessage = document.getElementById('customModalMessage');
@@ -210,27 +203,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Attach permanent event listeners for CONFIRM dialogs
     if (_customModalOkBtn) {
-        _customModalOkBtn.addEventListener('click', () => {
-            if (_customModalOkBtn.onclick === null) { // Check if this is NOT a temporary alert handler
-                 // Use classes to manage visibility
+        // Use a permanent, named function to handle the confirm logic
+        const handleOkClick = () => {
+            // Check if the temporary alert handler is NOT active (onclick === null)
+            if (_customModalOkBtn.onclick === null) {
                 _customModalOverlay.classList.remove('show');
                 document.body.style.overflow = '';
-                if (_resolveCustomConfirm) { 
-                    _resolveCustomConfirm(true); 
-                    _resolveCustomConfirm = null; 
+                if (_resolveCustomConfirm) {
+                    _resolveCustomConfirm(true);
+                    _resolveCustomConfirm = null;
                 }
             }
-            // If onclick is NOT null, it means showCustomAlert's temporary handler is active
-        });
+        };
+        _customModalOkBtn.addEventListener('click', handleOkClick);
     }
 
     if (_customModalCancelBtn) {
         _customModalCancelBtn.addEventListener('click', () => {
             _customModalOverlay.classList.remove('show');
             document.body.style.overflow = '';
-            if (_resolveCustomConfirm) { 
-                _resolveCustomConfirm(false); 
-                _resolveCustomConfirm = null; 
+            if (_resolveCustomConfirm) {
+                _resolveCustomConfirm(false);
+                _resolveCustomConfirm = null;
             }
         });
     }
@@ -240,7 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     window.showCustomAlert = function(message, type = 'info', title = null) {
         return new Promise(resolve => {
-            if (!_customModalOverlay || !_customModalTitle || !_customModalMessage || !_customModalOkBtn) { 
+            if (!_customModalOverlay) { 
                 alert(message);
                 resolve();
                 return;
@@ -264,17 +258,20 @@ document.addEventListener('DOMContentLoaded', () => {
             _customModalOkBtn.classList.remove('hidden');
             _customModalOkBtn.textContent = 'OK';
 
+            // Use the 'show' class to display the modal (requires styles.css for transition)
             _customModalOverlay.classList.add('show');
+            _customModalOverlay.classList.remove('hidden'); // Ensure the Tailwind 'hidden' is gone
+            
             document.body.style.overflow = 'hidden';
             _customModalOkBtn.focus();
 
             // Temporary override for alert logic
             _customModalOkBtn.onclick = () => {
                 _customModalOverlay.classList.remove('show');
+                _customModalOverlay.classList.add('hidden'); // Add back 'hidden' after transition if needed
                 document.body.style.overflow = '';
                 _customModalOkBtn.onclick = null; 
                 resolve(); 
-                // Restore the original permanent listener using the event listener flow (it's already there)
             };
         });
     };
@@ -284,7 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     window.showCustomConfirm = function(message, title = "Confirm Action") {
         return new Promise((resolve) => {
-            if (!_customModalOverlay || !_customModalTitle || !_customModalMessage || !_customModalOkBtn || !_customModalCancelBtn) {
+            if (!_customModalOverlay) {
                 resolve(confirm(message));
                 return;
             }
@@ -300,6 +297,8 @@ document.addEventListener('DOMContentLoaded', () => {
             _customModalOkBtn.textContent = 'OK';
 
             _customModalOverlay.classList.add('show');
+            _customModalOverlay.classList.remove('hidden'); // Ensure the Tailwind 'hidden' is gone
+            
             document.body.style.overflow = 'hidden';
             _customModalOkBtn.focus();
             
