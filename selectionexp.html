@@ -35,6 +35,19 @@
         .theme-subtle-text {
             color: var(--subtle-text-color);
         }
+        
+        /* New class for the larger tiles (20% increase) */
+        .large-tile-padding {
+            padding: 1.5rem; /* Base padding */
+            font-size: 1.125rem; /* Base text size */
+        }
+        .large-tile-padding .text-lg {
+             font-size: 1.35rem; /* Scale up the text inside */
+        }
+        .large-tile-padding .w-8 {
+             width: 2.5rem; /* Scale up icon size */
+             height: 2.5rem;
+        }
 
         /* --- Modal Styles --- */
         .fullscreen-embed-modal {
@@ -137,7 +150,9 @@
                 
                 <div class="relative inline-block text-left">
                     <button id="themeToggle" type="button" class="p-2 rounded-full theme-text-color hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-colors flex items-center justify-center space-x-1" aria-expanded="false" aria-haspopup="true">
-                        <span id="currentThemeIcon" class="w-6 h-6 flex items-center justify-center"></span>
+                        <span id="currentThemeIcon" class="w-6 h-6 flex items-center justify-center">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21l4-8-4-8H3l4 8-4 8h4zm16-8l-4 8H13l4-8-4-8h4l4 8z"></path></svg>
+                        </span>
                         <svg id="dropdownArrow" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
                     <div id="themeDropdownMenu" class="absolute right-0 mt-2 w-48 rounded-lg shadow-2xl theme-section-bg ring-1 ring-black ring-opacity-10 origin-top-right hidden theme-dropdown-menu">
@@ -153,6 +168,33 @@
         <h2 class="text-2xl font-semibold mb-6 theme-text-color">Modules & Resources</h2>
 
         <div class="grid grid-cols-12 gap-6">
+            
+            <div class="col-span-12 sm:col-span-4">
+                <a href="citation.html" class="block large-tile-padding rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
+                    <div class="flex items-center space-x-4">
+                        <svg class="w-8 h-8 text-blue-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm10 2a1 1 0 11-2 0 1 1 0 012 0zm-7 4a1 1 0 011 1v4a1 1 0 11-2 0v-4a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+                        <span class="text-lg font-semibold">Issue Citation</span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-span-12 sm:col-span-4">
+                <a href="arrest.html" class="block large-tile-padding rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
+                    <div class="flex items-center space-x-4">
+                        <svg class="w-8 h-8 text-red-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 2a8 8 0 100 16A8 8 0 0010 2zM9 9a1 1 0 00-1 1v4a1 1 0 102 0v-4a1 1 0 00-1-1zm3-3a1 1 0 10-2 0v1a1 1 0 102 0V6z" clip-rule="evenodd"></path></svg>
+                        <span class="text-lg font-semibold">Process Arrest</span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="col-span-12 sm:col-span-4">
+                <a href="shift_log.html" class="block large-tile-padding rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
+                    <div class="flex items-center space-x-4">
+                        <svg class="w-8 h-8 text-green-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 9v10a2 2 0 002 2h8a2 2 0 002-2V9a2 2 0 00-2-2H6a2 2 0 00-2 2zm3 5a1 1 0 100 2h6a1 1 0 100-2H7z"></path></svg>
+                        <span class="text-lg font-semibold">Submit Shift Log</span>
+                    </div>
+                </a>
+            </div>
 
             <div class="col-span-12 sm:col-span-6 lg:col-span-3">
                 <a href="leaderboard.html" id="leaderboardButton" class="hidden block p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
@@ -162,33 +204,6 @@
                             <path d="M13.5 8.75a.75.75 0 00-1.5 0v3.5a.75.75 0 001.5 0v-3.5zM6.5 12.25a.75.75 0 00-1.5 0v.5a.75.75 0 001.5 0v-.5z"></path>
                         </svg>
                         <span class="text-lg font-semibold">Leaderboard</span>
-                    </div>
-                </a>
-            </div>
-            
-            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
-                <a href="citation.html" class="block p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
-                    <div class="flex items-center space-x-4">
-                        <svg class="w-8 h-8 text-blue-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm10 2a1 1 0 11-2 0 1 1 0 012 0zm-7 4a1 1 0 011 1v4a1 1 0 11-2 0v-4a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
-                        <span class="text-lg font-semibold">Issue Citation</span>
-                    </div>
-                </a>
-            </div>
-
-            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
-                <a href="arrest.html" class="block p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
-                    <div class="flex items-center space-x-4">
-                        <svg class="w-8 h-8 text-red-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 2a8 8 0 100 16A8 8 0 0010 2zM9 9a1 1 0 00-1 1v4a1 1 0 102 0v-4a1 1 0 00-1-1zm3-3a1 1 0 10-2 0v1a1 1 0 102 0V6z" clip-rule="evenodd"></path></svg>
-                        <span class="text-lg font-semibold">Process Arrest</span>
-                    </div>
-                </a>
-            </div>
-
-            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
-                <a href="shift_log.html" class="block p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
-                    <div class="flex items-center space-x-4">
-                        <svg class="w-8 h-8 text-green-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 9v10a2 2 0 002 2h8a2 2 0 002-2V9a2 2 0 00-2-2H6a2 2 0 00-2 2zm3 5a1 1 0 100 2h6a1 1 0 100-2H7z"></path></svg>
-                        <span class="text-lg font-semibold">Submit Shift Log</span>
                     </div>
                 </a>
             </div>
@@ -220,17 +235,9 @@
                 </div>
             </div>
             
-            <div class="col-span-12 sm:col-span-6 lg:col-span-3">
-                <div class="block p-6 rounded-xl shadow-lg theme-tile-bg theme-tile-border theme-text-color opacity-75 cursor-not-allowed">
-                    <div class="flex items-center space-x-4">
-                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <span class="text-lg font-semibold theme-subtle-text">Coming Soon</span>
-                    </div>
-                </div>
-            </div>
-
             <div class="col-span-12 mt-4 flex justify-center">
-                <div class="w-full sm:w-1/2 md:w-1/3 lg:w-1/4"> <a href="admin.html" id="adminButton" class="hidden block p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
+                <div class="w-full sm:w-1/2 md:w-1/3 lg:w-1/4"> 
+                    <a href="admin.html" id="adminButton" class="hidden block p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
                         <div class="flex items-center space-x-4">
                             <svg class="w-8 h-8 text-red-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M10 2a2 2 0 00-2 2v3H4a2 2 0 00-2 2v7a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-4V4a2 2 0 00-2-2zM8 4a1 1 0 011-1h2a1 1 0 011 1v3H8V4z"></path>
@@ -257,15 +264,21 @@
         const R2_BASE_URL = "https://pub-a91d9d22a6264a88b02227540eadf4cb.r2.dev/tutorials"; 
 
         const fullscreenEmbedModal = document.getElementById('fullscreenEmbedModal');
-        // REVISED: fullscreenEmbedContent is now the wrapper element
         const fullscreenEmbedContent = document.getElementById('fullscreenEmbedContent');
-        // NEW: dynamicEmbedContent is the target for content injection
         const dynamicEmbedContent = document.getElementById('dynamicEmbedContent');
         const helpDeskTile = document.getElementById('helpDeskTile');
         const closeEmbedBtn = document.getElementById('closeEmbedBtn');
         const helpDeskUrl = 'help_desk.html';
-
         
+        // --- Theme Management Variables (Assume these are defined in theme.js/styles.css environment) ---
+        // Mock data for theme logic (replace with actual theme.js content if available)
+        const themes = [
+            { id: 'light', name: 'Light Mode', icon: '☀️' },
+            { id: 'dark', name: 'Dark Mode', icon: '🌙' },
+            { id: 'blue', name: 'Blue Steel', icon: '🔷' },
+        ];
+
+
         /**
          * Dynamically loads PDF or Video content into the fullscreen modal.
          * @param {string} embedType - 'pdf' or 'video'
@@ -273,7 +286,6 @@
          * @param {string} title - The title of the document/video
          */
         function openFullscreenEmbedModal(embedType, relativeUrl, title) {
-            // Check dynamicEmbedContent instead of fullscreenEmbedContent (which is the wrapper)
             if (!fullscreenEmbedModal || !dynamicEmbedContent) return; 
 
             const fullUrl = R2_BASE_URL + relativeUrl;
@@ -283,7 +295,7 @@
             // Reset background on the wrapper
             fullscreenEmbedContent.style.backgroundColor = 'var(--bg-color)'; 
 
-            // Set the title (This will now work as modalTitle is NOT cleared)
+            // Set the title
             document.getElementById('modalTitle').textContent = title || 'Resource Viewer';
 
             // Use a container for 16:9 aspect ratio if it's a video
@@ -355,19 +367,81 @@
 			videoElement.pause();
 			}
     
-			// ------------------------------------------------------------------
-			// FIX: Clear content IMMEDIATELY, not after a setTimeout delay. 
-			// This prevents the content of the new modal from being cleared later.
-			// ------------------------------------------------------------------
-			dynamicEmbedContent.innerHTML = ''; // Clear dynamic content immediately
+			// Clear content IMMEDIATELY
+			dynamicEmbedContent.innerHTML = ''; 
 			fullscreenEmbedContent.style.padding = '2rem'; // Reset padding on the wrapper immediately
         }
+        
+        /**
+         * Theme Dropdown Logic (New Functionality)
+         */
+        function setupThemeDropdown() {
+            const themeToggle = document.getElementById('themeToggle');
+            const themeDropdownMenu = document.getElementById('themeDropdownMenu');
+            const themeOptions = document.getElementById('themeOptions');
+
+            // Function to populate the dropdown menu
+            const populateDropdown = () => {
+                // Clear existing options
+                themeOptions.innerHTML = ''; 
+                
+                // Check if the global themes array from theme.js is available
+                const availableThemes = (typeof window.THEMES !== 'undefined') ? window.THEMES : themes;
+                
+                availableThemes.forEach(theme => {
+                    const button = document.createElement('button');
+                    button.classList.add('block', 'w-full', 'text-left', 'px-4', 'py-2', 'theme-text-color', 'hover:bg-gray-100/50', 'dark:hover:bg-gray-700/50', 'transition-colors');
+                    button.setAttribute('role', 'menuitem');
+                    button.setAttribute('data-theme', theme.id);
+                    button.innerHTML = `<span class="mr-2">${theme.icon || '🎨'}</span> ${theme.name}`;
+                    
+                    button.addEventListener('click', () => {
+                        // Assuming the function to apply the theme is called setTheme in theme.js
+                        if (typeof window.setTheme === 'function') {
+                            window.setTheme(theme.id);
+                        } else {
+                            // Fallback for demonstration if theme.js is not loaded
+                            console.warn(`setTheme function not found. Applying theme class: ${theme.id}`);
+                            document.body.className = `${theme.id}-theme min-h-screen transition-colors duration-300 font-sans`;
+                        }
+                        themeDropdownMenu.classList.add('hidden');
+                        themeToggle.setAttribute('aria-expanded', 'false');
+                    });
+                    themeOptions.appendChild(button);
+                });
+            };
+
+            // Toggle function
+            themeToggle.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent the body click from closing it immediately
+                const isExpanded = themeDropdownMenu.classList.contains('hidden');
+                
+                if (isExpanded) {
+                    populateDropdown(); // Populate on open to ensure fresh list
+                    themeDropdownMenu.classList.remove('hidden');
+                    themeToggle.setAttribute('aria-expanded', 'true');
+                } else {
+                    themeDropdownMenu.classList.add('hidden');
+                    themeToggle.setAttribute('aria-expanded', 'false');
+                }
+            });
+
+            // Close when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!themeDropdownMenu.contains(e.target) && !themeToggle.contains(e.target)) {
+                    themeDropdownMenu.classList.add('hidden');
+                    themeToggle.setAttribute('aria-expanded', 'false');
+                }
+            });
+        }
+
 
         
         // --- DOM Event Listeners ---
         document.addEventListener('DOMContentLoaded', function() {
             
-            // Added try...catch block to prevent uncaught errors from crashing the page
+            setupThemeDropdown(); // Initialize the new theme dropdown logic
+
             try { 
                 // --- User Authentication and Display (Existing Logic) ---
                 const loggedInUserString = sessionStorage.getItem('loggedInUser');
@@ -377,8 +451,8 @@
                     const userNameDisplay = document.getElementById('userNameDisplay');
                     
                     if (userNameDisplay) {
-                        // Use userName property from the loggedInUser object
-                        userNameDisplay.textContent = loggedInUser.userName || 'User';
+                        // FIX #3: Changed from loggedInUser.userName to loggedInUser.username
+                        userNameDisplay.textContent = loggedInUser.username || 'User';
                     }
 
                     const adminButton = document.getElementById('adminButton');
@@ -405,7 +479,6 @@
                 if (helpDeskTile) {
                     helpDeskTile.addEventListener('click', () => {
                         // 1. Open the primary modal with the help_desk.html iframe
-                        // FIX: openFullscreenEmbedModal now works correctly even without the title argument for iframe
                         openFullscreenEmbedModal('iframe', helpDeskUrl);
 
                         // 2. Attach a listener to the iframe once it's loaded to handle nested R2 link clicks
@@ -434,7 +507,6 @@
                                                 
                                                 // Open the new fullscreen embed modal with the PDF/Video
                                                 // We add a slight delay to ensure the modal is fully closed before re-opening 
-                                                // (to prevent visual glitches during rapid transition)
                                                 setTimeout(() => {
                                                     openFullscreenEmbedModal(type, url, title); 
                                                 }, 100); 
