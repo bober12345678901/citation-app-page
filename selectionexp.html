@@ -345,21 +345,22 @@
          * Function to close the fullscreen modal and stop video playback.
          */
         function closeFullscreenEmbedModal() {
-            if (!fullscreenEmbedModal) return;
-            document.body.style.overflow = ''; // Restore scrolling
-            fullscreenEmbedModal.classList.remove('show');
-            
-            // Find any video element in the dynamic content area and pause it to stop sound
-            const videoElement = dynamicEmbedContent.querySelector('video');
-            if (videoElement) {
-                videoElement.pause();
-            }
-            
-            // Clear content after transition for a cleaner closing
-            setTimeout(() => {
-                dynamicEmbedContent.innerHTML = ''; // Clear dynamic content
-                fullscreenEmbedContent.style.padding = '2rem'; // Reset padding on the wrapper
-            }, 300);
+			if (!fullscreenEmbedModal) return;
+			document.body.style.overflow = ''; // Restore scrolling
+			fullscreenEmbedModal.classList.remove('show');
+    
+			// Find any video element in the dynamic content area and pause it to stop sound
+			const videoElement = dynamicEmbedContent.querySelector('video');
+			if (videoElement) {
+			videoElement.pause();
+			}
+    
+			// ------------------------------------------------------------------
+			// FIX: Clear content IMMEDIATELY, not after a setTimeout delay. 
+			// This prevents the content of the new modal from being cleared later.
+			// ------------------------------------------------------------------
+			dynamicEmbedContent.innerHTML = ''; // Clear dynamic content immediately
+			fullscreenEmbedContent.style.padding = '2rem'; // Reset padding on the wrapper immediately
         }
 
         
