@@ -1,32 +1,27 @@
-// theme.js - WITH CUSTOM ALERT SYSTEM & CUSTOM DROPDOWN FIX
+// theme.js - CONSOLIDATED FOR BOTH <select> AND CUSTOM DROPDOWN
 
-// Global reference to the modal elements
+// Global reference to the modal elements (for custom alert system)
 let _customModalOverlay;
 let _customModalTitle;
 let _customModalMessage;
 let _customModalOkBtn;
 let _customModalCancelBtn;
-let _resolveCustomConfirm; // To store the resolve function for custom confirm
+let _resolveCustomConfirm; 
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Tailwind CSS Configuration MUST be inside DOMContentLoaded if CDN is in head
+    // Tailwind CSS Configuration
     if (typeof tailwind !== 'undefined' && tailwind.config) {
         tailwind.config = {
-            darkMode: 'class', // Enable dark mode by toggling a 'dark' class on the html element
+            darkMode: 'class',
         };
     }
 
-    // --- THEME DROPDOWN ELEMENTS ---
-    const themeToggle = document.getElementById('themeToggle');
-    const themeDropdownMenu = document.getElementById('themeDropdownMenu');
-    const themeOptionsContainer = document.getElementById('themeOptions');
-    const currentThemeIcon = document.getElementById('currentThemeIcon');
-
+    // Common Elements
+    const body = document.body;
     const customColorsContainer = document.getElementById('customColorsContainer');
     const customBgColorInput = document.getElementById('customBgColor');
     const customTextColorInput = document.getElementById('customTextColor');
     const customAccentColorInput = document.getElementById('customAccentColor');
-    const body = document.body;
 
     // Theme definitions (unchanged)
     const themePresets = {
@@ -38,12 +33,11 @@ document.addEventListener('DOMContentLoaded', () => {
         midnight: { name: 'Midnight', icon: '🌌', bg: '#0f172a', text: '#e2e8f0', accent: '#7c3aed', boxBg: '#1e293b', border: '#475569', inputBg: '#334155', inputText: '#e2e8f0', buttonText: '#ffffff', buttonPrimaryHover: '#6d28d9', buttonSecondary: '#64748b', buttonSecondaryHover: '#475569', buttonDanger: '#dc2626', buttonDangerHover: '#b91c1c' },
         dracula: { name: 'Dracula', icon: '🧛', bg: '#282a36', text: '#f8f8f2', accent: '#bd93f9', boxBg: '#44475a', border: '#6272a4', inputBg: '#50fa7b', inputText: '#f8f8f2', buttonText: '#ffffff', buttonPrimaryHover: '#ff79c6', buttonSecondary: '#6272a4', buttonSecondaryHover: '#44475a', buttonDanger: '#ff5555', buttonDangerHover: '#ff3333' },
         cyberpunk: { name: 'Cyberpunk', icon: '🤖', bg: '#0d0f1b', text: '#fefefe', accent: '#ff007c', boxBg: '#1a1d2e', border: '#00ffff', inputBg: '#2a2e4a', inputText: '#fefefe', buttonText: '#ffffff', buttonPrimaryHover: '#ff00ff', buttonSecondary: '#00ff00', buttonSecondaryHover: '#00cc00', buttonDanger: '#fe4a4a', buttonDangerHover: '#e73030' },
-        custom: { name: 'Custom', icon: '🎨', bg: '#f3f4f6', text: '#1f2937', accent: '#3b82f6', boxBg: '#ffffff', border: '#d1d5db', inputBg: '#ffffff', inputText: '#1f2937', buttonText: '#ffffff', buttonPrimaryHover: '#2563eb', buttonSecondary: '#6b7280', buttonSecondaryHover: '#4b5563', buttonDanger: '#dc2626', buttonDangerHover: '#b91c1c' } // Default custom theme
+        custom: null // Will be loaded from sessionStorage or default
     };
 
     /**
      * Applies the selected theme by setting CSS variables on the root element.
-     * @param {string} themeName - The name of the theme preset.
      */
     function applyTheme(themeName) {
         let theme = themePresets[themeName];
@@ -54,11 +48,14 @@ document.addEventListener('DOMContentLoaded', () => {
             theme = themePresets[themeName];
         }
 
-        // 1. Set Body Class
+        // 1. Set Body Class (always required)
         body.className = `min-h-screen theme-app-container theme-${themeName} flex items-center justify-center`; 
 
+        // 2. Custom Theme Handling
         if (themeName === 'custom') {
-            const customColors = JSON.parse(sessionStorage.getItem('customThemeColors')) || themePresets.custom;
+            const customColors = JSON.parse(sessionStorage.getItem('customThemeColors')) || {
+                bg: '#f3f4f6', text: '#1f2937', accent: '#3b82f6', boxBg: '#ffffff', border: '#d1d5db', inputBg: '#ffffff', inputText: '#1f2937', buttonText: '#ffffff', buttonPrimaryHover: '#2563eb', buttonSecondary: '#6b7280', buttonSecondaryHover: '#4b5563', buttonDanger: '#dc2626', buttonDangerHover: '#b91c1c'
+            };
             theme = customColors;
             if (customBgColorInput) customBgColorInput.value = customColors.bg;
             if (customTextColorInput) customTextColorInput.value = customColors.text;
@@ -68,41 +65,40 @@ document.addEventListener('DOMContentLoaded', () => {
             if (customColorsContainer) customColorsContainer.classList.add('hidden');
         }
 
-        // 2. Set CSS Variables on the HTML root element
-        document.documentElement.style.setProperty('--bg-color', theme.bg);
-        document.documentElement.style.setProperty('--text-color', theme.text);
-        document.documentElement.style.setProperty('--accent-color', theme.accent);
-        document.documentElement.style.setProperty('--box-bg-color', theme.boxBg || theme.bg);
-        document.documentElement.style.setProperty('--border-color', theme.border);
-        document.documentElement.style.setProperty('--input-bg-color', theme.inputBg);
-        document.documentElement.style.setProperty('--input-text-color', theme.inputText);
-        document.documentElement.style.setProperty('--button-text-color', theme.buttonText);
-        document.documentElement.style.setProperty('--button-primary-bg', theme.accent);
-        document.documentElement.style.setProperty('--button-primary-hover-bg', theme.buttonPrimaryHover);
-        document.documentElement.style.setProperty('--button-secondary-bg', theme.buttonSecondary);
-        document.documentElement.style.setProperty('--button-secondary-hover-bg', theme.buttonSecondaryHover);
-        document.documentElement.style.setProperty('--button-danger-bg', theme.buttonDanger);
-        document.documentElement.style.setProperty('--button-danger-hover-bg', theme.buttonDangerHover);
-        document.documentElement.style.setProperty('--card-bg-color', theme.boxBg || theme.bg); 
-        document.documentElement.style.setProperty('--subtle-text-color', theme.border);
+        if (theme) {
+            // 3. Set all necessary CSS Variables on the HTML root element
+            document.documentElement.style.setProperty('--bg-color', theme.bg);
+            document.documentElement.style.setProperty('--text-color', theme.text);
+            document.documentElement.style.setProperty('--accent-color', theme.accent);
+            document.documentElement.style.setProperty('--box-bg-color', theme.boxBg);
+            document.documentElement.style.setProperty('--border-color', theme.border);
+            document.documentElement.style.setProperty('--input-bg-color', theme.inputBg);
+            document.documentElement.style.setProperty('--input-text-color', theme.inputText);
+            document.documentElement.style.setProperty('--button-text-color', theme.buttonText);
+            document.documentElement.style.setProperty('--button-primary-bg', theme.accent);
+            document.documentElement.style.setProperty('--button-primary-hover-bg', theme.buttonPrimaryHover);
+            document.documentElement.style.setProperty('--button-secondary-bg', theme.buttonSecondary);
+            document.documentElement.style.setProperty('--button-secondary-hover-bg', theme.buttonSecondaryHover);
+            document.documentElement.style.setProperty('--button-danger-bg', theme.buttonDanger);
+            document.documentElement.style.setProperty('--button-danger-hover-bg', theme.buttonDangerHover);
 
-        // 3. Special handling for dark mode class on HTML element
-        if (['dark', 'midnight', 'dracula', 'cyberpunk'].includes(themeName)) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-        
-        // 4. Update the icon on the theme toggle button
-        if (currentThemeIcon) {
-            currentThemeIcon.innerHTML = theme.icon;
+            // Additional variables for dashboard consistency
+            document.documentElement.style.setProperty('--card-bg-color', theme.boxBg);
+            document.documentElement.style.setProperty('--subtle-text-color', theme.border);
+
+
+            // 4. Special handling for dark mode class on HTML element
+            if (['dark', 'midnight', 'dracula', 'cyberpunk'].includes(themeName)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
         }
 
         sessionStorage.setItem('selectedTheme', themeName); 
     }
 
     function saveCustomColors() {
-        // ... (Existing saveCustomColors function)
         const customColors = {
             bg: customBgColorInput.value,
             text: customTextColorInput.value,
@@ -123,15 +119,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Renders the theme options into the dropdown menu and attaches listeners.
+     * Renders the theme options into the custom dropdown menu and attaches listeners.
      */
-    function renderThemeOptions() {
-        if (!themeOptionsContainer) return;
+    function renderThemeOptions(container, menu) {
+        if (!container) return;
 
-        themeOptionsContainer.innerHTML = ''; 
+        container.innerHTML = ''; 
 
         Object.keys(themePresets).forEach(themeKey => {
             const theme = themePresets[themeKey];
+            if (!theme) return; // Skip the custom entry which doesn't have an icon here
+
             const button = document.createElement('button');
             button.className = 'w-full text-left px-4 py-2 text-sm theme-text-color hover:bg-gray-100/50 dark:hover:bg-gray-700/50 transition duration-150 flex items-center space-x-2';
             button.setAttribute('role', 'menuitem');
@@ -140,65 +138,89 @@ document.addEventListener('DOMContentLoaded', () => {
             
             button.addEventListener('click', () => {
                 applyTheme(themeKey);
-                // Hide the dropdown after selection
-                if (themeDropdownMenu) themeDropdownMenu.classList.add('hidden');
+                if (menu) menu.classList.add('hidden'); // Hide the dropdown after selection
             });
 
-            themeOptionsContainer.appendChild(button);
+            container.appendChild(button);
         });
     }
 
-    // --- Event Listeners for theme selection (Custom Dropdown Logic) ---
-
-    // 1. Render options on load
-    renderThemeOptions();
-
-    // 2. Toggle Dropdown Menu (Fix: Use toggle for visibility)
-    if (themeToggle && themeDropdownMenu) {
-        // The toggle logic
-        themeToggle.addEventListener('click', (event) => {
-            event.stopPropagation(); // Prevent the body click listener from immediately closing it
-            themeDropdownMenu.classList.toggle('hidden');
-        });
+    /**
+     * Initializes the theme selection logic based on which element is present.
+     */
+    function initializeThemePicker() {
+        const savedTheme = sessionStorage.getItem('selectedTheme') || 'dark';
         
-        // Close dropdown when clicking outside
-        document.addEventListener('click', (event) => {
-            // Check if the click occurred outside both the toggle button and the dropdown menu
-            if (!themeToggle.contains(event.target) && !themeDropdownMenu.contains(event.target)) {
-                themeDropdownMenu.classList.add('hidden');
+        // --- 1. Standard <select> logic (index.html) ---
+        const themeSelector = document.getElementById('themeSelector');
+        if (themeSelector) {
+            themeSelector.addEventListener('change', (event) => {
+                applyTheme(event.target.value);
+            });
+            themeSelector.value = savedTheme; // Set the dropdown value on load
+        } 
+        
+        // --- 2. Custom Button Dropdown logic (selectionexp.html) ---
+        const themeToggle = document.getElementById('themeToggle');
+        const themeDropdownMenu = document.getElementById('themeDropdownMenu');
+        const themeOptionsContainer = document.getElementById('themeOptions');
+        const currentThemeIcon = document.getElementById('currentThemeIcon');
+        
+        if (themeToggle && themeDropdownMenu && themeOptionsContainer) {
+            // Update the toggle button's icon on load
+            if (currentThemeIcon && themePresets[savedTheme]) {
+                currentThemeIcon.innerHTML = themePresets[savedTheme].icon;
             }
-        });
+            
+            // Render options and attach listeners
+            renderThemeOptions(themeOptionsContainer, themeDropdownMenu);
+
+            // Toggle Dropdown Menu
+            themeToggle.addEventListener('click', (event) => {
+                event.stopPropagation();
+                themeDropdownMenu.classList.toggle('hidden');
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (event) => {
+                if (!themeToggle.contains(event.target) && !themeDropdownMenu.contains(event.target)) {
+                    themeDropdownMenu.classList.add('hidden');
+                }
+            });
+        }
+        
+        // --- 3. Custom Color Inputs ---
+        if (customBgColorInput) customBgColorInput.addEventListener('input', saveCustomColors);
+        if (customTextColorInput) customTextColorInput.addEventListener('input', saveCustomColors);
+        if (customAccentColorInput) customAccentColorInput.addEventListener('input', saveCustomColors);
+
+        // Apply the saved theme once all event listeners are set up
+        applyTheme(savedTheme);
     }
-
-    // Event Listeners for Custom Theme (unchanged)
-    if (customBgColorInput) customBgColorInput.addEventListener('input', saveCustomColors);
-    if (customTextColorInput) customTextColorInput.addEventListener('input', saveCustomColors);
-    if (customAccentColorInput) customAccentColorInput.addEventListener('input', saveCustomColors);
-
-
-    // Load saved theme on page load 
-    const savedTheme = sessionStorage.getItem('selectedTheme') || 'dark'; 
-    applyTheme(savedTheme);
-
+    
+    // START THEME LOGIC
+    initializeThemePicker();
 
     // --- CUSTOM ALERT SYSTEM (UNCHANGED) ---
-    // Initialize modal elements once the DOM is ready and the HTML is present
     _customModalOverlay = document.getElementById('customModalOverlay');
     _customModalTitle = document.getElementById('customModalTitle');
     _customModalMessage = document.getElementById('customModalMessage');
     _customModalOkBtn = document.getElementById('customModalOkBtn');
     _customModalCancelBtn = document.getElementById('customModalCancelBtn');
 
-    // Attach event listeners to modal buttons (for showCustomConfirm)
+    // Attach permanent event listeners for CONFIRM dialogs
     if (_customModalOkBtn) {
         _customModalOkBtn.addEventListener('click', () => {
-            _customModalOverlay.classList.remove('show');
-            document.body.style.overflow = '';
-            // Only resolve if it was a confirm dialog
-            if (_resolveCustomConfirm) {
-                _resolveCustomConfirm(true); 
-                _resolveCustomConfirm = null;
+            if (_customModalOkBtn.onclick === null) { // Check if this is NOT a temporary alert handler
+                 // Use classes to manage visibility
+                _customModalOverlay.classList.remove('show');
+                document.body.style.overflow = '';
+                if (_resolveCustomConfirm) { 
+                    _resolveCustomConfirm(true); 
+                    _resolveCustomConfirm = null; 
+                }
             }
+            // If onclick is NOT null, it means showCustomAlert's temporary handler is active
         });
     }
 
@@ -206,20 +228,15 @@ document.addEventListener('DOMContentLoaded', () => {
         _customModalCancelBtn.addEventListener('click', () => {
             _customModalOverlay.classList.remove('show');
             document.body.style.overflow = '';
-            // Only resolve if it was a confirm dialog
-            if (_resolveCustomConfirm) {
+            if (_resolveCustomConfirm) { 
                 _resolveCustomConfirm(false); 
-                _resolveCustomConfirm = null;
+                _resolveCustomConfirm = null; 
             }
         });
     }
 
     /**
      * Replaces native alert() with a custom modal popup.
-     * @param {string} message The message to display.
-     * @param {string} [type="info"] Optional type for styling ('success', 'error', 'warning', 'info').
-     * @param {string} [title] Optional title for the modal. Defaults based on type.
-     * @returns {Promise<void>} A promise that resolves when OK is clicked.
      */
     window.showCustomAlert = function(message, type = 'info', title = null) {
         return new Promise(resolve => {
@@ -229,9 +246,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            _customModalTitle.textContent = '';
+            _customModalTitle.textContent = ''; 
             _customModalMessage.textContent = message;
-
             _customModalTitle.classList.remove('success', 'error', 'warning', 'info');
 
             let effectiveTitle = title;
@@ -248,29 +264,23 @@ document.addEventListener('DOMContentLoaded', () => {
             _customModalOkBtn.classList.remove('hidden');
             _customModalOkBtn.textContent = 'OK';
 
-            // Show the modal using the CSS transition class
-            _customModalOverlay.classList.add('show'); 
-            
+            _customModalOverlay.classList.add('show');
             document.body.style.overflow = 'hidden';
             _customModalOkBtn.focus();
 
-            // IMPORTANT: Overwrite the shared _customModalOkBtn listener temporarily for ALERT
-            // This is a necessary pattern when mixing alerts (single action) and confirms (dual action)
+            // Temporary override for alert logic
             _customModalOkBtn.onclick = () => {
                 _customModalOverlay.classList.remove('show');
                 document.body.style.overflow = '';
-                // Re-establish the original listener that handles the confirm logic
                 _customModalOkBtn.onclick = null; 
                 resolve(); 
+                // Restore the original permanent listener using the event listener flow (it's already there)
             };
         });
     };
 
     /**
      * Replaces native confirm() with a custom modal popup.
-     * @param {string} message The message to display.
-     * @param {string} [title="Confirm Action"] The title of the modal.
-     * @returns {Promise<boolean>} A promise that resolves to true if OK is clicked, false if Cancel.
      */
     window.showCustomConfirm = function(message, title = "Confirm Action") {
         return new Promise((resolve) => {
@@ -289,12 +299,10 @@ document.addEventListener('DOMContentLoaded', () => {
             _customModalOkBtn.classList.remove('hidden');
             _customModalOkBtn.textContent = 'OK';
 
-            // Show the modal using the CSS transition class
             _customModalOverlay.classList.add('show');
-            
             document.body.style.overflow = 'hidden';
             _customModalOkBtn.focus();
-
+            
             // Clear any temporary onclick handler that might have been set by showCustomAlert
             _customModalOkBtn.onclick = null; 
         });
