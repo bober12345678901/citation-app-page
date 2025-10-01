@@ -28,17 +28,170 @@ html.dark {
     --input-bg-color: #374151;
     --input-text-color: #f9fafb;
     --button-primary-bg: var(--accent-color);
-    --button-primary-hover-bg: #3b82f6;
-    --button-secondary-bg: #9ca3af;
-    --button-secondary-hover-bg: #d1d5db;
-    --button-danger-bg: #f87171;
-    --button-danger-hover-bg: #ef4444;
+    --button-primary-hover-bg: #1e40af;
+    --button-secondary-bg: #4b5563;
+    --button-secondary-hover-bg: #374151;
+    --button-danger-bg: #b91c1c;
+    --button-danger-hover-bg: #991b1b;
 }
 
-/* General component styling using theme variables */
-.theme-section-bg { background-color: var(--bg-color); }
-.theme-box-bg { background-color: var(--box-bg-color); }
-.theme-text-color { color: var(--text-color); }
+/* Custom theme classes based on your themePresets.
+   These classes will be added to the <body> element by JavaScript. */
+
+/* Light Theme (default) */
+.theme-light {
+    --bg-color: #f3f4f6;
+    --text-color: #1f2937;
+    --accent-color: #3b82f6;
+    --box-bg-color: #ffffff;
+    --border-color: #d1d5db;
+    --input-bg-color: #ffffff;
+    --input-text-color: #1f2937;
+    --button-primary-bg: var(--accent-color);
+    --button-primary-hover-bg: #2563eb;
+    --button-secondary-bg: #6b7280;
+    --button-secondary-hover-bg: #4b5563;
+    --button-danger-bg: #dc2626;
+    --button-danger-hover-bg: #b91c1c;
+}
+
+/* Dark Theme */
+.theme-dark {
+    --bg-color: #111827;
+    --text-color: #f9fafb;
+    --accent-color: #2563eb;
+    --box-bg-color: #1f2937;
+    --border-color: #374151;
+    --input-bg-color: #374151;
+    --input-text-color: #f9fafb;
+    --button-primary-bg: var(--accent-color);
+    --button-primary-hover-bg: #1e40af;
+    --button-secondary-bg: #4b5563;
+    --button-secondary-hover-bg: #374151;
+    --button-danger-bg: #b91c1c;
+    --button-danger-hover-bg: #991b1b;
+}
+
+/* Sunset Theme */
+.theme-sunset {
+    --bg-color: #ffe4e6;
+    --text-color: #4b1e2f;
+    --accent-color: #fb7185;
+    --box-bg-color: #fef2f2;
+    --border-color: #fecdd3;
+    --input-bg-color: #fff7f7;
+    --input-text-color: #4b1e2f;
+    --button-primary-bg: var(--accent-color);
+    --button-primary-hover-bg: #e11d48;
+    --button-secondary-bg: #fca5a5;
+    --button-secondary-hover-bg: #ef4444;
+    --button-danger-bg: #be123c;
+    --button-danger-hover-bg: #9f1239;
+}
+
+/* Ocean Theme */
+.theme-ocean {
+    --bg-color: #e0f2fe;
+    --text-color: #0c4a6e;
+    --accent-color: #0284c7;
+    --box-bg-color: #ecf8ff;
+    --border-color: #7dd3fc;
+    --input-bg-color: #f0f9ff;
+    --input-text-color: #0c4a6e;
+    --button-primary-bg: var(--accent-color);
+    --button-primary-hover-bg: #0369a1;
+    --button-secondary-bg: #38bdf8;
+    --button-secondary-hover-bg: #0ea5e9;
+    --button-danger-bg: #ef4444;
+    --button-danger-hover-bg: #dc2626;
+}
+
+/* Forest Theme */
+.theme-forest {
+    --bg-color: #ecfdf5;
+    --text-color: #064e3b;
+    --accent-color: #10b981;
+    --box-bg-color: #f0fdf4;
+    --border-color: #6ee7b7;
+    --input-bg-color: #f0fdf4;
+    --input-text-color: #064e3b;
+    --button-primary-bg: var(--accent-color);
+    --button-primary-hover-bg: #059669;
+    --button-secondary-bg: #34d399;
+    --button-secondary-hover-bg: #10b981;
+    --button-danger-bg: #ef4444;
+    --button-danger-hover-bg: #dc2626;
+}
+
+/* Midnight Theme */
+.theme-midnight {
+    --bg-color: #0f172a;
+    --text-color: #e2e8f0;
+    --accent-color: #7c3aed;
+    --box-bg-color: #1e293b;
+    --border-color: #475569;
+    --input-bg-color: #334155;
+    --input-text-color: #e2e8f0;
+    --button-primary-bg: var(--accent-color);
+    --button-primary-hover-bg: #6d28d9;
+    --button-secondary-bg: #64748b;
+    --button-secondary-hover-bg: #475569;
+    --button-danger-bg: #dc2626;
+    --button-danger-hover-bg: #b91c1c;
+}
+
+/* Dracula Theme */
+.theme-dracula {
+    --bg-color: #282a36;
+    --text-color: #f8f8f2;
+    --accent-color: #bd93f9;
+    --box-bg-color: #44475a;
+    --border-color: #6272a4;
+    --input-bg-color: #184d26; /* Draculas green */
+    --input-text-color: #f8f8f2;
+    --button-primary-bg: var(--accent-color);
+    --button-primary-hover-bg: #ff79c6; /* Dracula pink */
+    --button-secondary-bg: #6272a4;
+    --button-secondary-hover-bg: #44475a;
+    --button-danger-bg: #ff5555;
+    --button-danger-hover-bg: #ff3333;
+}
+
+/* Cyberpunk Theme */
+.theme-cyberpunk {
+    --bg-color: #0d0f1b;
+    --text-color: #fefefe;
+    --accent-color: #ff007c; /* Neon pink */
+    --box-bg-color: #1a1d2e;
+    --border-color: #00ffff; /* Neon cyan */
+    --input-bg-color: #2a2e4a;
+    --input-text-color: #fefefe;
+    --button-primary-bg: var(--accent-color);
+    --button-primary-hover-bg: #ff00ff; /* Neon magenta */
+    --button-secondary-bg: #00ff00; /* Neon green */
+    --button-secondary-hover-bg: #00cc00;
+    --button-danger-bg: #fe4a4a;
+    --button-danger-hover-bg: #e73030;
+}
+
+
+/* Apply variables to Tailwind classes */
+.theme-app-container {
+    background-color: var(--bg-color);
+}
+
+.theme-lookup-box {
+    background-color: var(--box-bg-color);
+    border-color: var(--border-color);
+}
+
+.theme-title {
+    color: var(--text-color);
+}
+
+.theme-label {
+    color: var(--text-color);
+}
 
 .theme-input {
     background-color: var(--input-bg-color);
@@ -46,59 +199,72 @@ html.dark {
     border-color: var(--border-color);
 }
 
-/* Primary Button */
 .theme-button-primary {
     background-color: var(--button-primary-bg);
     color: var(--button-text-color);
-    transition: background-color 0.2s;
 }
 .theme-button-primary:hover {
     background-color: var(--button-primary-hover-bg);
 }
 
-/* Secondary Button */
 .theme-button-secondary {
     background-color: var(--button-secondary-bg);
     color: var(--button-text-color);
-    transition: background-color 0.2s;
 }
 .theme-button-secondary:hover {
     background-color: var(--button-secondary-hover-bg);
 }
 
-/* Danger Button */
 .theme-button-danger {
     background-color: var(--button-danger-bg);
     color: var(--button-text-color);
-    transition: background-color 0.2s;
 }
 .theme-button-danger:hover {
     background-color: var(--button-danger-hover-bg);
 }
 
-/* --- Custom Modal Styling --- */
+/* Override default link colors if needed for theme consistency */
+a {
+    color: var(--accent-color); /* Apply accent color to links */
+}
+a:hover {
+    text-decoration: underline;
+}
 
-/* Modal Overlay: Fullscreen, high Z-index, blurred background */
+/* Specific overrides for strong tags within pre */
+pre strong {
+    color: inherit; /* Inherit text color from parent for strong tags inside pre */
+}
+
+/* Global pre tag styles for text breaking */
+pre {
+    white-space: pre-wrap; /* Preserves whitespace and line breaks */
+    word-wrap: break-word; /* Modern property for breaking long words */
+    overflow-wrap: break-word; /* Alias for word-wrap for wider compatibility */
+    word-break: break-all; /* Force break even on "words" without spaces */
+    margin: 0; /* Remove default pre margin */
+}
+
+/* Modal Overlay */
 .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.7); /* Darker, slightly transparent background */
-    z-index: 1000;
+    background-color: rgba(0, 0, 0, 0.7); /* Dark overlay */
     display: flex;
     justify-content: center;
     align-items: center;
-    opacity: 1; /* Default visible state when 'hidden' is removed */
-    visibility: visible;
+    z-index: 1000; /* Ensure it's on top of other content */
+    opacity: 0;
+    visibility: hidden;
     transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
-/* This class controls the hidden state (Tailwind default) */
-.modal-overlay.hidden {
-    opacity: 0;
-    visibility: hidden;
+.modal-overlay.show {
+    opacity: 1;
+    visibility: visible;
 }
 
 /* Modal Content Box */
@@ -116,8 +282,7 @@ html.dark {
     flex-direction: column;
 }
 
-/* Animate in when 'hidden' is removed */
-.modal-overlay:not(.hidden) .custom-modal {
+.modal-overlay.show .custom-modal {
     transform: translateY(0); /* Final state for animation */
 }
 
@@ -125,27 +290,30 @@ html.dark {
     font-size: 1.5rem;
     font-weight: bold;
     margin-bottom: 1rem;
-    color: var(--accent-color);
+    color: var(--accent-color); /* Use accent color for header */
 }
 
 .custom-modal-body {
     margin-bottom: 1.5rem;
-    flex-grow: 1;
+    flex-grow: 1; /* Allow body to take available space */
 }
 
 .custom-modal-footer {
     text-align: right;
 }
 
-/* Modal specific button styling */
+/* Modal specific button styling - inherit from theme-button-primary/secondary/danger */
 .custom-modal .modal-button {
     padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    font-weight: 500;
+    border-radius: 0.25rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.2s ease;
 }
 
-/* Alert Type Coloring */
-.custom-modal-header.success { color: #10b981; } /* emerald-500 */
-.custom-modal-header.error { color: #ef4444; } /* red-500 */
-.custom-modal-header.warning { color: #f59e0b; } /* amber-500 */
-.custom-modal-header.info { color: var(--accent-color); } /* Use accent for info */
+/* Type specific styling (success, error, info) */
+.custom-modal-header.success { color: #16a34a; /* green-600 */ }
+.custom-modal-header.error { color: #dc2626; /* red-600 */ }
+.custom-modal-header.info { color: #2563eb; /* blue-600 */ } /* Using accent for info */
+.custom-modal-header.warning { color: #fbbf24; /* amber-400 */ }
