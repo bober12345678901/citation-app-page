@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fake Queue Countdown</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configure Tailwind for a dark, professional theme (mimicking dashboard style) -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'background-dark': '#1e293b', // Slate 800-ish
+                        'card-dark': '#334155', // Slate 700-ish
+                        'accent-color': '#38bdf8', // Sky 400
+                        'text-light': '#f8fafc', // Slate 50
+                        'skip-color': '#f97316', // Orange 500
+                        'danger-color': '#ef4444', // Red 500
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Apply smooth transitions for a polished look */
+        .transition-all {
+            transition-property: all;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 300ms;
+        }
+
+        /* Modal specific styles for fade-in/slide-down effect */
+        .modal-overlay {
+            visibility: hidden;
+            opacity: 0;
+            transition: visibility 0s, opacity 0.3s;
+        }
+        .modal-overlay.open {
+            visibility: visible;
+            opacity: 1;
+        }
+        .modal-content {
+            transform: translateY(-50px);
+            transition: transform 0.3s ease-out;
+        }
+        .modal-overlay.open .modal-content {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-background-dark flex items-center justify-center p-4 font-sans">
+
+    <!-- Queue Status Card -->
+    <div id="queue-card" class="w-full max-w-lg p-6 md:p-10 bg-card-dark rounded-xl shadow-2xl theme-tile-border border border-slate-600 transition-all">
+        
+        <!-- Header -->
+        <h1 class="text-3xl font-bold text-center text-accent-color mb-6">
+            <span id="header-text">Processing Request...</span>
+        </h1>
+
+        <!-- Countdown Display -->
+        <div class="text-center my-8">
+            <p class="text-text-light text-lg font-medium mb-2" id="status-message">
+                Items remaining in queue:
+            </p>
+            <div id="countdown-container" class="inline-block p-4 bg-gray-700/50 rounded-lg shadow-inner">
+                <span id="queue-counter" class="text-7xl md:text-8xl font-extrabold text-accent-color transition-all">
+                    100
+                </span>
+            </div>
+        </div>
+
+        <!-- Progress Bar (Fake) -->
+        <div class="w-full h-3 bg-gray-700 rounded-full overflow-hidden mt-8 mb-4">
+            <div id="progress-bar" class="h-full bg-accent-color transition-all duration-1000 ease-linear" style="width: 0%;"></div>
+        </div>
+
+        <!-- Footer / Time estimate -->
+        <p class="text-center text-sm text-slate-400" id="time-estimate-message">
+            (Estimated remaining time: <span id="time-estimate">~ 300 seconds (Variable Rate)</span>)
+        </p>
+
+        <!-- Skip Button (Opens Modal) -->
+        <div class="mt-6 text-center">
+            <button id="skip-button" class="bg-skip-color hover:bg-orange-600 text-white font-bold py-2 px-6 rounded-lg shadow-lg transition-all duration-200 active:scale-95 disabled:opacity-50 w-full">
+                Skip Queue (Premium Access)
+            </button>
+        </div>
+        
+        <!-- Success Message Placeholder -->
+        <div id="queue-success-message" class="hidden mt-8 p-4 bg-green-500/20 text-green-300 rounded-lg text-center font-semibold">
+            Processing Complete! Please proceed to registration below.
+        </div>
+
+    </div>
+    
+    <!-- Vehicle Registry Form Container (Initially Hidden) -->
+    <div id="vehicle-form-container" class="hidden w-full max-w-lg p-6 md:p-10 bg-card-dark rounded-xl shadow-2xl theme-tile-border border border-slate-600 transition-all">
+        <h1 class="text-3xl font-bold text-center text-green-400 mb-8">Vehicle Registration</h1>
+        
+        <form id="vehicle-registration-form">
+            <div class="mb-4">
+                <label for="vin" class="block text-text-light text-sm font-medium mb-1">VIN (Vehicle ID Number)</label>
+                <input type="text" id="vin" required class="w-full p-3 rounded-lg bg-gray-700/50 border border-slate-600 text-text-light focus:ring-accent-color focus:border-accent-color transition-colors" placeholder="e.g., 1A2B3C4D5E6F7G8H9">
+            </div>
+            <div class="mb-4">
+                <label for="make" class="block text-text-light text-sm font-medium mb-1">Make</label>
+                <input type="text" id="make" required class="w-full p-3 rounded-lg bg-gray-700/50 border border-slate-600 text-text-light focus:ring-accent-color focus:border-accent-color transition-colors" placeholder="e.g., Tesla, Ford">
+            </div>
+            <div class="mb-4 flex space-x-4">
+                <div class="flex-1">
+                    <label for="model" class="block text-text-light text-sm font-medium mb-1">Model</label>
+                    <input type="text" id="model" required class="w-full p-3 rounded-lg bg-gray-700/50 border border-slate-600 text-text-light focus:ring-accent-color focus:border-accent-color transition-colors" placeholder="e.g., Model Y, F-150">
+                </div>
+                <div class="w-1/3">
+                    <label for="year" class="block text-text-light text-sm font-medium mb-1">Year</label>
+                    <input type="number" id="year" required min="1886" max="2025" class="w-full p-3 rounded-lg bg-gray-700/50 border border-slate-600 text-text-light focus:ring-accent-color focus:border-accent-color transition-colors" placeholder="e.g., 2024">
+                </div>
+            </div>
+            <div class="mb-6">
+                <label for="owner" class="block text-text-light text-sm font-medium mb-1">Registered Owner Name</label>
+                <input type="text" id="owner" required class="w-full p-3 rounded-lg bg-gray-700/50 border border-slate-600 text-text-light focus:ring-accent-color focus:border-accent-color transition-colors" placeholder="Your Name">
+            </div>
+
+            <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-all duration-200 active:scale-95 w-full">
+                Submit Registration
+            </button>
+
+            <p id="form-message" class="hidden mt-4 p-3 bg-green-500/20 text-green-300 rounded-lg text-center font-semibold">
+                Registration Successful! Thank you.
+            </p>
+        </form>
+    </div>
+
+    <!-- Payment Modal Overlay -->
+    <div id="payment-modal-overlay" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" aria-modal="true" role="dialog">
+        <!-- Modal Content -->
+        <div id="payment-modal-content" class="modal-content w-full max-w-sm bg-card-dark p-6 rounded-xl shadow-2xl relative border border-slate-500">
+            
+            <!-- Close Button (X icon) -->
+            <button id="modal-close-button" class="absolute top-3 right-3 text-slate-400 hover:text-text-light transition-colors p-1 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <h2 class="text-2xl font-bold text-text-light mb-4">Instant Access Upgrade</h2>
+            <p class="text-slate-300 mb-6">Bypass the variable queue and gain immediate access to your results.</p>
+            
+            <div class="text-center mb-6 p-4 bg-gray-700/50 rounded-lg">
+                <!-- Dynamic Price Display -->
+                <span id="skip-price-display" class="text-4xl font-extrabold text-green-400">$34.99 USD</span>
+                <p class="text-slate-400 text-sm mt-1">Pay to skip 50% of the remaining queue</p>
+            </div>
+
+            <button id="confirm-payment-button" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-all duration-200 active:scale-95 w-full mb-3">
+                Confirm Payment & Skip Queue
+            </button>
+
+            <button id="cancel-payment-button" class="text-slate-400 hover:text-slate-200 w-full text-sm font-medium transition-colors">
+                No, continue waiting
+            </button>
+
+        </div>
+    </div>
+
+
+    <script>
+        // Use a self-invoking function to keep variables local
+        (function() {
+            const queueCard = document.getElementById('queue-card');
+            const vehicleFormContainer = document.getElementById('vehicle-form-container');
+            const queueCounterElement = document.getElementById('queue-counter');
+            const progressBarElement = document.getElementById('progress-bar');
+            const statusMessageElement = document.getElementById('status-message');
+            const headerTextElement = document.getElementById('header-text');
+            const timeEstimateMessageElement = document.getElementById('time-estimate-message');
+            const queueSuccessMessageElement = document.getElementById('queue-success-message');
+            const skipButtonElement = document.getElementById('skip-button');
+            
+            const modalOverlay = document.getElementById('payment-modal-overlay');
+            const modalCloseButton = document.getElementById('modal-close-button');
+            const confirmPaymentButton = document.getElementById('confirm-payment-button');
+            const cancelPaymentButton = document.getElementById('cancel-payment-button');
+            const skipPriceDisplayElement = document.getElementById('skip-price-display'); 
+
+            const vehicleForm = document.getElementById('vehicle-registration-form');
+            const formMessage = document.getElementById('form-message');
+            
+            const totalItems = 100;
+            const PRICE_CAP = 499.99; // Define the maximum price cap
+            let currentCount = totalItems;
+            let timeoutId = null; 
+            let currentSkipPrice = 34.99; // Initial price for the 50% skip
+
+            // --- Modal Functions ---
+            
+            /**
+             * Updates the price displayed in the payment modal.
+             */
+            function updateModalPrice() {
+                skipPriceDisplayElement.textContent = `$${currentSkipPrice.toFixed(2)} USD`;
+            }
+
+            function openPaymentModal() {
+                updateModalPrice(); // Update price before showing modal
+                modalOverlay.classList.add('open');
+            }
+
+            function closePaymentModal() {
+                modalOverlay.classList.remove('open');
+            }
+
+            // --- Event Listeners ---
+            skipButtonElement.addEventListener('click', openPaymentModal);
+            modalCloseButton.addEventListener('click', closePaymentModal);
+            cancelPaymentButton.addEventListener('click', closePaymentModal);
+            
+            // Close modal if overlay is clicked (but not the content itself)
+            modalOverlay.addEventListener('click', function(event) {
+                if (event.target === modalOverlay) {
+                    closePaymentModal();
+                }
+            });
+
+            confirmPaymentButton.addEventListener('click', function() {
+                skipQueue(); // Trigger the skip action after "payment"
+            });
+            
+            // Handle Vehicle Registration Form Submission
+            vehicleForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Display success message and disable form fields
+                formMessage.classList.remove('hidden');
+                vehicleForm.querySelector('button[type="submit"]').disabled = true;
+                
+                // Optionally disable all inputs
+                const inputs = vehicleForm.querySelectorAll('input');
+                inputs.forEach(input => input.disabled = true);
+
+                // Update the form success message
+                formMessage.textContent = "Registration Successful! Thank you.";
+            });
+
+            // --- Utility Functions ---
+
+            /**
+             * Returns a random delay time in milliseconds between 1000 (1 second) and 5000 (5 seconds).
+             * @returns {number} Random delay in ms.
+             */
+            function getRandomDelay() {
+                // Generates a random number between 1000 and 5000 (inclusive)
+                return Math.floor(Math.random() * 4000) + 1000;
+            }
+
+            /**
+             * Updates the UI elements based on the current queue count.
+             */
+            function updateQueueDisplay() {
+                // 1. Update Counter
+                queueCounterElement.textContent = currentCount;
+
+                // 2. Update Progress Bar
+                const progressPercentage = ((totalItems - currentCount) / totalItems) * 100;
+                progressBarElement.style.width = `${progressPercentage}%`;
+
+                // 3. Update Messages (Estimate uses an average of 3 seconds per item)
+                const estimatedSeconds = currentCount * 3; 
+                const timeEstimate = currentCount === 0 ? '0' : `~ ${estimatedSeconds} seconds (Variable Rate)`;
+                document.getElementById('time-estimate').textContent = timeEstimate;
+
+                // 4. Update Color/Style based on proximity to zero
+                if (currentCount <= 10) {
+                    progressBarElement.classList.remove('bg-accent-color');
+                    progressBarElement.classList.add('bg-amber-400');
+                    queueCounterElement.classList.remove('text-accent-color');
+                    queueCounterElement.classList.add('text-amber-400');
+                } else if (currentCount > 10) {
+                    progressBarElement.classList.remove('bg-amber-400');
+                    progressBarElement.classList.add('bg-accent-color');
+                    queueCounterElement.classList.remove('text-amber-400');
+                    queueCounterElement.classList.add('text-accent-color');
+                }
+            }
+
+            /**
+             * Handles the final successful state of the queue and shows the form.
+             */
+            function completeQueue() {
+                
+                // --- Queue Card Cleanup (For visual transition) ---
+                queueCounterElement.textContent = '0';
+                statusMessageElement.textContent = 'Queue is empty.';
+                headerTextElement.textContent = 'Queue Complete';
+                timeEstimateMessageElement.classList.add('hidden');
+                queueSuccessMessageElement.classList.remove('hidden');
+                skipButtonElement.disabled = true;
+                skipButtonElement.classList.add('hidden'); 
+                modalOverlay.classList.remove('open');
+                progressBarElement.style.width = '100%';
+                progressBarElement.classList.remove('bg-accent-color', 'bg-amber-400');
+                progressBarElement.classList.add('bg-green-500');
+
+                // --- Transition to Form ---
+                // Hide the queue card and show the vehicle registration form
+                queueCard.classList.add('hidden');
+                vehicleFormContainer.classList.remove('hidden');
+            }
+
+            /**
+             * Function to skip 50% of the remaining queue and double the price (up to cap).
+             */
+            function skipQueue() {
+                closePaymentModal(); // Close modal immediately
+                
+                // Only proceed if the queue is not already finished
+                if (currentCount > 0) {
+                    // 1. Stop any pending timer
+                    clearTimeout(timeoutId);
+
+                    // 2. Calculate skip amount (50% of remaining, rounded up)
+                    const itemsToSkip = Math.ceil(currentCount * 0.5);
+
+                    // 3. Perform skip
+                    currentCount -= itemsToSkip;
+                    
+                    // 4. Double the price for the next skip, but cap it
+                    if (currentSkipPrice * 2 <= PRICE_CAP) {
+                        currentSkipPrice *= 2;
+                    } else {
+                        currentSkipPrice = PRICE_CAP;
+                    }
+
+                    // 5. Update displays
+                    updateQueueDisplay();
+
+                    // 6. Check if completed or restart countdown
+                    if (currentCount <= 0) {
+                        currentCount = 0; // Ensure it's zero
+                        completeQueue();
+                    } else {
+                        // Restart the countdown with the new, lower count
+                        startCountdown();
+                    }
+                }
+            }
+
+            /**
+             * Main countdown logic using setTimeout for variable delay.
+             */
+            function startCountdown() {
+                if (currentCount > 0) {
+                    // Decrement item
+                    currentCount--;
+                    updateQueueDisplay();
+
+                    if (currentCount > 0) {
+                        // Determine the next random delay (1s to 5s)
+                        const nextDelay = getRandomDelay();
+                        
+                        // Store the timeout ID before scheduling the next decrement
+                        timeoutId = setTimeout(startCountdown, nextDelay);
+                    } else {
+                        // Completion logic when count hits 0 naturally
+                        completeQueue();
+                    }
+                }
+            }
+
+            // Initial setup:
+            updateQueueDisplay();
+            startCountdown();
+
+        })();
+    </script>
+</body>
+</html>
