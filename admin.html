@@ -940,7 +940,7 @@
                 deleteSelectedCitationsBtn.disabled = true;
 
                 try {
-                    const response = await fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/citations', {
+                    const response = await fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/admin/citations', {
                         method: 'DELETE',
                         headers: {
                             'Content-Type': 'application/json',
