@@ -51,7 +51,6 @@
         }
         .count-display {
             font-weight: 600;
-            /* MODIFICATION: Color is now handled by a Tailwind class in the JS */
             min-width: 120px;
             text-align: right;
             flex-shrink: 0;
@@ -97,9 +96,10 @@
 
     <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full mt-20">
         
+        <!-- MODIFICATION: Updated the user info display structure -->
         <div id="userInfoDisplay" class="theme-box p-4 rounded-lg shadow-lg mb-6">
-            <p class="theme-label font-semibold">User: <span id="userUsername"></span> (<span id="userBadge"></span>)</p>
-            <p class="theme-text text-sm">Role: <span id="userRole"></span></p>
+            <p class="theme-label font-semibold">User: <span id="userUsername"></span></p>
+            <p class="theme-text text-sm">Callsign: <span id="userCallsign"></span></p>
         </div>
 
         <section class="leaderboard-section">
@@ -160,9 +160,12 @@
                 return;
             }
 
+            // MODIFICATION: Changed how user info is displayed
             document.getElementById('userUsername').textContent = loggedInUser.username;
-            document.getElementById('userBadge').textContent = loggedInUser.badgeNumber;
-            document.getElementById('userRole').textContent = loggedInUser.role.toUpperCase();
+            // NOTE: 'callsign' is not part of the login data. Using badge number as a placeholder.
+            // For a real callsign, the backend login process must be updated to provide it.
+            document.getElementById('userCallsign').textContent = loggedInUser.callsign || `1-ADAM-${loggedInUser.badgeNumber}`;
+
 
             const citationLeaderboardContainer = document.getElementById('citationLeaderboardContainer');
             const shiftLogLeaderboardContainer = document.getElementById('shiftLogLeaderboardContainer');
@@ -206,7 +209,6 @@
                         rankContent = `🥉 ${index + 1}`;
                     }
 
-                    // MODIFICATION: Added text-gray-400 class to the count display
                     itemDiv.innerHTML = `
                         <span class="rank-number">${rankContent}</span>
                         <span class="username-display">${stat.username}</span>
