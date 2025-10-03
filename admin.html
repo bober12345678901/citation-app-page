@@ -988,7 +988,7 @@
                 deleteSelectedShiftLogsBtn.disabled = true;
 
                 try {
-                    const response = await fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/admin/shiftlogs', {
+                    const response = await fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/admin/shift_logs', {
                         method: 'DELETE',
                         headers: {
                             'Content-Type': 'application/json',
