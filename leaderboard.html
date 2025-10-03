@@ -51,7 +51,7 @@
         }
         .count-display {
             font-weight: 600;
-            color: var(--subtle-text-color); /* CHANGED: Using a lighter variable for better contrast */
+            /* MODIFICATION: Color is now handled by a Tailwind class in the JS */
             min-width: 120px;
             text-align: right;
             flex-shrink: 0;
@@ -85,19 +85,16 @@
         </div>
     </div>
 
-    <!-- HEADER COPIED FROM WORKING EXAMPLE (selectionexp.html) -->
     <header class="theme-section-bg shadow-lg fixed top-0 w-full z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
             <h1 class="text-3xl font-bold theme-text-color">Department Leaderboards</h1>
             <nav class="space-x-4">
-                <!-- MODIFICATION: Updated links to be styled buttons -->
                 <a href="selection.html" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">Dashboard</a>
                 <a href="#" id="refreshButton" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">Refresh</a>
             </nav>
         </div>
     </header>
 
-    <!-- ADDED mt-20 to push content down from under the fixed header -->
     <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full mt-20">
         
         <div id="userInfoDisplay" class="theme-box p-4 rounded-lg shadow-lg mb-6">
@@ -209,10 +206,11 @@
                         rankContent = `🥉 ${index + 1}`;
                     }
 
+                    // MODIFICATION: Added text-gray-400 class to the count display
                     itemDiv.innerHTML = `
                         <span class="rank-number">${rankContent}</span>
                         <span class="username-display">${stat.username}</span>
-                        <span class="count-display">${stat.count} ${type}(s)</span>
+                        <span class="count-display text-gray-400">${stat.count} ${type}(s)</span>
                     `;
                     container.appendChild(itemDiv);
                 });
