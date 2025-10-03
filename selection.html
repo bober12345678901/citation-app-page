@@ -5,11 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Dashboard</title>
-    <!-- Load Tailwind CSS from CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Link to your custom styles.css for theme variables -->
     <link rel="stylesheet" href="styles.css">
-    <!-- Link to theme.js for theme switching functionality -->
     <script src="theme.js"></script>
     <style>
         /* Any custom overrides or specific element styles not covered by themes */
@@ -156,26 +153,20 @@
     </style>
 </head>
 <body class="min-h-screen theme-app-container flex items-center justify-center p-4">
-    <!-- Main container for the dashboard, centered and with a darker background -->
     <div class="container mx-auto max-w-6xl w-full rounded-lg shadow-lg p-6 md:p-8 theme-lookup-box">
 
-        <!-- Header Section: Contains user info and action buttons -->
         <header class="flex flex-col sm:flex-row items-center justify-between mb-8 pb-4 border-b border-gray-700">
             <div class="flex items-center space-x-4 mb-4 sm:mb-0">
-                <!-- User Icon (SVG for a simple outline) -->
                 <div class="w-16 h-16 rounded-full border-2 user-icon-border flex items-center justify-center flex-shrink-0">
                     <svg class="w-10 h-10 theme-label" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                     </svg>
                 </div>
-                <!-- Welcome text, badge, and department - will be populated by JavaScript -->
                 <div>
                     <h1 id="welcomeText" class="text-3xl font-bold theme-title">Welcome, Officer</h1>
                     <p id="badgeNumber" class="text-lg theme-label">Badge: N/A</p>
-                    <p id="departmentName" class="text-lg theme-label"></p> <!-- New element for department -->
-                </div>
+                    <p id="departmentName" class="text-lg theme-label"></p> </div>
             </div>
-            <!-- Admin, Leaderboard, and Log Out buttons -->
             <div class="flex space-x-4">
                 <button id="adminButton" class="px-6 py-2 rounded-lg font-semibold shadow-md transition-colors hidden theme-button-danger">Admin</button>
                 <button id="leaderboardButton" class="px-6 py-2 rounded-lg font-semibold shadow-md transition-colors hidden theme-button-secondary">Leaderboards</button>
@@ -183,7 +174,6 @@
             </div>
         </header>
 
-        <!-- Theme Selector Dropdown -->
         <div class="mb-6 flex justify-end items-center">
             <label for="themeSelector" class="theme-label flex items-center font-medium mr-2">Theme:</label>
             <select id="themeSelector" class="theme-input p-2 border rounded-md transition-colors duration-200">
@@ -197,7 +187,6 @@
                 <option value="cyberpunk">Cyberpunk</option>
                 <option value="custom">Custom...</option>
             </select>
-            <!-- Custom color pickers (hidden by default, managed by theme.js) -->
             <div id="customColorsContainer" class="hidden mt-4 ml-4 flex flex-col space-y-2">
                 <div>
                     <label for="customBgColor" class="theme-label block mb-1">Background Color:</label>
@@ -214,21 +203,16 @@
             </div>
         </div>
 
-        <!-- Main Content Grid: Arranges the three primary sections -->
         <main class="grid grid-cols-1 md:grid-cols-3 gap-8">
 
-            <!-- Your Statistics Section -->
             <section class="p-6 rounded-lg shadow-md theme-section-bg flex flex-col">
                 <h2 class="text-xl font-semibold mb-4 text-statistics-label">Your Statistics:</h2>
-                <!-- Loading Indicator for statistics -->
                 <div id="statisticsLoadingIndicator" class="loading-text hidden">Loading statistics...</div>
                 <div id="statisticsContent" class="space-y-4 flex-grow flex flex-col justify-center">
-                    <!-- Statistics Box 1: Citations Filled -->
                     <div class="p-4 rounded-lg text-center shadow-inner theme-na-box">
                         <p id="citationCount" class="text-4xl font-bold text-na-value">N/A</p>
                         <p class="text-statistics-label">Citations Filled</p>
                     </div>
-                    <!-- Statistics Box 2: Shifts Logged -->
                     <div class="p-4 rounded-lg text-center shadow-inner theme-na-box">
                         <p id="shiftCount" class="text-4xl font-bold text-na-value">N/A</p>
                         <p class="text-statistics-label">Shifts Logged</p>
@@ -236,20 +220,14 @@
                 </div>
             </section>
 
-            <!-- Action Buttons Section -->
             <section class="p-6 rounded-lg shadow-md flex flex-col justify-center space-y-6 theme-section-bg">
-                <!-- Button 1: Open Citation Log -->
                 <button id="openCitationLogBtn" class="px-8 py-4 rounded-lg font-bold text-xl shadow-lg transition-colors border border-white theme-button-primary">Open Citation Log</button>
-                <!-- Button 2: Open Arrest Log -->
                 <button id="openArrestLogBtn" class="px-8 py-4 rounded-lg font-bold text-xl shadow-lg transition-colors border border-white theme-button-primary">Open Arrest Log</button>
-                <!-- Button 3: Open Shift Log -->
                 <button id="openShiftLogBtn" class="px-8 py-4 rounded-lg font-bold text-xl shadow-lg transition-colors border border-white theme-button-primary">Open Shift Log</button>
             </section>
 
-            <!-- Help Desk Section (replaces Active Warrants) -->
             <section class="p-6 rounded-lg shadow-md theme-section-bg">
                 <h2 class="text-xl font-semibold mb-4 text-statistics-label">Help Desk:</h2>
-                <!-- Scrollable container for Help Desk content -->
                 <div class="max-h-72 overflow-y-auto custom-scrollbar">
                     <p class="theme-label mb-4">
                         Find step-by-step guides and video tutorials for using the application's forms.
@@ -287,14 +265,12 @@
         </main>
     </div>
 
-    <!-- Fullscreen Embed Modal -->
     <div id="fullscreenEmbedModal" class="hidden">
         <button id="closeEmbedBtn">X</button>
         <div id="fullscreenEmbedContent">
         </div>
     </div>
 
-    <!-- Custom Modal for Alerts (Copied from index.html for consistency) -->
     <div id="customModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
         <div id="customModal" class="theme-lookup-box p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 sm:mx-auto">
             <h3 id="customModalTitle" class="theme-title text-xl font-bold mb-4"></h3>
@@ -402,11 +378,16 @@
                 // --- END NEW ---
 
                 try {
-                    const headers = { 'Authorization': `Bearer ${token}` };
+                    // 🔑 FIX: Define headers correctly with the token and content type
+                    const headers = { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` 
+                    };
                     const workerBaseUrl = 'https://citation-app-worker.pnbober.workers.dev'; // Your Cloudflare Worker URL
 
                     // Fetch Citations
-                    const citationsResponse = await fetch(`${workerBaseUrl}/citations`, { headers });
+                    // 🔑 FIX: Changed path from /citations to /get/citations to match worker routing
+                    const citationsResponse = await fetch(`${workerBaseUrl}/get/citations`, { headers });
                     if (citationsResponse.ok) {
                         citationsData = await citationsResponse.json(); // Assign to already declared variable
                         // Client-side filter for the logged-in user's citations
@@ -422,7 +403,8 @@
                     }
 
                     // Fetch Shift Logs
-                    const shiftLogsResponse = await fetch(`${workerBaseUrl}/shift-logs`, { headers });
+                    // 🔑 FIX: Changed path from /shift-logs to /get/shift-logs to match worker routing
+                    const shiftLogsResponse = await fetch(`${workerBaseUrl}/get/shift-logs`, { headers });
                     if (shiftLogsResponse.ok) {
                         shiftLogsData = await shiftLogsResponse.json(); // Assign to already declared variable
                         // Client-side filter for the logged-in user's shift logs
