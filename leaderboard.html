@@ -96,10 +96,10 @@
 
     <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full mt-20">
         
-        <!-- MODIFICATION: Updated the user info display structure -->
+        <!-- MODIFICATION: Swapped "Callsign" back to "Badge Number" -->
         <div id="userInfoDisplay" class="theme-box p-4 rounded-lg shadow-lg mb-6">
             <p class="theme-label font-semibold">User: <span id="userUsername"></span></p>
-            <p class="theme-text text-sm">Callsign: <span id="userCallsign"></span></p>
+            <p class="theme-text text-sm">Badge Number: <span id="userBadge"></span></p>
         </div>
 
         <section class="leaderboard-section">
@@ -160,11 +160,9 @@
                 return;
             }
 
-            // MODIFICATION: Changed how user info is displayed
+            // MODIFICATION: Set badge number instead of callsign
             document.getElementById('userUsername').textContent = loggedInUser.username;
-            // NOTE: 'callsign' is not part of the login data. Using badge number as a placeholder.
-            // For a real callsign, the backend login process must be updated to provide it.
-            document.getElementById('userCallsign').textContent = loggedInUser.callsign || `1-ADAM-${loggedInUser.badgeNumber}`;
+            document.getElementById('userBadge').textContent = loggedInUser.badgeNumber;
 
 
             const citationLeaderboardContainer = document.getElementById('citationLeaderboardContainer');
