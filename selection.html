@@ -386,10 +386,10 @@
                     const workerBaseUrl = 'https://citation-app-worker.pnbober.workers.dev'; // Your Cloudflare Worker URL
 
                     // Fetch Citations
-                    // 🔑 FIX: Changed path from /citations to /get/citations to match worker routing
-                    const citationsResponse = await fetch(`${workerBaseUrl}/get/citations`, { headers });
+                    // ✅ CORRECTED: Reverted path back to /citations to match the working Worker route
+                    const citationsResponse = await fetch(`${workerBaseUrl}/citations`, { headers });
                     if (citationsResponse.ok) {
-                        citationsData = await citationsResponse.json(); // Assign to already declared variable
+                        citationsData = await citationsResponse.json();
                         // Client-side filter for the logged-in user's citations
                         const loggedInUsernameLower = userInfo.username.toLowerCase();
                         const userCitations = citationsData.filter(c => c.submittedBy && c.submittedBy.toLowerCase() === loggedInUsernameLower);
@@ -404,7 +404,7 @@
 
                     // Fetch Shift Logs
                     // 🔑 FIX: Changed path from /shift-logs to /get/shift-logs to match worker routing
-                    const shiftLogsResponse = await fetch(`${workerBaseUrl}/get/shift-logs`, { headers });
+                    const shiftLogsResponse = await fetch(`${workerBaseUrl}/shift-logs`, { headers });
                     if (shiftLogsResponse.ok) {
                         shiftLogsData = await shiftLogsResponse.json(); // Assign to already declared variable
                         // Client-side filter for the logged-in user's shift logs
