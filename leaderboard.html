@@ -77,7 +77,6 @@
 </head>
 <body class="theme-dark min-h-screen flex flex-col theme-bg theme-text">
     
-    <!-- Custom Alert Container (as used in other files) -->
     <div id="customAlertOverlay" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
         <div id="customAlert" class="theme-box theme-border p-6 rounded-xl shadow-2xl w-11/12 max-w-sm">
             <h4 id="customAlertTitle" class="text-xl font-bold mb-3 theme-label">Alert</h4>
@@ -87,10 +86,8 @@
     </div>
 
     <header class="theme-bg-secondary shadow-md sticky top-0 z-10">
-        <!-- Layout Fix: Centering the title and positioning the nav links absolutely on the right -->
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-center items-center relative">
             <h1 class="text-2xl font-bold theme-label text-center">Department Leaderboards</h1>
-            <!-- Navigation links are moved to the right using absolute positioning -->
             <nav class="space-x-4 absolute right-4 sm:right-6 lg:right-8">
                 <a href="dashboard.html" class="theme-link-button">Dashboard</a>
                 <a href="#" id="refreshButton" class="theme-link-button">Refresh <i class="fas fa-sync-alt"></i></a>
@@ -105,7 +102,6 @@
             <p class="theme-text text-sm">Role: <span id="userRole"></span></p>
         </div>
 
-        <!-- Citation Leaderboard Section -->
         <section class="leaderboard-section">
             <h3 class="text-2xl font-semibold theme-label border-b pb-2 mb-4">Citation Leaderboard</h3>
             <div id="citationLeaderboardContainer" class="leaderboard-list">
@@ -113,7 +109,6 @@
             </div>
         </section>
 
-        <!-- Shift Log Leaderboard Section -->
         <section class="leaderboard-section">
             <h3 class="text-2xl font-semibold theme-label border-b pb-2 mb-4">Shift Log Leaderboard</h3>
             <div id="shiftLogLeaderboardContainer" class="leaderboard-list">
@@ -183,7 +178,6 @@
             }
 
             const is_admin = loggedInUser.role === 'admin';
-            const userId = loggedInUser.id;
             
             // Display user info
             document.getElementById('userUsername').textContent = loggedInUser.username;
@@ -196,19 +190,20 @@
             const refreshButton = document.getElementById('refreshButton');
 
 
-            // Function to process raw data into leaderboard stats
+            // --- FIX 2: Use correct property names from the backend response ---
             function processLeaderboardData(data) {
                 const stats = {};
                 data.forEach(item => {
-                    // Use a fallback for officer name if the 'officerUsername' is not consistent
-                    const officerId = item.officerId;
-                    const officerUsername = item.officerUsername || item.officerName || 'Unknown Officer'; 
+                    // Use 'submittedByBadge' as the unique key. It's present in both citations and shift logs.
+                    const officerBadge = item.submittedByBadge;
+                    // Use 'submittedByUsername' (from shift logs) or 'submittedBy' (from citations) for the name.
+                    const officerUsername = item.submittedByUsername || item.submittedBy || 'Unknown Officer'; 
                     
-                    if (officerId) {
-                        if (!stats[officerId]) {
-                            stats[officerId] = { username: officerUsername, count: 0 };
+                    if (officerBadge) {
+                        if (!stats[officerBadge]) {
+                            stats[officerBadge] = { username: officerUsername, count: 0 };
                         }
-                        stats[officerId].count++;
+                        stats[officerBadge].count++;
                     }
                 });
 
@@ -220,25 +215,22 @@
             function renderLeaderboard(container, stats, type) {
                 container.innerHTML = '';
                 if (stats.length === 0) {
-                    // Display a personalized message for non-admins
-                    let message = `No ${type} logs found.`;
-                    if (type === 'shift log' && !is_admin) {
-                        message = `No ${type} logs found for your profile.`;
-                    } else if (type === 'citation' && !is_admin) {
-                        message = `No ${type} logs found for your profile.`;
+                    let message = `No ${type} records found.`;
+                    // The backend already filters for non-admins, so this message is sufficient
+                    if (!is_admin) {
+                        message = `You have not submitted any ${type} records.`;
                     }
-
                     container.innerHTML = `<div class="text-center theme-label p-4">${message}</div>`;
                     return;
                 }
 
-                stats.forEach((stats, index) => {
+                stats.forEach((stat, index) => {
                     const itemDiv = document.createElement('div');
                     itemDiv.classList.add('leaderboard-item');
                     itemDiv.innerHTML = `
                         <span class="rank-number">${index + 1}.</span>
-                        <span class="username-display">${stats.username}</span>
-                        <span class="count-display">${stats.count} ${type}(s)</span>
+                        <span class="username-display">${stat.username}</span>
+                        <span class="count-display">${stat.count} ${type}(s)</span>
                     `;
                     container.appendChild(itemDiv);
                 });
@@ -250,20 +242,15 @@
                 shiftLogLeaderboardContainer.innerHTML = `<div class="text-center theme-label p-4">Fetching Shift Log data...</div>`;
 
                 try {
-                    // FIX 1: Corrected Shift Log URL to use 'shift_logs'
-                    const citationsApiUrl = is_admin ? 
-                        `${apiBaseUrl}/admin/citations` : 
-                        `${apiBaseUrl}/citations`; 
-                        
-                    const shiftLogsApiUrl = is_admin ? 
-                        `${apiBaseUrl}/admin/shift_logs` : // <-- CORRECTED
-                        `${apiBaseUrl}/shift_logs`; // <-- CORRECTED
+                    // --- FIX 1: Both admins and users should call the same GET endpoint. ---
+                    // The backend worker will correctly return ALL data for admins.
+                    const citationsApiUrl = `${apiBaseUrl}/citations`; 
+                    const shiftLogsApiUrl = `${apiBaseUrl}/shift-logs`;
 
                     // 1. Fetch Citation Data
                     const citationResponse = await fetchWithAuth(citationsApiUrl);
-                    let citationData = [];
                     if (citationResponse.ok) {
-                        citationData = await citationResponse.json();
+                        const citationData = await citationResponse.json();
                         const citationStats = processLeaderboardData(citationData);
                         renderLeaderboard(citationLeaderboardContainer, citationStats, 'citation');
                     } else {
@@ -274,16 +261,14 @@
                     
                     // 2. Fetch Shift Log Data
                     const shiftLogResponse = await fetchWithAuth(shiftLogsApiUrl);
-                    let shiftLogData = [];
                     if (shiftLogResponse.ok) {
-                        shiftLogData = await shiftLogResponse.json();
+                        const shiftLogData = await shiftLogResponse.json();
                         const shiftLogStats = processLeaderboardData(shiftLogData);
                         renderLeaderboard(shiftLogLeaderboardContainer, shiftLogStats, 'shift log');
                     } else {
                         const errorMsg = await shiftLogResponse.text();
                         console.error('Shift Log Fetch Error:', errorMsg);
-                        // Report the error clearly
-                        shiftLogLeaderboardContainer.innerHTML = `<div class="text-center theme-label text-red-500 p-4">Failed to load shift log data (${shiftLogResponse.status}). Error: ${errorMsg}. Please ensure the worker backend has the /shift_logs route defined.</div>`;
+                        shiftLogLeaderboardContainer.innerHTML = `<div class="text-center theme-label text-red-500 p-4">Failed to load shift log data (${shiftLogResponse.status}).</div>`;
                     }
 
                 } catch (error) {
@@ -294,7 +279,10 @@
                 }
             }
 
-            refreshButton.addEventListener('click', fetchAndDisplayLeaderboards);
+            refreshButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                fetchAndDisplayLeaderboards();
+            });
 
             // Initial Load
             fetchAndDisplayLeaderboards();
