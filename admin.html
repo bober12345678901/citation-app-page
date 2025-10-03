@@ -424,8 +424,6 @@
     <script>
         // Store the authentication token (global for this script)
         let authToken = sessionStorage.getItem('authToken');
-        const workerBaseUrl = 'https://citation-app-worker.pnbober.workers.dev'; // Assuming this is the correct URL
-
 
         // --- UTILITY FUNCTIONS (assuming theme.js provides these, fallbacks included for safety) ---
         if (typeof window.showCustomAlert === 'undefined') {
@@ -570,7 +568,6 @@
             if (!token || !decodedToken || decodedToken.exp < fiveMinutesFromNow) {
                 console.log("Token is missing, expired, or near expiration. Attempting refresh.");
                 const refreshed = await refreshAuthToken();
-
                 if (refreshed) {
                     token = sessionStorage.getItem('authToken'); // Get the new token
                 } else {
@@ -592,13 +589,11 @@
                 if (response.status === 401 || response.status === 403) {
                     console.warn("Received 401/403 from API. Attempting to refresh token once.");
                     const refreshed = await refreshAuthToken(); // Try refreshing once more
-
                     if (refreshed) {
                         // If refresh succeeded, retry the original request with the new token
                         console.log("Token refreshed, retrying original request.");
                         options.headers['Authorization'] = `Bearer ${sessionStorage.getItem('authToken')}`;
                         const retryResponse = await fetch(url, options);
-
                         if (retryResponse.status === 401 || retryResponse.status === 403) {
                             redirectToLogin("Your session has expired. Please log in again.");
                             return null; // Still failed after refresh, force login
@@ -609,6 +604,7 @@
                         return null; // Refresh failed, force login
                     }
                 }
+
                 return response; // Return original response if not 401/403
             } catch (error) {
                 console.error("Network error during authenticated fetch:", error);
@@ -617,678 +613,6 @@
                 return null; // Indicate failure
             }
         }
-
-        // --- USER MANAGEMENT FUNCTIONS ---
-        // *** THIS FUNCTION IS UPDATED TO SORT BY ID ***
-        async function fetchAndDisplayUsers() {
-            const usersTableBody = document.querySelector('#usersTable tbody');
-            usersTableBody.innerHTML = '<tr><td colspan="8">Loading users...</td></tr>';
-            
-            try {
-                const response = await fetchWithAuth(`${workerBaseUrl}/admin/users`);
-                if (!response) return;
-
-                if (response.ok) {
-                    const data = await response.json();
-                    let users = data.users;
-
-                    // FIX: Sort numerically by ID (database order)
-                    users.sort((a, b) => a.id - b.id);
-
-                    usersTableBody.innerHTML = ''; // Clear loading row
-
-                    users.forEach(user => {
-                        const row = usersTableBody.insertRow();
-                        row.innerHTML = `
-                            <td>${user.id}</td>
-                            <td>${user.username}</td>
-                            <td>${user.badgeNumber || 'N/A'}</td>
-                            <td>${user.department || 'N/A'}</td>
-                            <td>${user.role}</td>
-                            <td>${user.citationsCount || 0}</td>
-                            <td>${user.shiftLogsCount || 0}</td>
-                            <td>
-                                <button onclick="openEditUserModal(${user.id}, '${user.username}', '${user.role}')" class="theme-button-primary text-xs py-1 px-2 rounded-md">Edit</button>
-                                <button onclick="confirmDeleteUser(${user.id}, '${user.username}')" class="theme-button-danger text-xs py-1 px-2 rounded-md">Delete</button>
-                            </td>
-                        `;
-                    });
-                } else {
-                    const errorData = await response.json();
-                    window.showCustomAlert('Failed to load users: ' + (errorData.message || response.statusText), 'Error');
-                    usersTableBody.innerHTML = '<tr><td colspan="8">Failed to load users.</td></tr>';
-                }
-            } catch (error) {
-                console.error('Error fetching users:', error);
-                window.showCustomAlert('An unexpected error occurred while loading users.', 'Error');
-                usersTableBody.innerHTML = '<tr><td colspan="8">An error occurred.</td></tr>';
-            }
-        }
-
-        // --- OTHER FUNCTIONS (Deleted for brevity but assumed to be here, e.g., fetchAndDisplayCitations) ---
-        // ... (The rest of your existing functions like fetchAndDisplayCitations, fetchAndDisplayShiftLogs, etc.)
-
-        async function fetchAndDisplayCitations() {
-            const citationsTableBody = document.querySelector('#citationsTable tbody');
-            citationsTableBody.innerHTML = '<tr><td colspan="9">Loading citations...</td></tr>';
-            
-            // ... (Your existing logic for fetching and displaying citations)
-            try {
-                const response = await fetchWithAuth(`${workerBaseUrl}/admin/citations`);
-                if (!response) {
-                    citationsTableBody.innerHTML = '<tr><td colspan="9">Authentication error.</td></tr>';
-                    return;
-                }
-
-                if (response.ok) {
-                    const data = await response.json();
-                    let citations = data.citations || [];
-                    
-                    // Apply filtering logic here if filters are set (from filter inputs)
-                    citations = applyFilters(citations);
-                    
-                    // Sort by timestamp (newest first)
-                    citations.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-                    
-                    citationsTableBody.innerHTML = '';
-                    citationCountDisplay.textContent = citations.length;
-
-                    citations.forEach(citation => {
-                        const row = citationsTableBody.insertRow();
-                        const timestamp = new Date(citation.timestamp).toLocaleString();
-                        row.innerHTML = `
-                            <td><input type="checkbox" data-id="${citation.id}" class="citation-checkbox theme-input"></td>
-                            <td>${citation.id}</td>
-                            <td>${timestamp}</td>
-                            <td>${citation.submittedBy}</td>
-                            <td>${citation.officerBadge}</td>
-                            <td>${citation.violatorUserId}</td>
-                            <td>${citation.type}</td>
-                            <td>$${(citation.amountDue / 100).toFixed(2)}</td>
-                            <td class="whitespace-normal">${citation.notes || ''}</td>
-                        `;
-                    });
-                    attachCheckboxListeners(selectAllCitationsCheckbox, 'citation-checkbox', deleteSelectedCitationsBtn);
-                } else {
-                    const errorData = await response.json();
-                    window.showCustomAlert('Failed to load citations: ' + (errorData.message || response.statusText), 'Error');
-                    citationsTableBody.innerHTML = '<tr><td colspan="9">Failed to load citations.</td></tr>';
-                }
-            } catch (error) {
-                console.error('Error fetching citations:', error);
-                window.showCustomAlert('An unexpected error occurred while loading citations.', 'Error');
-                citationsTableBody.innerHTML = '<tr><td colspan="9">An error occurred.</td></tr>';
-            }
-        }
-
-        async function fetchAndDisplayShiftLogs() {
-            const shiftLogsTableBody = document.querySelector('#shiftLogsTable tbody');
-            shiftLogsTableBody.innerHTML = '<tr><td colspan="15">Loading shift logs...</td></tr>';
-            
-            // ... (Your existing logic for fetching and displaying shift logs)
-            try {
-                const response = await fetchWithAuth(`${workerBaseUrl}/admin/shiftlogs`);
-                if (!response) {
-                    shiftLogsTableBody.innerHTML = '<tr><td colspan="15">Authentication error.</td></tr>';
-                    return;
-                }
-
-                if (response.ok) {
-                    const data = await response.json();
-                    let shiftLogs = data.shiftLogs || [];
-
-                    // Apply filtering logic here if filters are set (from filter inputs)
-                    shiftLogs = applyFilters(shiftLogs);
-
-                    // Sort by timestamp (newest first)
-                    shiftLogs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-                    shiftLogsTableBody.innerHTML = '';
-                    shiftLogCountDisplay.textContent = shiftLogs.length;
-
-                    shiftLogs.forEach(log => {
-                        const row = shiftLogsTableBody.insertRow();
-                        const timestamp = new Date(log.timestamp).toLocaleString();
-                        const screenshotHtml = log.screenshotUrl 
-                            ? `<button onclick="openFullscreenImage('${log.screenshotUrl}')" class="theme-button-secondary text-xs py-1 px-2 rounded-md">View</button>` 
-                            : 'N/A';
-                        
-                        row.innerHTML = `
-                            <td><input type="checkbox" data-id="${log.id}" class="shiftlog-checkbox theme-input"></td>
-                            <td>${log.id}</td>
-                            <td>${timestamp}</td>
-                            <td>${log.submittedBy}</td>
-                            <td>${log.officerBadge || 'N/A'}</td>
-                            <td>${log.department || 'N/A'}</td>
-                            <td>${log.rank || 'N/A'}</td>
-                            <td>${log.host || 'N/A'}</td>
-                            <td>${log.callsign || 'N/A'}</td>
-                            <td>${log.duration || 'N/A'}</td>
-                            <td>${log.trafficStops || 0}</td>
-                            <td>${log.citations || 0}</td>
-                            <td>${log.arrests || 0}</td>
-                            <td class="whitespace-normal">${log.notes || ''}</td>
-                            <td>${screenshotHtml}</td>
-                        `;
-                    });
-                    attachCheckboxListeners(selectAllShiftLogsCheckbox, 'shiftlog-checkbox', deleteSelectedShiftLogsBtn);
-                } else {
-                    const errorData = await response.json();
-                    window.showCustomAlert('Failed to load shift logs: ' + (errorData.message || response.statusText), 'Error');
-                    shiftLogsTableBody.innerHTML = '<tr><td colspan="15">Failed to load shift logs.</td></tr>';
-                }
-            } catch (error) {
-                console.error('Error fetching shift logs:', error);
-                window.showCustomAlert('An unexpected error occurred while loading shift logs.', 'Error');
-                shiftLogsTableBody.innerHTML = '<tr><td colspan="15">An error occurred.</td></tr>';
-            }
-        }
-
-        async function fetchAndDisplayPenalCodes() {
-            const penalCodesTableBody = document.querySelector('#penalCodesTable tbody');
-            penalCodesTableBody.innerHTML = '<tr><td colspan="6">Loading penal codes...</td></tr>';
-            
-            try {
-                const response = await fetchWithAuth(`${workerBaseUrl}/admin/penalcodes`);
-                if (!response) return;
-
-                if (response.ok) {
-                    const data = await response.json();
-                    let codes = data.penalCodes || [];
-
-                    // Sort numerically by code
-                    codes.sort((a, b) => a.code.localeCompare(b.code, undefined, { numeric: true, sensitivity: 'base' }));
-
-                    penalCodesTableBody.innerHTML = '';
-
-                    codes.forEach(code => {
-                        const row = penalCodesTableBody.insertRow();
-                        row.innerHTML = `
-                            <td>${code.code}</td>
-                            <td class="whitespace-normal">${code.offense}</td>
-                            <td>$${(code.amountDue / 100).toFixed(2)}</td>
-                            <td>${code.type}</td>
-                            <td>${code.jailTimeSeconds}</td>
-                            <td>
-                                <button onclick="openEditPenalCodeModal('${code.code}', '${code.offense.replace(/'/g, "\\'")}', ${code.amountDue}, '${code.type}', ${code.jailTimeSeconds})" class="theme-button-primary text-xs py-1 px-2 rounded-md">Edit</button>
-                                <button onclick="confirmDeletePenalCode('${code.code}')" class="theme-button-danger text-xs py-1 px-2 rounded-md">Delete</button>
-                            </td>
-                        `;
-                    });
-                } else {
-                    const errorData = await response.json();
-                    window.showCustomAlert('Failed to load penal codes: ' + (errorData.message || response.statusText), 'Error');
-                    penalCodesTableBody.innerHTML = '<tr><td colspan="6">Failed to load penal codes.</td></tr>';
-                }
-            } catch (error) {
-                console.error('Error fetching penal codes:', error);
-                window.showCustomAlert('An unexpected error occurred while loading penal codes.', 'Error');
-                penalCodesTableBody.innerHTML = '<tr><td colspan="6">An error occurred.</td></tr>';
-            }
-        }
-        
-        // --- (Other utility and event handler functions remain the same) ---
-        
-        // Function to apply filters to data (both citations and shiftlogs)
-        function applyFilters(data) {
-            const username = filterUsernameInput.value.toLowerCase().trim();
-            const violatorName = filterViolatorNameInput.value.toLowerCase().trim();
-            const department = filterDepartmentInput.value.toLowerCase().trim();
-            const officerBadge = filterOfficerBadgeInput.value.toLowerCase().trim();
-            const startDate = filterStartDateInput.value ? new Date(filterStartDateInput.value).getTime() : 0;
-            const endDate = filterEndDateInput.value ? new Date(filterEndDateInput.value).getTime() + (24 * 60 * 60 * 1000) : Infinity; // End of the day
-            const host = filterHostInput.value.toLowerCase().trim();
-            const callsign = filterCallsignInput.value.toLowerCase().trim();
-
-            return data.filter(item => {
-                const itemDate = new Date(item.timestamp).getTime();
-                
-                // Common fields filter
-                const dateMatch = itemDate >= startDate && itemDate < endDate;
-                const submittedByMatch = !username || (item.submittedBy && item.submittedBy.toLowerCase().includes(username));
-                const departmentMatch = !department || (item.department && item.department.toLowerCase().includes(department));
-                const badgeMatch = !officerBadge || (item.officerBadge && item.officerBadge.toString().includes(officerBadge));
-
-                // Citation specific fields (violatorUserId)
-                const violatorMatch = !violatorName || (item.violatorUserId && item.violatorUserId.toLowerCase().includes(violatorName));
-
-                // Shift Log specific fields (host, callsign)
-                const hostMatch = !host || (item.host && item.host.toLowerCase().includes(host));
-                const callsignMatch = !callsign || (item.callsign && item.callsign.toLowerCase().includes(callsign));
-
-                if (item.violatorUserId) { // It's a citation
-                    return dateMatch && submittedByMatch && departmentMatch && badgeMatch && violatorMatch;
-                } else { // It's a shift log
-                    return dateMatch && submittedByMatch && departmentMatch && badgeMatch && hostMatch && callsignMatch;
-                }
-            });
-        }
-
-        function handleFilterChange() {
-            fetchAndDisplayCitations();
-            fetchAndDisplayShiftLogs();
-        }
-
-        // Attach filter event listeners
-        document.getElementById('applyFilterBtn').addEventListener('click', handleFilterChange);
-        document.getElementById('clearFilterBtn').addEventListener('click', () => {
-            document.getElementById('filterUsername').value = '';
-            document.getElementById('filterViolatorName').value = '';
-            document.getElementById('filterDepartment').value = '';
-            document.getElementById('filterOfficerBadge').value = '';
-            document.getElementById('filterStartDate').value = '';
-            document.getElementById('filterEndDate').value = '';
-            document.getElementById('filterHost').value = '';
-            document.getElementById('filterCallsign').value = '';
-            handleFilterChange(); // Re-fetch with clear filters
-        });
-        // --- End Filter Logic ---
-
-
-        // --- Checkbox Management ---
-        function attachCheckboxListeners(selectAllCheckbox, itemClassName, deleteButton) {
-            const itemCheckboxes = document.querySelectorAll(`.${itemClassName}`);
-
-            // Toggle select all
-            if (selectAllCheckbox) {
-                selectAllCheckbox.onchange = () => {
-                    itemCheckboxes.forEach(checkbox => {
-                        checkbox.checked = selectAllCheckbox.checked;
-                    });
-                    updateDeleteButtonState(itemClassName, deleteButton);
-                };
-            }
-
-            // Update individual item checks
-            itemCheckboxes.forEach(checkbox => {
-                checkbox.onchange = () => {
-                    updateDeleteButtonState(itemClassName, deleteButton);
-                };
-            });
-            // Initial state update
-            updateDeleteButtonState(itemClassName, deleteButton);
-        }
-
-        function updateDeleteButtonState(itemClassName, deleteButton) {
-            const checkedCount = document.querySelectorAll(`.${itemClassName}:checked`).length;
-            deleteButton.disabled = checkedCount === 0;
-            deleteButton.textContent = `Delete Selected (${checkedCount})`;
-        }
-
-        // --- Delete Handlers ---
-        async function deleteItems(itemClassName, endpoint, fetchFunction) {
-            const selectedIds = Array.from(document.querySelectorAll(`.${itemClassName}:checked`))
-                .map(cb => cb.dataset.id);
-
-            if (selectedIds.length === 0) {
-                window.showCustomAlert('No items selected for deletion.', 'Warning');
-                return;
-            }
-
-            const confirm = await window.showCustomConfirm(`Are you sure you want to delete ${selectedIds.length} item(s)? This action is permanent.`, 'Confirm Deletion');
-            if (!confirm) return;
-
-            try {
-                const response = await fetchWithAuth(`${workerBaseUrl}/admin/${endpoint}`, {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ids: selectedIds }),
-                });
-
-                if (response && response.ok) {
-                    await window.showCustomAlert(`${selectedIds.length} item(s) deleted successfully.`, 'Success');
-                    fetchFunction(); // Refresh the list
-                } else {
-                    const errorData = response ? await response.json() : { message: 'Network Error' };
-                    window.showCustomAlert('Deletion failed: ' + (errorData.message || response.statusText), 'Error');
-                }
-            } catch (error) {
-                console.error('Error during batch deletion:', error);
-                window.showCustomAlert('An unexpected error occurred during deletion.', 'Error');
-            }
-        }
-
-        deleteSelectedCitationsBtn.addEventListener('click', () => deleteItems('citation-checkbox', 'citations/batch', fetchAndDisplayCitations));
-        deleteSelectedShiftLogsBtn.addEventListener('click', () => deleteItems('shiftlog-checkbox', 'shiftlogs/batch', fetchAndDisplayShiftLogs));
-
-        // --- Shift Log Screenshot Handlers ---
-        // Global variables for the modal elements
-        const fullscreenImageModal = document.getElementById('fullscreenImageModal');
-        const fullscreenImage = document.getElementById('fullscreenImage');
-        const closeFullscreenBtn = document.getElementById('closeFullscreenBtn');
-
-        function openFullscreenImage(url) {
-            fullscreenImage.src = url;
-            fullscreenImageModal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden'; // Prevent background scrolling
-        }
-
-        function closeFullscreenImageModal() {
-            fullscreenImageModal.classList.add('hidden');
-            fullscreenImage.src = ''; // Clear the image source
-            document.body.style.overflow = ''; // Restore background scrolling
-        }
-
-        closeFullscreenBtn.addEventListener('click', closeFullscreenImageModal);
-        fullscreenImageModal.addEventListener('click', (e) => {
-            if (e.target === fullscreenImageModal) {
-                closeFullscreenImageModal();
-            }
-        });
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && !fullscreenImageModal.classList.contains('hidden')) {
-                closeFullscreenImageModal();
-            }
-        });
-
-        // Delete ALL R2 Screenshots Handler
-        deleteAllR2ScreenshotsBtn.addEventListener('click', async () => {
-            const confirm = await window.showCustomConfirm("ARE YOU ABSOLUTELY SURE you want to delete ALL screenshots from R2? This is permanent and affects all records.", 'WARNING: Permanent Deletion');
-            if (!confirm) return;
-
-            try {
-                const response = await fetchWithAuth(`${workerBaseUrl}/admin/shiftlogs/screenshots/delete-all`, {
-                    method: 'DELETE',
-                });
-
-                if (response && response.ok) {
-                    await window.showCustomAlert(`All R2 screenshots deleted successfully. Shift log records have been updated.`, 'Success');
-                    fetchAndDisplayShiftLogs(); // Refresh the list
-                } else {
-                    const errorData = response ? await response.json() : { message: 'Network Error' };
-                    window.showCustomAlert('Screenshot deletion failed: ' + (errorData.message || response.statusText), 'Error');
-                }
-            } catch (error) {
-                console.error('Error during R2 deletion:', error);
-                window.showCustomAlert('An unexpected error occurred during R2 screenshot deletion.', 'Error');
-            }
-        });
-        // --- End Shift Log Screenshot Handlers ---
-
-        // --- Penal Code Management Handlers ---
-        // Global variables for the edit modal
-        const editPenalCodeModalOverlay = document.getElementById('editPenalCodeModalOverlay');
-        const editPenalCodeForm = document.getElementById('editPenalCodeForm');
-        let currentPenalCode = null; // To store the code of the item being edited
-
-        function openEditPenalCodeModal(code, offense, amountDue, type, jailTimeSeconds) {
-            currentPenalCode = code;
-            document.getElementById('editPenalCodeCodeDisplay').textContent = code;
-            document.getElementById('editPenalCodeDescription').value = offense;
-            document.getElementById('editPenalCodeAmount').value = (amountDue / 100).toFixed(2);
-            document.getElementById('editPenalCodeType').value = type;
-            document.getElementById('editPenalCodeJailTime').value = jailTimeSeconds;
-
-            editPenalCodeModalOverlay.classList.remove('hidden');
-        }
-
-        document.getElementById('cancelEditPenalCodeBtn').addEventListener('click', () => {
-            editPenalCodeModalOverlay.classList.add('hidden');
-        });
-
-        editPenalCodeForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const description = document.getElementById('editPenalCodeDescription').value;
-            const amountDueCents = Math.round(parseFloat(document.getElementById('editPenalCodeAmount').value) * 100);
-            const type = document.getElementById('editPenalCodeType').value;
-            const jailTimeSeconds = parseInt(document.getElementById('editPenalCodeJailTime').value, 10);
-
-            try {
-                const response = await fetchWithAuth(`${workerBaseUrl}/admin/penalcodes/${currentPenalCode}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        offense: description,
-                        amountDue: amountDueCents,
-                        type,
-                        jailTimeSeconds,
-                    }),
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    window.showCustomAlert(result.message || 'Penal Code updated successfully.', 'Success').then(() => {
-                        editPenalCodeModalOverlay.classList.add('hidden');
-                        fetchAndDisplayPenalCodes(); // Refresh the list
-                    });
-                } else {
-                    window.showCustomAlert('Failed to update penal code: ' + (result.message || response.statusText), 'Error');
-                }
-            } catch (error) {
-                console.error('Error during penal code update:', error);
-                window.showCustomAlert('An error occurred while updating the penal code.', 'Error');
-            }
-        });
-
-        async function confirmDeletePenalCode(code) {
-            const confirm = await window.showCustomConfirm(`Are you sure you want to delete penal code ${code}? This cannot be undone.`, 'Confirm Deletion');
-            if (!confirm) return;
-
-            try {
-                const response = await fetchWithAuth(`${workerBaseUrl}/admin/penalcodes/${code}`, {
-                    method: 'DELETE',
-                });
-
-                if (response && response.ok) {
-                    await window.showCustomAlert(`Penal code ${code} deleted successfully.`, 'Success');
-                    fetchAndDisplayPenalCodes(); // Refresh the list
-                } else {
-                    const errorData = response ? await response.json() : { message: 'Network Error' };
-                    window.showCustomAlert('Deletion failed: ' + (errorData.message || response.statusText), 'Error');
-                }
-            } catch (error) {
-                console.error('Error during penal code deletion:', error);
-                window.showCustomAlert('An unexpected error occurred during penal code deletion.', 'Error');
-            }
-        }
-        refreshPenalCodesBtn.addEventListener('click', fetchAndDisplayPenalCodes);
-        // --- End Penal Code Management Handlers ---
-
-        // --- CSV Import Handlers ---
-        async function parseAndImportCSV(csvData) {
-            const lines = csvData.trim().split('\n');
-            if (lines.length < 2) {
-                window.showCustomAlert('CSV must contain a header row and at least one data row.', 'Error');
-                return;
-            }
-
-            const headers = lines[0].toLowerCase().split(',').map(h => h.trim().replace(/"/g, ''));
-            const dataRows = lines.slice(1);
-            
-            const expectedHeaders = ["penal code", "offense", "amount due", "type", "jail time (secor)"];
-            
-            if (!expectedHeaders.every(h => headers.includes(h))) {
-                window.showCustomAlert(`Missing required CSV headers. Expected: ${expectedHeaders.join(', ')}`, 'Error');
-                return;
-            }
-
-            const importData = dataRows.map(row => {
-                const values = row.split(',').map(v => v.trim().replace(/"/g, ''));
-                const record = {};
-                headers.forEach((header, index) => {
-                    record[header] = values[index];
-                });
-
-                return {
-                    code: record['penal code'],
-                    offense: record['offense'],
-                    amountDue: Math.round(parseFloat(record['amount due'] || 0) * 100), // Convert to cents
-                    type: record['type'],
-                    jailTimeSeconds: parseInt(record['jail time (secor)'] || 0, 10),
-                };
-            }).filter(record => record.code); // Filter out rows without a code
-
-            if (importData.length === 0) {
-                window.showCustomAlert('No valid penal codes found in the CSV data.', 'Error');
-                return;
-            }
-
-            try {
-                const response = await fetchWithAuth(`${workerBaseUrl}/admin/penalcodes/import`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ penalCodes: importData }),
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    await window.showCustomAlert(result.message || `${importData.length} penal codes imported/updated successfully.`, 'Success');
-                    fetchAndDisplayPenalCodes();
-                } else {
-                    window.showCustomAlert('Import failed: ' + (result.message || response.statusText), 'Error');
-                }
-            } catch (error) {
-                console.error('Error during CSV import:', error);
-                window.showCustomAlert('An error occurred during import. Check console for details.', 'Error');
-            }
-        }
-
-        document.getElementById('importCsvBtn').addEventListener('click', async () => {
-            const file = document.getElementById('penalCodeCsvFile').files[0];
-            if (!file) {
-                window.showCustomAlert('Please select a CSV file.', 'Warning');
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                parseAndImportCSV(e.target.result);
-            };
-            reader.readAsText(file);
-        });
-
-        document.getElementById('pasteImportCsvBtn').addEventListener('click', () => {
-            const csvText = document.getElementById('penalCodeCsvText').value;
-            if (!csvText.trim()) {
-                window.showCustomAlert('Please paste CSV content into the text area.', 'Warning');
-                return;
-            }
-            parseAndImportCSV(csvText);
-        });
-        // --- End CSV Import Handlers ---
-        
-        // --- User Management Modals ---
-        const addUserModalOverlay = document.getElementById('addUserModalOverlay');
-        const addUserForm = document.getElementById('addUserForm');
-        document.getElementById('addUserBtn').addEventListener('click', () => {
-            addUserModalOverlay.classList.remove('hidden');
-        });
-        document.getElementById('cancelAddUserBtn').addEventListener('click', () => {
-            addUserModalOverlay.classList.add('hidden');
-            addUserForm.reset();
-        });
-
-        addUserForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const username = document.getElementById('addUsername').value;
-            const badgeNumber = parseInt(document.getElementById('addBadgeNumber').value, 10);
-            const department = document.getElementById('addDepartment').value;
-            // Generate a simple temporary password (you might want a better system for real world)
-            const placeholderPassword = Math.random().toString(36).slice(-8); 
-
-            try {
-                const response = await fetchWithAuth(`${workerBaseUrl}/admin/users`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        username,
-                        badgeNumber,
-                        department,
-                        password: placeholderPassword
-                    }),
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    window.showCustomAlert(
-                        `${result.message} The user's temporary password is: ${placeholderPassword}`, 'Success'
-                    ).then(() => {
-                        addUserModalOverlay.classList.add('hidden');
-                        addUserForm.reset();
-                        fetchAndDisplayUsers(); // Refresh the user list
-                    });
-                } else {
-                    window.showCustomAlert('Failed to create user: ' + (result.message || 'Unknown error.'), 'Error');
-                }
-            } catch (error) {
-                console.error('Error during user creation:', error);
-                window.showCustomAlert('An error occurred while creating the user. Check the console for details.', 'Error');
-            }
-        });
-
-
-        // Edit User Modals
-        const editUserModalOverlay = document.getElementById('customModalOverlay'); // Re-using existing modal for simplicity, but need dedicated modal for complex form
-        
-        function openEditUserModal(id, username, currentRole) {
-            window.showCustomAlert("Update the user role for " + username, "User Edit", "info").then(() => {
-                // In a proper application, this would open a new modal with a form
-                // For now, we will just simulate the prompt for a new role
-                const newRole = prompt(`Enter new role for ${username} (e.g., user, admin):`, currentRole);
-
-                if (newRole && newRole.toLowerCase() !== currentRole.toLowerCase()) {
-                    updateUserRole(id, newRole.toLowerCase());
-                } else if (newRole === null) {
-                    // User pressed cancel, do nothing
-                } else {
-                    window.showCustomAlert("Role unchanged or invalid role entered.", "Info");
-                }
-            });
-        }
-        
-        async function updateUserRole(id, newRole) {
-            try {
-                const response = await fetchWithAuth(`${workerBaseUrl}/admin/users/${id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ role: newRole }),
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    window.showCustomAlert(`User ${id} role updated to ${newRole} successfully.`, 'Success');
-                    fetchAndDisplayUsers(); // Refresh the user list
-                } else {
-                    window.showCustomAlert('Failed to update role: ' + (result.message || response.statusText), 'Error');
-                }
-            } catch (error) {
-                console.error('Error during role update:', error);
-                window.showCustomAlert('An error occurred while updating the user role.', 'Error');
-            }
-        }
-        
-        async function confirmDeleteUser(id, username) {
-            const confirm = await window.showCustomConfirm(`Are you sure you want to delete user ${username} (ID: ${id})? This will also delete all their associated citations and logs.`, 'Confirm Deletion');
-            if (!confirm) return;
-
-            try {
-                const response = await fetchWithAuth(`${workerBaseUrl}/admin/users/${id}`, {
-                    method: 'DELETE',
-                });
-
-                if (response && response.ok) {
-                    await window.showCustomAlert(`User ${username} and all associated data deleted successfully.`, 'Success');
-                    fetchAndDisplayUsers(); // Refresh the user list
-                    fetchAndDisplayCitations(); // Refresh other lists since data was deleted
-                    fetchAndDisplayShiftLogs();
-                } else {
-                    const errorData = response ? await response.json() : { message: 'Network Error' };
-                    window.showCustomAlert('User deletion failed: ' + (errorData.message || response.statusText), 'Error');
-                }
-            } catch (error) {
-                console.error('Error during user deletion:', error);
-                window.showCustomAlert('An unexpected error occurred during user deletion.', 'Error');
-            }
-        }
-        
-        refreshUsersBtn.addEventListener('click', fetchAndDisplayUsers);
-        // --- End User Management Modals ---
-
 
         document.addEventListener('DOMContentLoaded', async function() {
             const loggedInUserString = sessionStorage.getItem('loggedInUser');
@@ -1307,21 +631,937 @@
             }
 
             const adminInfoDisplay = document.getElementById('adminInfo');
-            adminInfoDisplay.textContent = `Welcome, Admin: ${loggedInUser.username} (Badge: ${loggedInUser.badgeNumber}, Dept: ${loggedInUser.department})`;
+            const citationsTableBody = document.querySelector('#citationsTable tbody');
+            const shiftLogsTableBody = document.querySelector('#shiftLogsTable tbody');
+            const usersTableBody = document.querySelector('#usersTable tbody');
+            const penalCodesTableBody = document.querySelector('#penalCodesTable tbody');
 
-            document.getElementById('refreshButton').addEventListener('click', () => {
+            const refreshButton = document.getElementById('refreshButton');
+            const logoutButton = document.getElementById('logoutButton');
+
+            // Citation specific elements
+            const selectAllCitationsCheckbox = document.getElementById('selectAllCitations');
+            const deleteSelectedCitationsBtn = document.getElementById('deleteSelectedCitationsBtn');
+
+            // Shift Log specific elements
+            const selectAllShiftLogsCheckbox = document.getElementById('selectAllShiftLogs');
+            const deleteSelectedShiftLogsBtn = document.getElementById('deleteSelectedShiftLogsBtn');
+            const deleteAllR2ScreenshotsBtn = document.getElementById('deleteAllR2ScreenshotsBtn'); // New button
+
+            // User Management elements
+            const refreshUsersBtn = document.getElementById('refreshUsersBtn');
+
+            // Penal Code Management elements
+            const refreshPenalCodesBtn = document.getElementById('refreshPenalCodesBtn');
+
+            // Filter elements
+            const filterUsernameInput = document.getElementById('filterUsername');
+            const filterViolatorNameInput = document.getElementById('filterViolatorName');
+            const filterDepartmentInput = document.getElementById('filterDepartment');
+            const filterOfficerBadgeInput = document.getElementById('filterOfficerBadge');
+            const filterStartDateInput = document.getElementById('filterStartDate');
+            const filterEndDateInput = document.getElementById('filterEndDate');
+            const applyFilterBtn = document.getElementById('applyFilterBtn');
+            const clearFilterBtn = document.getElementById('clearFilterBtn');
+            const citationCountDisplay = document.getElementById('citationCount');
+            const shiftLogCountDisplay = document.getElementById('shiftLogCount');
+
+
+            // CSV Import elements
+            const penalCodeCsvFile = document.getElementById('penalCodeCsvFile');
+            const importCsvBtn = document.getElementById('importCsvBtn');
+            const penalCodeCsvText = document.getElementById('penalCodeCsvText');
+            const pasteImportCsvBtn = document.getElementById('pasteImportCsvBtn');
+
+            // Fullscreen image modal elements
+            const fullscreenImageModal = document.getElementById('fullscreenImageModal');
+            const fullscreenImage = document.getElementById('fullscreenImage');
+            const closeFullscreenBtn = document.getElementById('closeFullscreenBtn');
+
+            // Penal Code Edit Modal elements
+            const editPenalCodeModalOverlay = document.getElementById('editPenalCodeModalOverlay');
+            const editPenalCodeModal = document.getElementById('editPenalCodeModal');
+            const editPenalCodeForm = document.getElementById('editPenalCodeForm');
+            const editPenalCodeCodeDisplay = document.getElementById('editPenalCodeCodeDisplay');
+            const editPenalCodeDescription = document.getElementById('editPenalCodeDescription');
+            const editPenalCodeAmount = document.getElementById('editPenalCodeAmount');
+            const editPenalCodeType = document.getElementById('editPenalCodeType');
+            const editPenalCodeJailTime = document.getElementById('editPenalCodeJailTime');
+            const cancelEditPenalCodeBtn = document.getElementById('cancelEditPenalCodeBtn');
+            let currentEditPenalCode = null;
+
+            // Add User Modal elements
+            const addUserBtn = document.getElementById('addUserBtn');
+            const addUserModalOverlay = document.getElementById('addUserModalOverlay');
+            const addUserForm = document.getElementById('addUserForm');
+            const cancelAddUserBtn = document.getElementById('cancelAddUserBtn');
+
+
+            adminInfoDisplay.textContent = `Welcome, Admin ${loggedInUser.username} (Badge: ${loggedInUser.badgeNumber})!`;
+
+            // --- Logout Functionality ---
+            logoutButton.addEventListener('click', function() {
+                window.showCustomConfirm("Are you sure you want to log out?", "Confirm Logout").then((confirmed) => {
+                    if (confirmed) {
+                        sessionStorage.clear();
+                        window.location.href = 'index.html';
+                    }
+                });
+            });
+
+            // --- Fetch & Display Citations Function ---
+            async function fetchAndDisplayCitations() {
+                adminInfoDisplay.textContent = 'Loading citations...';
+                citationsTableBody.innerHTML = '<tr><td colspan="9" class="text-center theme-label">Loading data...</td></tr>';
+                deleteSelectedCitationsBtn.disabled = true;
+
+                let url = 'https://citation-app-worker.pnbober.workers.dev/citations';
+                const params = new URLSearchParams();
+                
+                // Add filter parameters for citations
+                if (filterUsernameInput.value.trim()) {
+                    params.append('username', filterUsernameInput.value.trim());
+                }
+                if (filterViolatorNameInput.value.trim()) {
+                    params.append('violatorName', filterViolatorNameInput.value.trim());
+                }
+                if (filterDepartmentInput.value.trim()) {
+                    params.append('department', filterDepartmentInput.value.trim());
+                }
+                if (filterOfficerBadgeInput.value.trim()) {
+                    params.append('officerBadge', filterOfficerBadgeInput.value.trim());
+                }
+                if (filterStartDateInput.value) {
+                    params.append('startDate', filterStartDateInput.value);
+                }
+                if (filterEndDateInput.value) {
+                    params.append('endDate', filterEndDateInput.value);
+                }
+
+                if (params.toString()) {
+                    url += `?${params.toString()}`;
+                }
+
+                try {
+                    const response = await fetchWithAuth(url, { method: 'GET' });
+
+                    if (response && response.ok) {
+                        let citations = await response.json();
+                        
+                        citationsTableBody.innerHTML = '';
+
+                        if (citations.length === 0) {
+                            citationsTableBody.innerHTML = '<tr><td colspan="9" class="text-center theme-label">No citations found.</td></tr>';
+                        } else {
+                            citations.forEach(citation => {
+                                const row = citationsTableBody.insertRow();
+                                row.innerHTML = `
+                                    <td><input type="checkbox" class="citation-checkbox theme-input" data-id="${citation.id}"></td>
+                                    <td>${citation.id ? citation.id.substring(0, 8) + '...' : 'N/A'}</td>
+                                    <td>${citation.timestamp ? new Date(citation.timestamp).toLocaleString() : 'N/A'}</td>
+                                    <td>${citation.submittedBy || 'N/A'}</td>
+                                    <td>${citation.submittedByBadge || 'N/A'}</td>
+                                    <td>${citation.violatorName || 'N/A'}</td>
+                                    <td>${citation.violationType || 'N/A'}</td>
+                                    <td>$${parseFloat(citation.totalAmountDue || 0).toFixed(2)}</td>
+                                    <td>${citation.violationDetails || 'N/A'}</td>
+                                `;
+                            });
+                        }
+                        citationCountDisplay.textContent = citations.length;
+
+                        document.querySelectorAll('.citation-checkbox').forEach(checkbox => {
+                            checkbox.addEventListener('change', toggleDeleteButtonStateCitations);
+                        });
+                        selectAllCitationsCheckbox.checked = false;
+                        toggleDeleteButtonStateCitations();
+                    } else if (response) { // Check if response is not null (meaning fetchWithAuth didn't redirect)
+                        const errorData = await response.json();
+                        window.showCustomAlert(`Error: ${errorData.message || response.statusText}. Please check Worker logs.`, 'Error');
+                        citationsTableBody.innerHTML = `<tr><td colspan="9" class="text-center theme-label text-red-500">Error loading data.</td></tr>`;
+                    }
+                } catch (error) {
+                    console.error('Error fetching citations:', error);
+                    window.showCustomAlert('Network error: Could not connect to the Worker to fetch citations.', 'Error');
+                    citationsTableBody.innerHTML = `<tr><td colspan="9" class="text-center theme-label text-red-500">Network Error. Check console.</td></tr>`;
+                } finally {
+                    adminInfoDisplay.textContent = `Welcome, Admin ${loggedInUser.username} (Badge: ${loggedInUser.badgeNumber})!`;
+                }
+            }
+
+            // --- Fetch & Display Shift Logs Function with Filtering ---
+            async function fetchAndDisplayShiftLogs() {
+                shiftLogsTableBody.innerHTML = '<tr><td colspan="15" class="text-center theme-label">Loading shift logs...</td></tr>'; 
+                adminInfoDisplay.textContent = 'Loading shift logs...';
+
+                const username = filterUsernameInput.value.trim();
+                const department = filterDepartmentInput.value.trim();
+                const host = document.getElementById('filterHost')?.value.trim();
+                const callsign = document.getElementById('filterCallsign')?.value.trim();
+
+
+                let url = 'https://citation-app-worker.pnbober.workers.dev/shift-logs';
+                const params = new URLSearchParams();
+                if (username) {
+                    params.append('username', username);
+                }
+                if (department) {
+                    params.append('department', department);
+                }
+                if (host) {
+                    params.append('host', host);
+                }
+                if (callsign) {
+                    params.append('callsign', callsign);
+                }
+                if (filterStartDateInput.value) {
+                    params.append('startDate', filterStartDateInput.value);
+                }
+                if (filterEndDateInput.value) {
+                    params.append('endDate', filterEndDateInput.value);
+                }
+
+                if (params.toString()) {
+                    url += `?${params.toString()}`;
+                }
+
+                try {
+                    const response = await fetchWithAuth(url, { method: 'GET' });
+
+                    if (response && response.ok) {
+                        let shiftLogs = await response.json();
+
+                        shiftLogsTableBody.innerHTML = '';
+
+                        if (shiftLogs.length === 0) {
+                            shiftLogsTableBody.innerHTML = '<tr><td colspan="15" class="text-center theme-label">No shift logs found matching criteria.</td></tr>'; 
+                        } else {
+                            shiftLogs.forEach(log => {
+                                const row = shiftLogsTableBody.insertRow();
+                                row.innerHTML = `
+                                    <td><input type="checkbox" class="shiftlog-checkbox theme-input" data-id="${log.id}"></td>
+                                    <td>${log.id ? log.id.substring(0, 8) + '...' : 'N/A'}</td>
+                                    <td>${log.timestamp ? new Date(log.timestamp).toLocaleString() : 'N/A'}</td>
+                                    <td>${log.submittedByUsername || 'N/A'}</td>
+                                    <td>${log.submittedByBadge || 'N/A'}</td>
+                                    <td>${log.submittedByDepartment || 'N/A'}</td>
+                                    <td>${log.submittedByRank || 'N/A'}</td>
+                                    <td>${log.hostOfTheSession || 'N/A'}</td>
+                                    <td>${log.callsign || 'N/A'}</td>
+                                    <td>${log.shiftDuration || 'N/A'}</td>
+                                    <td>${log.trafficStops || 0}</td>
+                                    <td>${log.citations || 0}</td>
+                                    <td>${log.arrests || 0}</td>
+                                    <td>${log.additionalNotes || 'N/A'}</td>
+                                    <td>
+                                        ${log.screenshotUrl ? `<img src="${log.screenshotUrl}" alt="Shift Log Screenshot" class="screenshot-thumbnail" style="max-width: 100px; max-height: 100px; cursor: pointer;">` : 'N/A'}
+                                    </td>
+                                `;
+                            });
+
+                            document.querySelectorAll('.screenshot-thumbnail').forEach(img => {
+                                img.addEventListener('click', function() {
+                                    fullscreenImage.src = this.src;
+                                    fullscreenImageModal.classList.remove('hidden');
+                                });
+                            });
+                        }
+                        shiftLogCountDisplay.textContent = shiftLogs.length;
+
+                        document.querySelectorAll('.shiftlog-checkbox').forEach(checkbox => {
+                            checkbox.addEventListener('change', toggleDeleteButtonStateShiftLogs);
+                        });
+                        selectAllShiftLogsCheckbox.checked = false;
+                        toggleDeleteButtonStateShiftLogs();
+
+                    } else if (response) {
+                        const errorData = await response.json();
+                        window.showCustomAlert(`Error loading shift logs: ${errorData.message || response.statusText}. Please check Worker logs.`, 'Error');
+                        shiftLogsTableBody.innerHTML = `<tr><td colspan="15" class="text-center theme-label text-red-500">Error loading shift logs.</td></tr>`; 
+                    }
+                } catch (error) {
+                    console.error('Error fetching shift logs:', error);
+                    window.showCustomAlert('Network error: Could not connect to the Worker to fetch shift logs.', 'Error');
+                    shiftLogsTableBody.innerHTML = `<tr><td colspan="15" class="text-center theme-label text-red-500">Network Error. Check console.</td></tr>`; 
+                } finally {
+                    adminInfoDisplay.textContent = `Welcome, Admin ${loggedInUser.username} (Badge: ${loggedInUser.badgeNumber})!`;
+                }
+            }
+
+
+            // --- Checkbox Selection Logic & Delete Button State for CITATIONS ---
+            function toggleDeleteButtonStateCitations() {
+                const checkedCheckboxes = document.querySelectorAll('.citation-checkbox:checked');
+                deleteSelectedCitationsBtn.disabled = checkedCheckboxes.length === 0;
+            }
+
+            selectAllCitationsCheckbox.addEventListener('change', function() {
+                const isChecked = this.checked;
+                document.querySelectorAll('.citation-checkbox').forEach(checkbox => {
+                    checkbox.checked = isChecked;
+                });
+                toggleDeleteButtonStateCitations();
+            });
+
+            // --- Checkbox Selection Logic & Delete Button State for SHIFT LOGS ---
+            function toggleDeleteButtonStateShiftLogs() {
+                const checkedCheckboxes = document.querySelectorAll('.shiftlog-checkbox:checked');
+                deleteSelectedShiftLogsBtn.disabled = checkedCheckboxes.length === 0;
+            }
+
+            selectAllShiftLogsCheckbox.addEventListener('change', function() {
+                const isChecked = this.checked;
+                document.querySelectorAll('.shiftlog-checkbox').forEach(checkbox => {
+                    checkbox.checked = isChecked;
+                });
+                toggleDeleteButtonStateShiftLogs();
+            });
+
+            // --- Batch Deletion Functionality for CITATIONS ---
+            deleteSelectedCitationsBtn.addEventListener('click', async function() {
+                const selectedIds = [];
+                document.querySelectorAll('.citation-checkbox:checked').forEach(checkbox => {
+                    if (checkbox.dataset.id) {
+                        selectedIds.push(checkbox.dataset.id);
+                    }
+                });
+
+                if (selectedIds.length === 0) {
+                    window.showCustomAlert('Please select at least one citation to delete.', 'Warning');
+                    return;
+                }
+
+                const confirmed = await window.showCustomConfirm(`Are you sure you want to delete ${selectedIds.length} selected citation(s)? This action cannot be undone.`, 'Confirm Deletion');
+                if (!confirmed) {
+                    return; // User cancelled
+                }
+
+                adminInfoDisplay.textContent = `Deleting ${selectedIds.length} citations...`;
+                deleteSelectedCitationsBtn.disabled = true;
+
+                try {
+                    const response = await fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/citations', {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ ids: selectedIds })
+                    });
+
+                    if (response && response.ok) {
+                        const result = await response.json();
+                        window.showCustomAlert('Deletion successful: ' + result.message, 'Success');
+                        selectAllCitationsCheckbox.checked = false;
+                        await fetchAndDisplayCitations();
+                    } else if (response) {
+                        const errorData = await response.json();
+                        window.showCustomAlert('Deletion failed: ' + (errorData.message || response.statusText), 'Error');
+                    }
+                } catch (error) {
+                    console.error('Error during deletion:', error);
+                    window.showCustomAlert('An error occurred during deletion. Check console for details.', 'Error');
+                } finally {
+                    deleteSelectedCitationsBtn.disabled = false;
+                }
+            });
+
+            // --- NEW: Batch Deletion Functionality for SHIFT LOGS (includes R2 deletion) ---
+            deleteSelectedShiftLogsBtn.addEventListener('click', async function() {
+                const selectedIds = [];
+                document.querySelectorAll('.shiftlog-checkbox:checked').forEach(checkbox => {
+                    if (checkbox.dataset.id) {
+                        selectedIds.push(checkbox.dataset.id);
+                    }
+                });
+
+                if (selectedIds.length === 0) {
+                    window.showCustomAlert('Please select at least one shift log to delete.', 'Warning');
+                    return;
+                }
+
+                const confirmed = await window.showCustomConfirm(`Are you sure you want to delete ${selectedIds.length} selected shift log(s)? This action will also delete associated screenshots from R2. This cannot be undone.`, 'Confirm Deletion');
+                if (!confirmed) {
+                    return; // User cancelled
+                }
+
+                adminInfoDisplay.textContent = `Deleting ${selectedIds.length} shift logs and associated screenshots...`;
+                deleteSelectedShiftLogsBtn.disabled = true;
+
+                try {
+                    const response = await fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/shift-logs', {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ ids: selectedIds })
+                    });
+
+                    if (response && response.ok) {
+                        const result = await response.json();
+                        window.showCustomAlert('Deletion successful: ' + result.message, 'Success');
+                        selectAllShiftLogsCheckbox.checked = false;
+                        await fetchAndDisplayShiftLogs(); // Refresh the shift logs table
+                    } else if (response) {
+                        const errorData = await response.json();
+                        window.showCustomAlert('Deletion failed: ' + (errorData.message || response.statusText), 'Error');
+                    }
+                } catch (error) {
+                    console.error('Error during shift log deletion:', error);
+                    window.showCustomAlert('An error occurred during shift log deletion. Check console for details.', 'Error');
+                } finally {
+                    deleteSelectedShiftLogsBtn.disabled = false;
+                }
+            });
+
+            // --- NEW: Delete ALL R2 Screenshots Functionality ---
+            deleteAllR2ScreenshotsBtn.addEventListener('click', async function() {
+                const confirmed = await window.showCustomConfirm(
+                    `WARNING: This action will permanently delete ALL screenshots from your R2 bucket. This cannot be undone. Are you absolutely sure you want to proceed?`,
+                    'EXTREME CAUTION: Delete ALL R2 Screenshots'
+                );
+                if (!confirmed) {
+                    return; // User cancelled
+                }
+
+                const finalConfirmed = await window.showCustomConfirm(
+                    `FINAL CONFIRMATION: This will delete ALL R2 screenshots. Type 'DELETE ALL' to confirm.`,
+                    'FINAL CONFIRMATION'
+                );
+                if (finalConfirmed !== true) { // showCustomConfirm returns true for Yes, or false for No
+                    // If you want to require typing, you'd need a custom prompt input.
+                    // For now, assuming standard confirm.
+                    return;
+                }
+
+
+                adminInfoDisplay.textContent = `Deleting ALL R2 screenshots... This may take a moment.`;
+                deleteAllR2ScreenshotsBtn.disabled = true;
+
+                try {
+                    const response = await fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/admin/delete-all-r2-screenshots', {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    });
+
+                    if (response && response.ok) {
+                        const result = await response.json();
+                        window.showCustomAlert('R2 Cleanup successful: ' + result.message, 'Success');
+                        await fetchAndDisplayShiftLogs(); // Refresh shift logs to reflect missing screenshots
+                    } else if (response) {
+                        const errorData = await response.json();
+                        window.showCustomAlert('R2 Cleanup failed: ' + (errorData.message || response.statusText), 'Error');
+                    }
+                } catch (error) {
+                    console.error('Error during R2 bulk deletion:', error);
+                    window.showCustomAlert('An error occurred during R2 bulk deletion. Check console for details.', 'Error');
+                } finally {
+                    deleteAllR2ScreenshotsBtn.disabled = false;
+                }
+            });
+
+
+            // --- CSV Import Functionality (Existing) ---
+            async function handleImportPenalCodes(csvContent) {
+                if (!csvContent) {
+                    window.showCustomAlert("No CSV content provided to import.", 'Warning');
+                    return;
+                }
+
+                let penalCodesToImport = [];
+                try {
+                    const lines = csvContent.trim().split('\n');
+                    if (lines.length < 2) {
+                        window.showCustomAlert("CSV content must have at least a header row and one data row.", 'Warning');
+                        return;
+                    }
+
+                    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+                    const codeColIndex = headers.indexOf('penal code');
+                    const descriptionColIndex = headers.indexOf('offense');
+                    const amountDueColIndex = headers.indexOf('amount due');
+                    const typeColIndex = headers.indexOf('type');
+                    const jailTimeColIndex = headers.indexOf('jail time (secor)');
+
+                    if (codeColIndex === -1 || descriptionColIndex === -1 || amountDueColIndex === -1) {
+                        window.showCustomAlert('Error: CSV headers must include "Penal Code", "Offense", and "Amount Due".', 'Error');
+                        return;
+                    }
+
+                    for (let i = 1; i < lines.length; i++) {
+                        const row = lines[i].split(',');
+                        
+                        const code = String(row[codeColIndex] || '').trim();
+                        const description = String(row[descriptionColIndex] || '').trim();
+                        let amount_due_raw = String(row[amountDueColIndex] || '').trim();
+                        let type_val = (typeColIndex !== -1) ? String(row[typeColIndex] || '').trim() : null;
+                        let jail_time_raw = (jailTimeColIndex !== -1) ? String(row[jailTimeColIndex] || '').trim() : null;
+
+                        // Clean and parse amount_due
+                        amount_due_raw = amount_due_raw.replace(/\$/g, '').replace(/,/g, '');
+                        let amount_due = parseFloat(amount_due_raw);
+
+                        // Clean and parse jail_time_seconds
+                        let jail_time_seconds_val = null;
+                        if (jail_time_raw !== null && jail_time_raw !== undefined && jail_time_raw.toLowerCase() !== 'n/a' && jail_time_raw !== '') {
+                            jail_time_raw = jail_time_raw.toLowerCase().replace('seconds', '').replace('jail time', '').replace('(', '').replace(')', '').trim();
+                            jail_time_seconds_val = parseFloat(jail_time_raw);
+                            if (isNaN(jail_time_seconds_val)) {
+                                jail_time_seconds_val = null;
+                            }
+                        }
+
+                        // Validate required fields for the worker
+                        if (!code || !description || isNaN(amount_due)) {
+                            console.warn(`Skipping row ${i + 1} due to missing/invalid data: Code='${code}', Desc='${description}', Final Amount Parse: '${amount_due}' (isNaN: ${isNaN(amount_due)})`);
+                            continue;
+                        }
+                        penalCodesToImport.push({
+                            code: code,
+                            description: description,
+                            amount_due: amount_due,
+                            type: type_val,
+                            jail_time_seconds: jail_time_seconds_val
+                        });
+                    }
+
+                    if (penalCodesToImport.length === 0) {
+                        window.showCustomAlert('No valid penal codes found in CSV to import.', 'Warning');
+                        return;
+                    }
+
+                    adminInfoDisplay.textContent = `Importing ${penalCodesToImport.length} penal codes...`;
+                    importCsvBtn.disabled = true;
+                    pasteImportCsvBtn.disabled = true;
+
+                    const response = await fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/admin/penal-codes/import', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ penalCodes: penalCodesToImport })
+                    });
+
+                    if (response && response.ok) {
+                        const result = await response.json();
+                        window.showCustomAlert('Import successful: ' + result.message, 'Success');
+                        await fetchAndDisplayPenalCodes(); // Refresh penal codes table
+                    } else if (response) {
+                        const errorData = await response.json();
+                        window.showCustomAlert('Import failed: ' + (errorData.message || response.statusText), 'Error');
+                    }
+
+                } catch (error) {
+                    console.error('Error parsing or importing CSV:', error);
+                    window.showCustomAlert('An error occurred during CSV import. Check console for details.', 'Error');
+                } finally {
+                    importCsvBtn.disabled = false;
+                    pasteImportCsvBtn.disabled = false;
+                    adminInfoDisplay.textContent = `Welcome, Admin ${loggedInUser.username} (Badge: ${loggedInUser.badgeNumber})!`;
+                }
+            }
+
+            // CSV file input handler
+            penalCodeCsvFile.addEventListener('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        handleImportPenalCodes(e.target.result);
+                    };
+                    reader.readAsText(file);
+                } else {
+                    window.showCustomAlert("Please select a CSV file to import.", 'Warning');
+                }
+            });
+
+            // Paste CSV text area handler
+            pasteImportCsvBtn.addEventListener('click', function() {
+                const csvText = penalCodeCsvText.value;
+                if (csvText) {
+                    handleImportPenalCodes(csvText);
+                } else {
+                    window.showCustomAlert("Please paste CSV content into the text area.", 'Warning');
+                }
+            });
+
+            // --- Filter Event Listeners ---
+            applyFilterBtn.addEventListener('click', function() {
+                fetchAndDisplayCitations(); // Now calls with parameters
+                fetchAndDisplayShiftLogs(); // Already calls with parameters
+            });
+
+            clearFilterBtn.addEventListener('click', function() {
+                filterUsernameInput.value = '';
+                filterViolatorNameInput.value = '';
+                filterDepartmentInput.value = '';
+                filterOfficerBadgeInput.value = '';
+                filterStartDateInput.value = '';
+                filterEndDateInput.value = '';
+                // Clear shift-log specific filters too if they existed (e.g. host, callsign)
+                const filterHostInput = document.getElementById('filterHost');
+                if (filterHostInput) filterHostInput.value = '';
+                const filterCallsignInput = document.getElementById('filterCallsign');
+                if (filterCallsignInput) filterCallsignInput.value = '';
+
                 fetchAndDisplayCitations();
                 fetchAndDisplayShiftLogs();
-                fetchAndDisplayUsers();
-                fetchAndDisplayPenalCodes();
             });
 
-            document.getElementById('logoutButton').addEventListener('click', () => {
-                // In a real app, this should call a backend endpoint to invalidate the refresh token.
-                // For this demo, we just clear local storage and redirect.
-                sessionStorage.clear();
-                window.location.href = 'index.html';
+            refreshButton.addEventListener('click', function() {
+                fetchAndDisplayCitations();
+                fetchAndDisplayShiftLogs();
+                fetchAndDisplayUsers(); // Refresh users on main refresh
+                fetchAndDisplayPenalCodes(); // Refresh penal codes on main refresh
             });
+
+            // --- Fullscreen Image Modal Event Listeners ---
+            closeFullscreenBtn.addEventListener('click', function() {
+                fullscreenImageModal.classList.add('hidden');
+                fullscreenImage.src = '';
+            });
+
+            fullscreenImageModal.addEventListener('click', function(event) {
+                if (event.target === fullscreenImageModal) {
+                    fullscreenImageModal.classList.add('hidden');
+                    fullscreenImage.src = '';
+                }
+            });
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' && !fullscreenImageModal.classList.contains('hidden')) {
+                    fullscreenImageModal.classList.add('hidden');
+                    fullscreenImage.src = '';
+                }
+            });
+
+            // --- User Management Functions ---
+            async function fetchAndDisplayUsers() {
+                usersTableBody.innerHTML = '<tr><td colspan="8" class="text-center theme-label">Loading users...</td></tr>';
+                try {
+                    const [usersResponse, citationsResponse, shiftLogsResponse] = await Promise.all([
+                        fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/admin/users'),
+                        fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/citations'), // Now accessible by all authenticated users
+                        fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/shift-logs') // Now accessible by all authenticated users
+                    ]);
+
+                    if (!usersResponse || !usersResponse.ok) throw new Error('Failed to fetch users.');
+                    // For citations and shift logs, we don't throw if not ok, as they might be empty or filtered
+                    const allUsers = await usersResponse.json();
+                    const allCitations = (citationsResponse && citationsResponse.ok) ? await citationsResponse.json() : [];
+                    const allShiftLogs = (shiftLogsResponse && shiftLogsResponse.ok) ? await shiftLogsResponse.json() : [];
+
+                    usersTableBody.innerHTML = '';
+                    if (allUsers.length === 0) {
+                        usersTableBody.innerHTML = '<tr><td colspan="8" class="text-center theme-label">No users found.</td></tr>';
+                    } else {
+                        allUsers.forEach(user => {
+                            // Filter counts by the original submittedBy/submittedByUsername, not the prefixed keys
+                            const citationCount = allCitations.filter(c => c.submittedBy === user.username || c.submittedByBadge === user.badge_number).length;
+                            const shiftLogCount = allShiftLogs.filter(sl => sl.submittedByUsername === user.username || sl.submittedByBadge === user.badge_number).length;
+
+                            const row = usersTableBody.insertRow();
+                            row.innerHTML = `
+                                <td>${user.id}</td>
+                                <td>${user.username}</td>
+                                <td>${user.badge_number}</td>
+                                <td>${user.department || 'N/A'}</td>
+                                <td>
+                                    <select class="theme-input p-1 rounded-md user-role-select" data-user-id="${user.id}" data-previous-role="${user.role}">
+                                        <option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option>
+                                        <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                                    </select>
+                                </td>
+                                <td>${citationCount}</td> <td>${shiftLogCount}</td> <td>
+                                    <button class="theme-button-danger py-1 px-3 rounded-md font-semibold delete-user-btn" data-user-id="${user.id}">Delete</button>
+                                </td>
+                            `;
+                        });
+                        attachUserActionListeners();
+                    }
+                } catch (error) {
+                    console.error('Error fetching users or counts:', error);
+                    window.showCustomAlert('Network error: Could not connect to fetch user data or counts.', 'Error');
+                    usersTableBody.innerHTML = `<tr><td colspan="8" class="text-center theme-label text-red-500">Error loading users.</td></tr>`;
+                }
+            }
+
+            function attachUserActionListeners() {
+                document.querySelectorAll('.user-role-select').forEach(select => {
+                    select.removeEventListener('change', handleUserRoleChange);
+                    select.addEventListener('change', handleUserRoleChange);
+                });
+
+                document.querySelectorAll('.delete-user-btn').forEach(button => {
+                    button.removeEventListener('click', handleDeleteUser);
+                    button.addEventListener('click', handleDeleteUser);
+                });
+            }
+
+            async function handleUserRoleChange(event) {
+                const userId = event.target.dataset.userId;
+                const newRole = event.target.value;
+                const previousRole = event.target.dataset.previousRole;
+
+                const confirmed = await window.showCustomConfirm(`Are you sure you want to change user ${userId}'s role to "${newRole}"?`, 'Confirm Role Change');
+                if (!confirmed) {
+                    event.target.value = previousRole;
+                    return;
+                }
+
+                try {
+                    const response = await fetchWithAuth(`https://citation-app-worker.pnbober.workers.dev/admin/users/${userId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ role: newRole })
+                    });
+                    const result = await response.json();
+                    if (response && response.ok) {
+                        window.showCustomAlert(result.message, 'Success');
+                        event.target.dataset.previousRole = newRole;
+                    } else if (response) {
+                        window.showCustomAlert('Failed to update role: ' + (result.message || response.statusText), 'Error');
+                        event.target.value = previousRole;
+                    }
+                } catch (error) {
+                    console.error('Error changing user role:', error);
+                    window.showCustomAlert('Network error during role change.', 'Error');
+                    event.target.value = previousRole;
+                }
+            }
+
+            async function handleDeleteUser(event) {
+                const userId = event.target.dataset.userId;
+                const confirmed = await window.showCustomConfirm(`Are you sure you want to delete user ${userId}? This cannot be undone.`, 'Confirm User Deletion');
+                if (!confirmed) return;
+
+                try {
+                    const response = await fetchWithAuth(`https://citation-app-worker.pnbober.workers.dev/admin/users/${userId}`, {
+                        method: 'DELETE',
+                    });
+                    const result = await response.json();
+                    if (response && response.ok) {
+                        window.showCustomAlert(result.message, 'Success');
+                        await fetchAndDisplayUsers();
+                    } else if (response) {
+                        window.showCustomAlert('Failed to delete user: ' + (result.message || response.statusText), 'Error');
+                    }
+                } catch (error) {
+                    console.error('Error deleting user:', error);
+                    window.showCustomAlert('Network error during user deletion.', 'Error');
+                }
+            }
+
+            refreshUsersBtn.addEventListener('click', fetchAndDisplayUsers);
+
+
+            // --- NEW: Penal Code Management Functions ---
+            async function fetchAndDisplayPenalCodes() {
+                penalCodesTableBody.innerHTML = '<tr><td colspan="6" class="text-center theme-label">Loading penal codes...</td></tr>';
+                try {
+                    const response = await fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/penal-codes', { method: 'GET' });
+
+                    if (response && response.ok) {
+                        const penalCodes = await response.json();
+                        penalCodesTableBody.innerHTML = '';
+                        if (penalCodes.length === 0) {
+                            penalCodesTableBody.innerHTML = '<tr><td colspan="6" class="text-center theme-label">No penal codes found.</td></tr>';
+                        } else {
+                            penalCodes.forEach(pc => {
+                                const row = penalCodesTableBody.insertRow();
+                                row.innerHTML = `
+                                    <td>${pc.code}</td>
+                                    <td>${pc.description || 'N/A'}</td>
+                                    <td>$${parseFloat(pc.amount_due || 0).toFixed(2)}</td>
+                                    <td>${pc.type || 'N/A'}</td>
+                                    <td>${parseFloat(pc.jail_time_seconds || 0).toFixed(0)}</td>
+                                    <td>
+                                        <button class="theme-button-secondary py-1 px-3 rounded-md font-semibold edit-penal-code-btn" data-code="${pc.code}">Edit</button>
+                                        <button class="theme-button-danger py-1 px-3 rounded-md font-semibold delete-penal-code-btn" data-code="${pc.code}">Delete</button>
+                                    </td>
+                                `;
+                            });
+                            attachPenalCodeActionListeners();
+                        }
+                    } else if (response) {
+                        const errorData = await response.json();
+                        window.showCustomAlert(`Error loading penal codes: ${errorData.message || response.statusText}.`, 'Error');
+                        penalCodesTableBody.innerHTML = `<tr><td colspan="6" class="text-center theme-label text-red-500">Error loading penal codes.</td></tr>`;
+                    }
+                } catch (error) {
+                    console.error('Error fetching penal codes:', error);
+                    window.showCustomAlert('Network error: Could not connect to the Worker to fetch penal codes.', 'Error');
+                    penalCodesTableBody.innerHTML = `<tr><td colspan="6" class="text-center theme-label text-red-500">Network Error. Check console.</td></tr>`;
+                }
+            }
+
+            function attachPenalCodeActionListeners() {
+                document.querySelectorAll('.edit-penal-code-btn').forEach(button => {
+                    button.removeEventListener('click', handleEditPenalCode);
+                    button.addEventListener('click', handleEditPenalCode);
+                });
+
+                document.querySelectorAll('.delete-penal-code-btn').forEach(button => {
+                    button.removeEventListener('click', handleDeletePenalCode);
+                    button.addEventListener('click', handleDeletePenalCode);
+                });
+            }
+            
+            async function handleEditPenalCode(event) {
+                currentEditPenalCode = event.target.dataset.code;
+                if (!currentEditPenalCode) {
+                    window.showCustomAlert("Could not find penal code to edit.", "Error");
+                    return;
+                }
+
+                try {
+                    const response = await fetchWithAuth(`https://citation-app-worker.pnbober.workers.dev/penal-codes`, { method: 'GET' });
+                    if (!response || !response.ok) throw new Error('Failed to fetch penal codes.');
+                    const allCodes = await response.json();
+                    const pcToEdit = allCodes.find(pc => pc.code === currentEditPenalCode);
+
+                    if (pcToEdit) {
+                        editPenalCodeCodeDisplay.textContent = pcToEdit.code;
+                        editPenalCodeDescription.value = pcToEdit.description || '';
+                        editPenalCodeAmount.value = parseFloat(pcToEdit.amount_due || 0).toFixed(2);
+                        editPenalCodeType.value = pcToEdit.type || '';
+                        editPenalCodeJailTime.value = parseFloat(pcToEdit.jail_time_seconds || 0).toFixed(0);
+                        editPenalCodeModalOverlay.classList.remove('hidden');
+                    } else {
+                        window.showCustomAlert("Penal code not found for editing.", "Error");
+                    }
+                } catch (error) {
+                    console.error('Error fetching penal code for edit:', error);
+                    window.showCustomAlert('Failed to load penal code data for editing.', 'Error');
+                }
+            }
+
+            editPenalCodeForm.addEventListener('submit', async function(event) {
+                event.preventDefault();
+                const updatedData = {
+                    description: editPenalCodeDescription.value,
+                    amount_due: parseFloat(editPenalCodeAmount.value),
+                    type: editPenalCodeType.value,
+                    jail_time_seconds: parseFloat(editPenalCodeJailTime.value)
+                };
+
+                if (isNaN(updatedData.amount_due) || isNaN(updatedData.jail_time_seconds)) {
+                    window.showCustomAlert("Amount Due and Jail Time must be valid numbers.", "Validation Error");
+                    return;
+                }
+
+                try {
+                    const response = await fetchWithAuth(`https://citation-app-worker.pnbober.workers.dev/admin/penal-codes/${currentEditPenalCode}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(updatedData)
+                    });
+                    const result = await response.json();
+                    if (response && response.ok) {
+                        window.showCustomAlert(result.message, 'Success');
+                        editPenalCodeModalOverlay.classList.add('hidden');
+                        await fetchAndDisplayPenalCodes();
+                    } else if (response) {
+                        window.showCustomAlert('Failed to save changes: ' + (result.message || response.statusText), 'Error');
+                    }
+                } catch (error) {
+                    console.error('Error saving penal code changes:', error);
+                    window.showCustomAlert('Network error saving penal code changes.', 'Error');
+                }
+            });
+
+            cancelEditPenalCodeBtn.addEventListener('click', function() {
+                editPenalCodeModalOverlay.classList.add('hidden');
+            });
+
+
+            async function handleDeletePenalCode(event) {
+                const codeToDelete = event.target.dataset.code;
+                const confirmed = await window.showCustomConfirm(`Are you sure you want to delete penal code "${codeToDelete}"? This cannot be undone.`, 'Confirm Deletion');
+                if (!confirmed) return;
+
+                try {
+                    const response = await fetchWithAuth(`https://citation-app-worker.pnbober.workers.dev/admin/penal-codes/${codeToDelete}`, {
+                        method: 'DELETE',
+                    });
+                    const result = await response.json();
+                    if (response && response.ok) {
+                        window.showCustomAlert(result.message, 'Success');
+                        await fetchAndDisplayPenalCodes();
+                    } else if (response) {
+                        window.showCustomAlert('Failed to delete penal code: ' + (result.message || response.statusText), 'Error');
+                    }
+                } catch (error) {
+                    console.error('Error deleting penal code:', error);
+                    window.showCustomAlert('Network error during penal code deletion.', 'Error');
+                }
+            }
+
+
+            refreshPenalCodesBtn.addEventListener('click', fetchAndDisplayPenalCodes);
+            
+            // --- ADD USER MODAL LOGIC ---
+            addUserBtn.addEventListener('click', () => {
+                addUserForm.reset(); // Clear form on open
+                addUserModalOverlay.classList.remove('hidden');
+            });
+
+            cancelAddUserBtn.addEventListener('click', () => {
+                addUserModalOverlay.classList.add('hidden');
+            });
+
+            addUserModalOverlay.addEventListener('click', (event) => {
+                if (event.target === addUserModalOverlay) {
+                    addUserModalOverlay.classList.add('hidden');
+                }
+            });
+
+            addUserForm.addEventListener('submit', async function(event) {
+                event.preventDefault();
+
+                const username = document.getElementById('addUsername').value;
+                const badgeNumber = document.getElementById('addBadgeNumber').value;
+                const department = document.getElementById('addDepartment').value;
+                const placeholderPassword = 'password'; // A reasonably secure placeholder
+
+                if (!username || !badgeNumber || !department) {
+                    window.showCustomAlert("Please fill out all fields.", "Input Error");
+                    return;
+                }
+
+                try {
+                    // Using the public /register endpoint as seen in signup.html
+                    const response = await fetch('https://citation-app-worker.pnbober.workers.dev/register', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            username,
+                            badgeNumber,
+                            department,
+                            password: placeholderPassword
+                        }),
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        window.showCustomAlert(
+                            `${result.message} The user's temporary password is: ${placeholderPassword}`, 'Success'
+                        ).then(() => {
+                            addUserModalOverlay.classList.add('hidden');
+                            fetchAndDisplayUsers(); // Refresh the user list
+                        });
+                    } else {
+                        window.showCustomAlert('Failed to create user: ' + (result.message || 'Unknown error.'), 'Error');
+                    }
+                } catch (error) {
+                    console.error('Error during user creation:', error);
+                    window.showCustomAlert('An error occurred while creating the user. Check the console for details.', 'Error');
+                }
+            });
+
 
             // --- Initial Load ---
             fetchAndDisplayCitations();
