@@ -76,7 +76,7 @@
     </div>
 
     <script>
-        // Simple custom alert (using old modal structure without transition issues)
+        // Simple custom alert
         window.showCustomAlert = (message, title = 'Alert') => {
             return new Promise(resolve => {
                 const overlay = document.getElementById('customModalOverlay');
@@ -141,9 +141,16 @@
                             username: result.username,
                             badgeNumber: result.badgeNumber,
                             role: result.role,
-                            department: result.department
+                            department: result.department,
+                            mustChangePassword: result.mustChangePassword
                         }));
-                        window.location.href = 'selection.html';
+
+                        // Redirect conditionally based on mustChangePassword flag
+                        if (result.mustChangePassword) {
+                            window.location.href = 'change_password.html';
+                        } else {
+                            window.location.href = 'selection.html';
+                        }
                     });
                 } else {
                     window.showCustomAlert('Login failed: ' + (result.message || response.statusText), 'Error');
