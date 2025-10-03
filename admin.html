@@ -1247,7 +1247,11 @@
 
                     if (!usersResponse || !usersResponse.ok) throw new Error('Failed to fetch users.');
                     // For citations and shift logs, we don't throw if not ok, as they might be empty or filtered
-                    const allUsers = await usersResponse.json();
+                    let allUsers = await usersResponse.json();
+                    
+                    // MODIFICATION: Force sort by user ID (creation order) to override any alphabetical sorting from the backend.
+                    allUsers.sort((a, b) => a.id - b.id); 
+
                     const allCitations = (citationsResponse && citationsResponse.ok) ? await citationsResponse.json() : [];
                     const allShiftLogs = (shiftLogsResponse && shiftLogsResponse.ok) ? await shiftLogsResponse.json() : [];
 
