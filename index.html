@@ -58,8 +58,8 @@
     </div>
 
     <script>
-        // --- Custom Alert Function (REQUIRED) ---
-        // 🔑 FIX: Removed the 'if (!window.showCustomAlert)' check to ensure this function is always defined and working.
+        // --- Custom Alert Function (FIXED) ---
+        // This function is now more robust in handling Tailwind transition classes.
         window.showCustomAlert = (message, title = 'Alert') => {
             return new Promise(resolve => {
                 const modal = document.getElementById('customAlertModal');
@@ -83,20 +83,28 @@
                 messageEl.textContent = message;
 
                 const handler = () => {
-                    modal.classList.add('hidden', 'opacity-0');
+                    // Start close animation (box back to invisible)
                     box.classList.remove('scale-100', 'opacity-100');
                     box.classList.add('scale-95', 'opacity-0');
-                    closeBtn.removeEventListener('click', handler);
-                    resolve();
+                    
+                    // Hide the modal completely after the transition (300ms)
+                    setTimeout(() => {
+                        modal.classList.add('hidden');
+                        closeBtn.removeEventListener('click', handler);
+                        resolve();
+                    }, 300); 
                 };
 
                 closeBtn.addEventListener('click', handler);
 
-                modal.classList.remove('hidden', 'opacity-0');
-                // Timeout for animation
+                // --- Open Sequence ---
+                modal.classList.remove('hidden'); // 1. Make the modal container visible
+                
+                // 2. Use a small delay to ensure the browser registers the 'show' state 
+                //    before applying the 'visible' state for the transition.
                 setTimeout(() => {
-                    box.classList.remove('scale-95');
-                    box.classList.add('scale-100');
+                    box.classList.remove('scale-95', 'opacity-0');
+                    box.classList.add('scale-100', 'opacity-100'); // Bring the box into view
                 }, 10);
             });
         };
@@ -136,7 +144,6 @@
                             badgeNumber: result.badgeNumber,
                             role: result.role,
                             department: result.department,
-                            // *** CRITICAL: Save the password change flag ***
                             mustChangePassword: result.mustChangePassword
                         };
 
@@ -146,10 +153,8 @@
                             
                             // --- CHECK FOR PASSWORD CHANGE REQUIREMENT ---
                             if (result.mustChangePassword) {
-                                // Redirect to the mandatory password change page
                                 window.location.href = 'change_password.html'; 
                             } else {
-                                // Redirect to the main application page
                                 window.location.href = 'selection.html'; 
                             }
                         });
