@@ -87,9 +87,11 @@
     </div>
 
     <header class="theme-bg-secondary shadow-md sticky top-0 z-10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-            <h1 class="text-2xl font-bold theme-label">Department Leaderboards</h1>
-            <nav class="space-x-4">
+        <!-- Layout Fix: Centering the title and positioning the nav links absolutely on the right -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-center items-center relative">
+            <h1 class="text-2xl font-bold theme-label text-center">Department Leaderboards</h1>
+            <!-- Navigation links are moved to the right using absolute positioning -->
+            <nav class="space-x-4 absolute right-4 sm:right-6 lg:right-8">
                 <a href="dashboard.html" class="theme-link-button">Dashboard</a>
                 <a href="#" id="refreshButton" class="theme-link-button">Refresh <i class="fas fa-sync-alt"></i></a>
             </nav>
@@ -198,8 +200,9 @@
             function processLeaderboardData(data) {
                 const stats = {};
                 data.forEach(item => {
+                    // Use a fallback for officer name if the 'officerUsername' is not consistent
                     const officerId = item.officerId;
-                    const officerUsername = item.officerUsername || item.officerName || 'Unknown Officer'; // Use a robust username field
+                    const officerUsername = item.officerUsername || item.officerName || 'Unknown Officer'; 
                     
                     if (officerId) {
                         if (!stats[officerId]) {
@@ -217,7 +220,15 @@
             function renderLeaderboard(container, stats, type) {
                 container.innerHTML = '';
                 if (stats.length === 0) {
-                    container.innerHTML = `<div class="text-center theme-label p-4">No ${type} logs found.</div>`;
+                    // Display a personalized message for non-admins
+                    let message = `No ${type} logs found.`;
+                    if (type === 'shift log' && !is_admin) {
+                        message = `No ${type} logs found for your profile.`;
+                    } else if (type === 'citation' && !is_admin) {
+                        message = `No ${type} logs found for your profile.`;
+                    }
+
+                    container.innerHTML = `<div class="text-center theme-label p-4">${message}</div>`;
                     return;
                 }
 
@@ -239,37 +250,14 @@
                 shiftLogLeaderboardContainer.innerHTML = `<div class="text-center theme-label p-4">Fetching Shift Log data...</div>`;
 
                 try {
-                    // --- Dynamic URL Construction (The Fix) ---
-                    // Admins get the full /admin list. Non-admins get their personal list (usually /my-data/:id)
-                    // Assuming your worker supports:
-                    // /admin/citations OR /citations/all (for all data)
-                    // /citations/my/:id (for personal data)
-                    
-                    // Since your /admin/citations already returns ALL data (checked by authResult.user.role in the worker)
-                    // We can check if the user is admin OR if the path is explicitly /admin/...
-                    
-                    // We need the worker to offer a /my-citations and /my-shiftlogs endpoint for non-admins.
-                    // Since the current worker only has /admin/citations (GET ALL) and /submit-citation (POST),
-                    // we will modify the API call to hit the proper endpoint based on role.
-
-                    // If the user is NOT an admin, we must use a separate endpoint that filters by officer ID.
-                    // Since that endpoint does not exist yet, we must assume the worker, if it's NOT an admin endpoint, 
-                    // will filter by the logged-in user's ID.
-
-                    // For now, let's assume the following worker endpoints exist:
-                    // GET /admin/citations (Returns ALL citations, requires admin role)
-                    // GET /citations (Returns citations for the logged-in user, requires officer role)
-                    
-                    // We'll use the /admin path for admins, and a non-admin path (e.g., /citations) for officers,
-                    // relying on the worker to implement the filtering for non-admin requests.
-
+                    // FIX 1: Corrected Shift Log URL to use 'shift_logs'
                     const citationsApiUrl = is_admin ? 
                         `${apiBaseUrl}/admin/citations` : 
-                        `${apiBaseUrl}/citations`; // Worker must filter this by user ID
+                        `${apiBaseUrl}/citations`; 
                         
                     const shiftLogsApiUrl = is_admin ? 
-                        `${apiBaseUrl}/admin/shiftlogs` : 
-                        `${apiBaseUrl}/shiftlogs`; // Worker must filter this by user ID
+                        `${apiBaseUrl}/admin/shift_logs` : // <-- CORRECTED
+                        `${apiBaseUrl}/shift_logs`; // <-- CORRECTED
 
                     // 1. Fetch Citation Data
                     const citationResponse = await fetchWithAuth(citationsApiUrl);
@@ -284,7 +272,7 @@
                         citationLeaderboardContainer.innerHTML = `<div class="text-center theme-label text-red-500 p-4">Failed to load citation data (${citationResponse.status}).</div>`;
                     }
                     
-                    // 2. Fetch Shift Log Data (This is the section that was likely wrong)
+                    // 2. Fetch Shift Log Data
                     const shiftLogResponse = await fetchWithAuth(shiftLogsApiUrl);
                     let shiftLogData = [];
                     if (shiftLogResponse.ok) {
@@ -294,7 +282,8 @@
                     } else {
                         const errorMsg = await shiftLogResponse.text();
                         console.error('Shift Log Fetch Error:', errorMsg);
-                        shiftLogLeaderboardContainer.innerHTML = `<div class="text-center theme-label text-red-500 p-4">Failed to load shift log data (${shiftLogResponse.status}).</div>`;
+                        // Report the error clearly
+                        shiftLogLeaderboardContainer.innerHTML = `<div class="text-center theme-label text-red-500 p-4">Failed to load shift log data (${shiftLogResponse.status}). Error: ${errorMsg}. Please ensure the worker backend has the /shift_logs route defined.</div>`;
                     }
 
                 } catch (error) {
