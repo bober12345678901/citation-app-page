@@ -10,16 +10,14 @@
     <script src="theme.js"></script>
     <style>
         /* --- AESTHETIC IMPROVEMENTS --- */
-
-        /* General styling for the leaderboard container */
         .leaderboard-section {
-            margin-top: 2.5rem; /* Increased spacing */
+            margin-top: 2.5rem;
         }
         .leaderboard-list {
             background-color: var(--input-bg-color);
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            padding: 0.5rem; /* Reduced padding to let items fill space */
+            padding: 0.5rem;
             max-height: 500px;
             overflow-y: auto;
             color: var(--input-text-color);
@@ -28,23 +26,20 @@
             display: flex;
             align-items: center;
             padding: 12px 1rem;
-            border-radius: 6px; /* Rounded corners for each item */
+            border-radius: 6px;
             transition: background-color 0.2s ease-in-out;
         }
-        
-        /* Zebra striping for better readability */
         .leaderboard-item:nth-child(even) {
             background-color: rgba(0, 0, 0, 0.1);
         }
-        
         .rank-number {
             font-weight: bold;
             font-size: 1.2em;
-            width: 50px; /* More space for rank number and icon */
+            width: 50px;
             text-align: right;
             margin-right: 15px;
             color: var(--button-primary-bg);
-            flex-shrink: 0; /* Prevent shrinking */
+            flex-shrink: 0;
         }
         .username-display {
             flex-grow: 1;
@@ -59,10 +54,8 @@
             color: var(--button-secondary-bg);
             min-width: 120px;
             text-align: right;
-            flex-shrink: 0; /* Prevent shrinking */
+            flex-shrink: 0;
         }
-
-        /* --- STYLES FOR TOP 3 RANKS --- */
         .rank-1 {
             background-image: linear-gradient(to right, rgba(255, 215, 0, 0.2), rgba(255, 215, 0, 0.05));
             border-left: 4px solid #FFD700; /* Gold */
@@ -75,27 +68,15 @@
             background-image: linear-gradient(to right, rgba(205, 127, 50, 0.2), rgba(205, 127, 50, 0.05));
             border-left: 4px solid #CD7F32; /* Bronze */
         }
-
-        /* Responsive adjustments */
         @media (max-width: 640px) {
-            .leaderboard-list {
-                max-height: 40vh;
-            }
-            .rank-number {
-                font-size: 1em;
-                width: 40px;
-                margin-right: 10px;
-            }
-            .count-display {
-                font-size: 0.9em;
-                min-width: 90px;
-            }
+            .leaderboard-list { max-height: 40vh; }
+            .rank-number { font-size: 1em; width: 40px; margin-right: 10px; }
+            .count-display { font-size: 0.9em; min-width: 90px; }
         }
     </style>
 </head>
 <body class="theme-dark min-h-screen flex flex-col theme-bg theme-text">
     
-    <!-- Custom Alert Container -->
     <div id="customAlertOverlay" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
         <div id="customAlert" class="theme-box theme-border p-6 rounded-xl shadow-2xl w-11/12 max-w-sm">
             <h4 id="customAlertTitle" class="text-xl font-bold mb-3 theme-label">Alert</h4>
@@ -104,11 +85,10 @@
         </div>
     </div>
 
-    <!-- HEADER FIX: This version ensures the header is truly full-width -->
-    <header class="theme-bg-secondary shadow-md sticky top-0 z-40 w-full">
-        <!-- The inner div is a flex container with side padding, pushing content to the edges -->
-        <div class="flex justify-between items-center w-full mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <h1 class="text-2xl font-bold theme-label">Department Leaderboards</h1>
+    <!-- HEADER COPIED FROM WORKING EXAMPLE (selectionexp.html) -->
+    <header class="theme-section-bg shadow-lg fixed top-0 w-full z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <h1 class="text-3xl font-bold theme-text-color">Department Leaderboards</h1>
             <nav class="space-x-4">
                 <a href="dashboard.html" class="theme-link-button">Dashboard</a>
                 <a href="#" id="refreshButton" class="theme-link-button">Refresh</a>
@@ -116,14 +96,14 @@
         </div>
     </header>
 
-    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+    <!-- ADDED mt-20 to push content down from under the fixed header -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full mt-20">
         
         <div id="userInfoDisplay" class="theme-box p-4 rounded-lg shadow-lg mb-6">
             <p class="theme-label font-semibold">User: <span id="userUsername"></span> (<span id="userBadge"></span>)</p>
             <p class="theme-text text-sm">Role: <span id="userRole"></span></p>
         </div>
 
-        <!-- Citation Leaderboard Section -->
         <section class="leaderboard-section">
             <h3 class="text-2xl font-semibold theme-label border-b pb-2 mb-4">Citation Leaderboard</h3>
             <div id="citationLeaderboardContainer" class="leaderboard-list">
@@ -131,7 +111,6 @@
             </div>
         </section>
 
-        <!-- Shift Log Leaderboard Section -->
         <section class="leaderboard-section">
             <h3 class="text-2xl font-semibold theme-label border-b pb-2 mb-4">Shift Log Leaderboard</h3>
             <div id="shiftLogLeaderboardContainer" class="leaderboard-list">
@@ -182,9 +161,7 @@
         // --- Leaderboard Logic ---
         document.addEventListener('DOMContentLoaded', () => {
             const loggedInUser = JSON.parse(sessionStorage.getItem('loggedInUser'));
-            const authToken = sessionStorage.getItem('authToken');
-
-            if (!loggedInUser || !authToken) {
+            if (!loggedInUser) {
                 window.showCustomAlert('You must be logged in to view this page.', 'Authentication Required').then(() => {
                     window.location.href = 'index.html';
                 });
@@ -226,7 +203,6 @@
                     itemDiv.classList.add('leaderboard-item');
 
                     let rankContent = `${index + 1}.`;
-                    // Add special styling for top 3
                     if (index === 0) {
                         itemDiv.classList.add('rank-1');
                         rankContent = `🥇 ${index + 1}`;
@@ -252,32 +228,27 @@
                 shiftLogLeaderboardContainer.innerHTML = `<div class="text-center theme-label p-4">Fetching Shift Log data...</div>`;
 
                 try {
-                    const citationsApiUrl = `${apiBaseUrl}/citations`; 
-                    const shiftLogsApiUrl = `${apiBaseUrl}/shift-logs`;
-
                     const [citationResponse, shiftLogResponse] = await Promise.all([
-                        fetchWithAuth(citationsApiUrl),
-                        fetchWithAuth(shiftLogsApiUrl)
+                        fetchWithAuth(`${apiBaseUrl}/citations`),
+                        fetchWithAuth(`${apiBaseUrl}/shift-logs`)
                     ]);
 
                     if (citationResponse.ok) {
                         const citationData = await citationResponse.json();
                         renderLeaderboard(citationLeaderboardContainer, processLeaderboardData(citationData), 'citation');
                     } else {
-                        citationLeaderboardContainer.innerHTML = `<div class="text-center theme-label text-red-500 p-4">Failed to load citation data (${citationResponse.status}).</div>`;
+                        citationLeaderboardContainer.innerHTML = `<div class="text-center theme-label text-red-500 p-4">Failed to load data (${citationResponse.status}).</div>`;
                     }
                     
                     if (shiftLogResponse.ok) {
                         const shiftLogData = await shiftLogResponse.json();
                         renderLeaderboard(shiftLogLeaderboardContainer, processLeaderboardData(shiftLogData), 'shift log');
                     } else {
-                        shiftLogLeaderboardContainer.innerHTML = `<div class="text-center theme-label text-red-500 p-4">Failed to load shift log data (${shiftLogResponse.status}).</div>`;
+                        shiftLogLeaderboardContainer.innerHTML = `<div class="text-center theme-label text-red-500 p-4">Failed to load data (${shiftLogResponse.status}).</div>`;
                     }
                 } catch (error) {
                     console.error('Error fetching leaderboard data:', error);
                     window.showCustomAlert('An error occurred while loading leaderboards.', 'Error');
-                    shiftLogLeaderboardContainer.innerHTML = `<div class="text-center theme-label text-red-500">Error loading data.</div>`;
-                    citationLeaderboardContainer.innerHTML = `<div class="text-center theme-label text-red-500">Error loading data.</div>`;
                 }
             }
 
@@ -291,3 +262,4 @@
     </script>
 </body>
 </html>
+
