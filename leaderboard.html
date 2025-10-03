@@ -9,55 +9,73 @@
     <link rel="stylesheet" href="styles.css">
     <script src="theme.js"></script>
     <style>
+        /* --- AESTHETIC IMPROVEMENTS --- */
+
         /* General styling for the leaderboard container */
         .leaderboard-section {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border-color);
-        }
-        .leaderboard-section h3 {
-            margin-bottom: 15px;
+            margin-top: 2.5rem; /* Increased spacing */
         }
         .leaderboard-list {
-            background-color: var(--input-bg-color); /* Use input background for list */
+            background-color: var(--input-bg-color);
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            padding: 1rem;
-            max-height: 500px; /* Keep consistent max height for scrolling */
+            padding: 0.5rem; /* Reduced padding to let items fill space */
+            max-height: 500px;
             overflow-y: auto;
-            color: var(--input-text-color); /* Text color for list items */
+            color: var(--input-text-color);
         }
         .leaderboard-item {
             display: flex;
-            align-items: center; /* Align items vertically */
-            padding: 10px 0;
-            border-bottom: 1px dashed var(--border-color);
-            font-size: 1.1em;
+            align-items: center;
+            padding: 12px 1rem;
+            border-radius: 6px; /* Rounded corners for each item */
+            transition: background-color 0.2s ease-in-out;
         }
-        .leaderboard-item:last-child {
-            border-bottom: none;
+        
+        /* Zebra striping for better readability */
+        .leaderboard-item:nth-child(even) {
+            background-color: rgba(0, 0, 0, 0.1);
         }
+        
         .rank-number {
             font-weight: bold;
             font-size: 1.2em;
-            width: 40px; /* Fixed width for rank number */
+            width: 50px; /* More space for rank number and icon */
             text-align: right;
             margin-right: 15px;
-            color: var(--button-primary-bg); /* Highlight rank number */
+            color: var(--button-primary-bg);
+            flex-shrink: 0; /* Prevent shrinking */
         }
         .username-display {
-            flex-grow: 1; /* Takes up middle space */
+            flex-grow: 1;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             padding-right: 10px;
+            font-size: 1.1em;
         }
         .count-display {
             font-weight: 600;
-            color: var(--button-secondary-bg); /* Use secondary color for count */
-            min-width: 120px; /* Ensure count text has space */
+            color: var(--button-secondary-bg);
+            min-width: 120px;
             text-align: right;
+            flex-shrink: 0; /* Prevent shrinking */
         }
+
+        /* --- STYLES FOR TOP 3 RANKS --- */
+        .rank-1 {
+            background-image: linear-gradient(to right, rgba(255, 215, 0, 0.2), rgba(255, 215, 0, 0.05));
+            border-left: 4px solid #FFD700; /* Gold */
+        }
+        .rank-2 {
+            background-image: linear-gradient(to right, rgba(192, 192, 192, 0.2), rgba(192, 192, 192, 0.05));
+            border-left: 4px solid #C0C0C0; /* Silver */
+        }
+        .rank-3 {
+            background-image: linear-gradient(to right, rgba(205, 127, 50, 0.2), rgba(205, 127, 50, 0.05));
+            border-left: 4px solid #CD7F32; /* Bronze */
+        }
+
         /* Responsive adjustments */
         @media (max-width: 640px) {
             .leaderboard-list {
@@ -65,7 +83,7 @@
             }
             .rank-number {
                 font-size: 1em;
-                width: 30px;
+                width: 40px;
                 margin-right: 10px;
             }
             .count-display {
@@ -85,12 +103,12 @@
         </div>
     </div>
 
-    <header class="theme-bg-secondary shadow-md sticky top-0 z-10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-center items-center relative">
-            <h1 class="text-2xl font-bold theme-label text-center">Department Leaderboards</h1>
-            <nav class="space-x-4 absolute right-4 sm:right-6 lg:right-8">
+    <header class="theme-bg-secondary shadow-md sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold theme-label">Department Leaderboards</h1>
+            <nav class="space-x-4">
                 <a href="dashboard.html" class="theme-link-button">Dashboard</a>
-                <a href="#" id="refreshButton" class="theme-link-button">Refresh <i class="fas fa-sync-alt"></i></a>
+                <a href="#" id="refreshButton" class="theme-link-button">Refresh</a>
             </nav>
         </div>
     </header>
@@ -105,14 +123,14 @@
         <section class="leaderboard-section">
             <h3 class="text-2xl font-semibold theme-label border-b pb-2 mb-4">Citation Leaderboard</h3>
             <div id="citationLeaderboardContainer" class="leaderboard-list">
-                <div class="text-center theme-label">Loading citation data...</div>
+                <div class="text-center theme-label p-4">Loading citation data...</div>
             </div>
         </section>
 
         <section class="leaderboard-section">
             <h3 class="text-2xl font-semibold theme-label border-b pb-2 mb-4">Shift Log Leaderboard</h3>
             <div id="shiftLogLeaderboardContainer" class="leaderboard-list">
-                <div class="text-center theme-label">Loading shift log data...</div>
+                <div class="text-center theme-label p-4">Loading shift log data...</div>
             </div>
         </section>
 
@@ -125,21 +143,17 @@
     </footer>
 
     <script>
-        // --- Setup and Auth Functions (Must be consistent across all HTML files) ---
-
-        // Custom alert function (Placeholder - requires full implementation in styles.css)
+        // --- Setup and Auth Functions (Unchanged) ---
         window.showCustomAlert = (message, title = 'Alert') => {
             return new Promise(resolve => {
                 const overlay = document.getElementById('customAlertOverlay');
                 const titleElement = document.getElementById('customAlertTitle');
                 const messageElement = document.getElementById('customAlertMessage');
                 const button = document.getElementById('customAlertButton');
-
                 titleElement.textContent = title;
                 messageElement.textContent = message;
                 overlay.classList.remove('hidden');
                 overlay.classList.add('flex');
-
                 button.onclick = () => {
                     overlay.classList.add('hidden');
                     overlay.classList.remove('flex');
@@ -152,15 +166,10 @@
         
         async function fetchWithAuth(url, options = {}) {
             const token = sessionStorage.getItem('authToken');
-            const headers = {
-                'Content-Type': 'application/json',
-                ...options.headers,
-            };
-
+            const headers = { 'Content-Type': 'application/json', ...options.headers };
             if (token) {
                 headers['Authorization'] = `Bearer ${token}`;
             }
-
             options.headers = headers;
             return fetch(url, options);
         }
@@ -177,28 +186,19 @@
                 return;
             }
 
-            const is_admin = loggedInUser.role === 'admin';
-            
-            // Display user info
             document.getElementById('userUsername').textContent = loggedInUser.username;
             document.getElementById('userBadge').textContent = loggedInUser.badgeNumber;
             document.getElementById('userRole').textContent = loggedInUser.role.toUpperCase();
-
 
             const citationLeaderboardContainer = document.getElementById('citationLeaderboardContainer');
             const shiftLogLeaderboardContainer = document.getElementById('shiftLogLeaderboardContainer');
             const refreshButton = document.getElementById('refreshButton');
 
-
-            // --- FIX 2: Use correct property names from the backend response ---
             function processLeaderboardData(data) {
                 const stats = {};
                 data.forEach(item => {
-                    // Use 'submittedByBadge' as the unique key. It's present in both citations and shift logs.
                     const officerBadge = item.submittedByBadge;
-                    // Use 'submittedByUsername' (from shift logs) or 'submittedBy' (from citations) for the name.
                     const officerUsername = item.submittedByUsername || item.submittedBy || 'Unknown Officer'; 
-                    
                     if (officerBadge) {
                         if (!stats[officerBadge]) {
                             stats[officerBadge] = { username: officerUsername, count: 0 };
@@ -206,29 +206,36 @@
                         stats[officerBadge].count++;
                     }
                 });
-
-                return Object.values(stats)
-                    .sort((a, b) => b.count - a.count); // Sort descending
+                return Object.values(stats).sort((a, b) => b.count - a.count);
             }
 
-            // Function to render leaderboard data
+            // --- JAVASCRIPT LOGIC FOR AESTHETICS ---
             function renderLeaderboard(container, stats, type) {
                 container.innerHTML = '';
                 if (stats.length === 0) {
-                    let message = `No ${type} records found.`;
-                    // The backend already filters for non-admins, so this message is sufficient
-                    if (!is_admin) {
-                        message = `You have not submitted any ${type} records.`;
-                    }
-                    container.innerHTML = `<div class="text-center theme-label p-4">${message}</div>`;
+                    container.innerHTML = `<div class="text-center theme-label p-4">No ${type} records found.</div>`;
                     return;
                 }
 
                 stats.forEach((stat, index) => {
                     const itemDiv = document.createElement('div');
                     itemDiv.classList.add('leaderboard-item');
+
+                    let rankContent = `${index + 1}.`;
+                    // Add special styling for top 3
+                    if (index === 0) {
+                        itemDiv.classList.add('rank-1');
+                        rankContent = `🥇 ${index + 1}`;
+                    } else if (index === 1) {
+                        itemDiv.classList.add('rank-2');
+                        rankContent = `🥈 ${index + 1}`;
+                    } else if (index === 2) {
+                        itemDiv.classList.add('rank-3');
+                        rankContent = `🥉 ${index + 1}`;
+                    }
+
                     itemDiv.innerHTML = `
-                        <span class="rank-number">${index + 1}.</span>
+                        <span class="rank-number">${rankContent}</span>
                         <span class="username-display">${stat.username}</span>
                         <span class="count-display">${stat.count} ${type}(s)</span>
                     `;
@@ -236,44 +243,35 @@
                 });
             }
 
-            // Core function to fetch and display leaderboards
             async function fetchAndDisplayLeaderboards() {
                 citationLeaderboardContainer.innerHTML = `<div class="text-center theme-label p-4">Fetching Citation data...</div>`;
                 shiftLogLeaderboardContainer.innerHTML = `<div class="text-center theme-label p-4">Fetching Shift Log data...</div>`;
 
                 try {
-                    // --- FIX 1: Both admins and users should call the same GET endpoint. ---
-                    // The backend worker will correctly return ALL data for admins.
                     const citationsApiUrl = `${apiBaseUrl}/citations`; 
                     const shiftLogsApiUrl = `${apiBaseUrl}/shift-logs`;
 
-                    // 1. Fetch Citation Data
-                    const citationResponse = await fetchWithAuth(citationsApiUrl);
+                    const [citationResponse, shiftLogResponse] = await Promise.all([
+                        fetchWithAuth(citationsApiUrl),
+                        fetchWithAuth(shiftLogsApiUrl)
+                    ]);
+
                     if (citationResponse.ok) {
                         const citationData = await citationResponse.json();
-                        const citationStats = processLeaderboardData(citationData);
-                        renderLeaderboard(citationLeaderboardContainer, citationStats, 'citation');
+                        renderLeaderboard(citationLeaderboardContainer, processLeaderboardData(citationData), 'citation');
                     } else {
-                        const errorMsg = await citationResponse.text();
-                        console.error('Citation Fetch Error:', errorMsg);
                         citationLeaderboardContainer.innerHTML = `<div class="text-center theme-label text-red-500 p-4">Failed to load citation data (${citationResponse.status}).</div>`;
                     }
                     
-                    // 2. Fetch Shift Log Data
-                    const shiftLogResponse = await fetchWithAuth(shiftLogsApiUrl);
                     if (shiftLogResponse.ok) {
                         const shiftLogData = await shiftLogResponse.json();
-                        const shiftLogStats = processLeaderboardData(shiftLogData);
-                        renderLeaderboard(shiftLogLeaderboardContainer, shiftLogStats, 'shift log');
+                        renderLeaderboard(shiftLogLeaderboardContainer, processLeaderboardData(shiftLogData), 'shift log');
                     } else {
-                        const errorMsg = await shiftLogResponse.text();
-                        console.error('Shift Log Fetch Error:', errorMsg);
                         shiftLogLeaderboardContainer.innerHTML = `<div class="text-center theme-label text-red-500 p-4">Failed to load shift log data (${shiftLogResponse.status}).</div>`;
                     }
-
                 } catch (error) {
-                    console.error('Error fetching or processing leaderboard data:', error);
-                    window.showCustomAlert('An error occurred while loading leaderboards. Check console for details.', 'Error');
+                    console.error('Error fetching leaderboard data:', error);
+                    window.showCustomAlert('An error occurred while loading leaderboards.', 'Error');
                     shiftLogLeaderboardContainer.innerHTML = `<div class="text-center theme-label text-red-500">Error loading data.</div>`;
                     citationLeaderboardContainer.innerHTML = `<div class="text-center theme-label text-red-500">Error loading data.</div>`;
                 }
@@ -284,7 +282,6 @@
                 fetchAndDisplayLeaderboards();
             });
 
-            // Initial Load
             fetchAndDisplayLeaderboards();
         });
     </script>
