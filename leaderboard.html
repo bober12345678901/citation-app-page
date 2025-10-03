@@ -95,6 +95,7 @@
 </head>
 <body class="theme-dark min-h-screen flex flex-col theme-bg theme-text">
     
+    <!-- Custom Alert Container -->
     <div id="customAlertOverlay" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
         <div id="customAlert" class="theme-box theme-border p-6 rounded-xl shadow-2xl w-11/12 max-w-sm">
             <h4 id="customAlertTitle" class="text-xl font-bold mb-3 theme-label">Alert</h4>
@@ -103,8 +104,10 @@
         </div>
     </div>
 
-    <header class="theme-bg-secondary shadow-md sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+    <!-- HEADER FIX: This version ensures the header is truly full-width -->
+    <header class="theme-bg-secondary shadow-md sticky top-0 z-40 w-full">
+        <!-- The inner div is a flex container with side padding, pushing content to the edges -->
+        <div class="flex justify-between items-center w-full mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <h1 class="text-2xl font-bold theme-label">Department Leaderboards</h1>
             <nav class="space-x-4">
                 <a href="dashboard.html" class="theme-link-button">Dashboard</a>
@@ -120,6 +123,7 @@
             <p class="theme-text text-sm">Role: <span id="userRole"></span></p>
         </div>
 
+        <!-- Citation Leaderboard Section -->
         <section class="leaderboard-section">
             <h3 class="text-2xl font-semibold theme-label border-b pb-2 mb-4">Citation Leaderboard</h3>
             <div id="citationLeaderboardContainer" class="leaderboard-list">
@@ -127,6 +131,7 @@
             </div>
         </section>
 
+        <!-- Shift Log Leaderboard Section -->
         <section class="leaderboard-section">
             <h3 class="text-2xl font-semibold theme-label border-b pb-2 mb-4">Shift Log Leaderboard</h3>
             <div id="shiftLogLeaderboardContainer" class="leaderboard-list">
@@ -209,7 +214,6 @@
                 return Object.values(stats).sort((a, b) => b.count - a.count);
             }
 
-            // --- JAVASCRIPT LOGIC FOR AESTHETICS ---
             function renderLeaderboard(container, stats, type) {
                 container.innerHTML = '';
                 if (stats.length === 0) {
