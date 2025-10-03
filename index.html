@@ -59,52 +59,48 @@
 
     <script>
         // --- Custom Alert Function (REQUIRED) ---
-        // This function must exist in your theme.js or another loaded script.
-        // It is assumed to return a Promise that resolves when the user clicks 'OK'.
-        // If your theme.js doesn't define it, the logic below will fail.
-        if (typeof window.showCustomAlert !== 'function') {
-            window.showCustomAlert = (message, title = 'Alert') => {
-                return new Promise(resolve => {
-                    const modal = document.getElementById('customAlertModal');
-                    const titleEl = document.getElementById('alertTitle');
-                    const messageEl = document.getElementById('alertMessage');
-                    const closeBtn = document.getElementById('alertCloseBtn');
-                    const box = document.getElementById('alertBox');
+        // 🔑 FIX: Removed the 'if (!window.showCustomAlert)' check to ensure this function is always defined and working.
+        window.showCustomAlert = (message, title = 'Alert') => {
+            return new Promise(resolve => {
+                const modal = document.getElementById('customAlertModal');
+                const titleEl = document.getElementById('alertTitle');
+                const messageEl = document.getElementById('alertMessage');
+                const closeBtn = document.getElementById('alertCloseBtn');
+                const box = document.getElementById('alertBox');
 
-                    // Set colors/styles based on title/type
-                    if (title === 'Success') {
-                        titleEl.textContent = '✅ Success';
-                        box.style.borderColor = 'var(--success-color)';
-                    } else if (title === 'Error' || title === 'Failure') {
-                        titleEl.textContent = '❌ Error';
-                        box.style.borderColor = 'var(--error-color)';
-                    } else {
-                        titleEl.textContent = title;
-                        box.style.borderColor = 'var(--border-color)';
-                    }
+                // Set colors/styles based on title/type
+                if (title === 'Success') {
+                    titleEl.textContent = '✅ Success';
+                    box.style.borderColor = 'var(--success-color)';
+                } else if (title === 'Error' || title === 'Failure') {
+                    titleEl.textContent = '❌ Error';
+                    box.style.borderColor = 'var(--error-color)';
+                } else {
+                    titleEl.textContent = title;
+                    box.style.borderColor = 'var(--border-color)';
+                }
 
-                    messageEl.textContent = message;
+                messageEl.textContent = message;
 
-                    const handler = () => {
-                        modal.classList.add('hidden', 'opacity-0');
-                        box.classList.remove('scale-100', 'opacity-100');
-                        box.classList.add('scale-95', 'opacity-0');
-                        closeBtn.removeEventListener('click', handler);
-                        resolve();
-                    };
+                const handler = () => {
+                    modal.classList.add('hidden', 'opacity-0');
+                    box.classList.remove('scale-100', 'opacity-100');
+                    box.classList.add('scale-95', 'opacity-0');
+                    closeBtn.removeEventListener('click', handler);
+                    resolve();
+                };
 
-                    closeBtn.addEventListener('click', handler);
+                closeBtn.addEventListener('click', handler);
 
-                    modal.classList.remove('hidden');
-                    // Timeout for animation
-                    setTimeout(() => {
-                        modal.classList.remove('opacity-0');
-                        box.classList.remove('scale-95');
-                        box.classList.add('scale-100');
-                    }, 10);
-                });
-            };
-        }
+                modal.classList.remove('hidden', 'opacity-0');
+                // Timeout for animation
+                setTimeout(() => {
+                    box.classList.remove('scale-95');
+                    box.classList.add('scale-100');
+                }, 10);
+            });
+        };
+
 
         document.addEventListener('DOMContentLoaded', () => {
             const loginForm = document.getElementById('loginForm');
@@ -134,7 +130,6 @@
                     // We read the response body once, whether success or failure
                     const result = await response.json(); 
 
-                    // --- START OF CORRECTED REDIRECT LOGIC ---
                     if (response.ok) {
                         const loggedInUser = {
                             username: result.username,
@@ -162,7 +157,6 @@
                         // Handle login failure
                         window.showCustomAlert('Login failed: ' + (result.message || response.statusText), 'Error');
                     }
-                    // --- END OF CORRECTED REDIRECT LOGIC ---
                 } catch (error) {
                     console.error('Error during login:', error);
                     window.showCustomAlert('An error occurred during login. Check console for details.', 'Error');
