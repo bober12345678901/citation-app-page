@@ -141,6 +141,30 @@
             align-items: center;
             justify-content: center;
         }
+        
+        /* Style for the <details> dropdown in tables */
+        .admin-table details > summary {
+            cursor: pointer;
+            display: inline-block; /* Prevents summary from taking full width */
+        }
+        .admin-table details > div {
+            padding: 8px; 
+            background: var(--input-bg-color); 
+            border-radius: 4px; 
+            margin-top: 5px; 
+            max-height: 150px; 
+            overflow-y: auto; 
+            word-break: break-word; /* Break long words */
+            border: 1px solid var(--border-color);
+        }
+        .admin-table details[open] > summary {
+            margin-bottom: 5px; /* Add space when open */
+        }
+        /* Style for pre-formatted text (like incident details) */
+        .admin-table details > div.preserve-whitespace {
+            white-space: pre-wrap; 
+        }
+
     </style>
 </head>
 <body class="min-h-screen theme-app-container flex items-center justify-center p-4">
@@ -279,12 +303,11 @@
                             <th>Badge #</th>
                             <th>Department</th>
                             <th>Suspect Name</th>
-                            <th>Fines</th>
+                            <th>Charges</th> <th>Fines</th>
                             <th>Jail Time</th>
                             <th>Warrant?</th>
                             <th>Serving?</th>
-                            <th>Details</th>
-                        </tr>
+                            <th>Incident Details</th> </tr>
                     </thead>
                     <tbody>
                         </tbody>
@@ -827,10 +850,10 @@
                 }
             }
 
-            // --- NEW: Fetch & Display Arrests Function ---
+            // --- MODIFIED: Fetch & Display Arrests Function ---
             async function fetchAndDisplayArrests() {
                 adminInfoDisplay.textContent = 'Loading arrests...';
-                arrestsTableBody.innerHTML = '<tr><td colspan="12" class="text-center theme-label">Loading data...</td></tr>';
+                arrestsTableBody.innerHTML = '<tr><td colspan="13" class="text-center theme-label">Loading data...</td></tr>'; // Colspan updated to 13
                 deleteSelectedArrestsBtn.disabled = true;
 
                 let url = 'https://citation-app-worker.pnbober.workers.dev/arrests';
@@ -839,7 +862,6 @@
                 if (filterUsernameInput.value.trim()) {
                     params.append('username', filterUsernameInput.value.trim());
                 }
-                // Use the violatorName input for the suspectName query param
                 if (filterViolatorNameInput.value.trim()) {
                     params.append('suspectName', filterViolatorNameInput.value.trim());
                 }
@@ -869,11 +891,25 @@
                         arrestsTableBody.innerHTML = '';
 
                         if (arrests.length === 0) {
-                            arrestsTableBody.innerHTML = '<tr><td colspan="12" class="text-center theme-label">No arrests found.</td></tr>';
+                            arrestsTableBody.innerHTML = '<tr><td colspan="13" class="text-center theme-label">No arrests found.</td></tr>'; // Colspan updated to 13
                         } else {
                             arrests.forEach(arrest => {
                                 const row = arrestsTableBody.insertRow();
+                                
+                                // --- NEW Charges Logic ---
+                                const charges = arrest.appliedCharges || [];
+                                let chargesSummary = charges.length > 0 ? charges.map(c => c.code || 'N/A').join(', ') : 'N/A';
+                                if (chargesSummary.length > 30) chargesSummary = chargesSummary.substring(0, 30) + '...'; // Truncate summary
+                                
+                                const chargesDetails = charges.length > 0 
+                                    ? charges.map(c => `<strong>${c.code || 'N/A'}:</strong> ${c.description || 'N/A'}`).join('<br>') 
+                                    : 'N/A';
+
+                                // --- NEW Incident Details Logic ---
                                 const details = arrest.incidentDetails || 'N/A';
+                                const detailsSummary = details.length > 30 ? details.substring(0, 30) + '...' : (details || 'N/A');
+
+                                // --- Updated row.innerHTML ---
                                 row.innerHTML = `
                                     <td><input type="checkbox" class="arrest-checkbox theme-input" data-id="${arrest.id}"></td>
                                     <td>${arrest.id ? arrest.id.substring(0, 8) + '...' : 'N/A'}</td>
@@ -882,11 +918,25 @@
                                     <td>${arrest.submittedByBadge || 'N/A'}</td>
                                     <td>${arrest.department || 'N/A'}</td>
                                     <td>${arrest.suspectName || 'N/A'}</td>
+                                    
+                                    <td>
+                                        <details>
+                                            <summary>${chargesSummary}</summary>
+                                            <div>${chargesDetails}</div>
+                                        </details>
+                                    </td>
+                                    
                                     <td>$${parseFloat(arrest.totalFines || 0).toFixed(2)}</td>
                                     <td>${parseFloat(arrest.totalJailTime || 0).toFixed(0)}s</td>
                                     <td>${arrest.warrantNeeded ? 'YES' : 'NO'}</td>
                                     <td>${arrest.servingWarrant ? 'YES' : 'NO'}</td>
-                                    <td title="${details}">${details.length > 30 ? details.substring(0, 30) + '...' : details}</td>
+                                    
+                                    <td>
+                                        <details>
+                                            <summary>${detailsSummary}</summary>
+                                            <div class="preserve-whitespace">${details}</div>
+                                        </details>
+                                    </td>
                                 `;
                             });
                         }
@@ -900,12 +950,12 @@
                     } else if (response) { 
                         const errorData = await response.json();
                         window.showCustomAlert(`Error: ${errorData.message || response.statusText}. Please check Worker logs.`, 'Error');
-                        arrestsTableBody.innerHTML = `<tr><td colspan="12" class="text-center theme-label text-red-500">Error loading data.</td></tr>`;
+                        arrestsTableBody.innerHTML = `<tr><td colspan="13" class="text-center theme-label text-red-500">Error loading data.</td></tr>`; // Colspan updated
                     }
                 } catch (error) {
                     console.error('Error fetching arrests:', error);
                     window.showCustomAlert('Network error: Could not connect to the Worker to fetch arrests.', 'Error');
-                    arrestsTableBody.innerHTML = `<tr><td colspan="12" class="text-center theme-label text-red-500">Network Error. Check console.</td></tr>`;
+                    arrestsTableBody.innerHTML = `<tr><td colspan="13" class="text-center theme-label text-red-500">Network Error. Check console.</td></tr>`; // Colspan updated
                 } finally {
                     adminInfoDisplay.textContent = `Welcome, Admin ${loggedInUser.username} (Badge: ${loggedInUser.badgeNumber})!`;
                 }
@@ -1664,7 +1714,7 @@
                 } catch (error) {
                     console.error('Error saving penal code changes:', error);
                     window.showCustomAlert('Network error saving penal code changes.', 'Error');
-V                }
+                }
             });
 
             cancelEditPenalCodeBtn.addEventListener('click', function() {
