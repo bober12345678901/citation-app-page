@@ -166,8 +166,8 @@
                     <input type="text" id="filterUsername" placeholder="Enter username" class="theme-input p-2 border rounded-md w-full">
                 </div>
                 <div>
-                    <label for="filterViolatorName" class="theme-label block mb-2 font-medium">Violator Name:</label>
-                    <input type="text" id="filterViolatorName" placeholder="Enter violator name" class="theme-input p-2 border rounded-md w-full">
+                    <label for="filterViolatorName" class="theme-label block mb-2 font-medium">Violator/Suspect Name:</label>
+                    <input type="text" id="filterViolatorName" placeholder="Enter name" class="theme-input p-2 border rounded-md w-full">
                 </div>
                 <div>
                     <label for="filterDepartment" class="theme-label block mb-2 font-medium">Department:</label>
@@ -200,6 +200,7 @@
             </div>
             <p class="theme-label mb-4 mt-4">
                 Total Citations Displayed: <span id="citationCount" class="font-bold">0</span><br>
+                Total Arrests Displayed: <span id="arrestCount" class="font-bold">0</span><br>
                 Total Shift Logs Displayed: <span id="shiftLogCount" class="font-bold">0</span>
             </p>
         </div>
@@ -221,6 +222,7 @@
                             <th>Department</th>
                             <th>Role</th>
                             <th>Citations Count</th>
+                            <th>Arrest Count</th>
                             <th>Shift Logs Count</th>
                             <th>Actions</th>
                         </tr>
@@ -259,6 +261,36 @@
             </div>
         </div>
 
+        <div class="admin-section">
+            <div class="action-buttons-group">
+                <h3 class="theme-title text-xl font-bold">Manage Arrests</h3>
+                <button id="deleteSelectedArrestsBtn" class="theme-button-danger py-2 px-6 rounded-md font-semibold" disabled>Delete Selected Arrests</button>
+            </div>
+
+            <div id="arrestsContainer" class="table-container">
+                <h4 class="theme-label text-lg font-bold mb-2">Arrests List (Sorted by Latest Submission)</h4>
+                <table class="admin-table" id="arrestsTable">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="selectAllArrests" class="theme-input"></th>
+                            <th>ID</th>
+                            <th>Timestamp</th>
+                            <th>Submitted By</th>
+                            <th>Badge #</th>
+                            <th>Department</th>
+                            <th>Suspect Name</th>
+                            <th>Fines</th>
+                            <th>Jail Time</th>
+                            <th>Warrant?</th>
+                            <th>Serving?</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        </tbody>
+                </table>
+            </div>
+        </div>
         <div class="admin-section">
             <div class="action-buttons-group">
                 <h3 class="theme-title text-xl font-bold">Manage Shift Logs</h3>
@@ -632,6 +664,7 @@
 
             const adminInfoDisplay = document.getElementById('adminInfo');
             const citationsTableBody = document.querySelector('#citationsTable tbody');
+            const arrestsTableBody = document.querySelector('#arrestsTable tbody'); // NEW
             const shiftLogsTableBody = document.querySelector('#shiftLogsTable tbody');
             const usersTableBody = document.querySelector('#usersTable tbody');
             const penalCodesTableBody = document.querySelector('#penalCodesTable tbody');
@@ -642,6 +675,10 @@
             // Citation specific elements
             const selectAllCitationsCheckbox = document.getElementById('selectAllCitations');
             const deleteSelectedCitationsBtn = document.getElementById('deleteSelectedCitationsBtn');
+
+            // Arrest specific elements (NEW)
+            const selectAllArrestsCheckbox = document.getElementById('selectAllArrests');
+            const deleteSelectedArrestsBtn = document.getElementById('deleteSelectedArrestsBtn');
 
             // Shift Log specific elements
             const selectAllShiftLogsCheckbox = document.getElementById('selectAllShiftLogs');
@@ -664,6 +701,7 @@
             const applyFilterBtn = document.getElementById('applyFilterBtn');
             const clearFilterBtn = document.getElementById('clearFilterBtn');
             const citationCountDisplay = document.getElementById('citationCount');
+            const arrestCountDisplay = document.getElementById('arrestCount'); // NEW
             const shiftLogCountDisplay = document.getElementById('shiftLogCount');
 
 
@@ -789,6 +827,90 @@
                 }
             }
 
+            // --- NEW: Fetch & Display Arrests Function ---
+            async function fetchAndDisplayArrests() {
+                adminInfoDisplay.textContent = 'Loading arrests...';
+                arrestsTableBody.innerHTML = '<tr><td colspan="12" class="text-center theme-label">Loading data...</td></tr>';
+                deleteSelectedArrestsBtn.disabled = true;
+
+                let url = 'https://citation-app-worker.pnbober.workers.dev/arrests';
+                const params = new URLSearchParams();
+                
+                if (filterUsernameInput.value.trim()) {
+                    params.append('username', filterUsernameInput.value.trim());
+                }
+                // Use the violatorName input for the suspectName query param
+                if (filterViolatorNameInput.value.trim()) {
+                    params.append('suspectName', filterViolatorNameInput.value.trim());
+                }
+                if (filterDepartmentInput.value.trim()) {
+                    params.append('department', filterDepartmentInput.value.trim());
+                }
+                if (filterOfficerBadgeInput.value.trim()) {
+                    params.append('officerBadge', filterOfficerBadgeInput.value.trim());
+                }
+                if (filterStartDateInput.value) {
+                    params.append('startDate', filterStartDateInput.value);
+                }
+                if (filterEndDateInput.value) {
+                    params.append('endDate', filterEndDateInput.value);
+                }
+
+                if (params.toString()) {
+                    url += `?${params.toString()}`;
+                }
+
+                try {
+                    const response = await fetchWithAuth(url, { method: 'GET' });
+
+                    if (response && response.ok) {
+                        let arrests = await response.json();
+                        
+                        arrestsTableBody.innerHTML = '';
+
+                        if (arrests.length === 0) {
+                            arrestsTableBody.innerHTML = '<tr><td colspan="12" class="text-center theme-label">No arrests found.</td></tr>';
+                        } else {
+                            arrests.forEach(arrest => {
+                                const row = arrestsTableBody.insertRow();
+                                const details = arrest.incidentDetails || 'N/A';
+                                row.innerHTML = `
+                                    <td><input type="checkbox" class="arrest-checkbox theme-input" data-id="${arrest.id}"></td>
+                                    <td>${arrest.id ? arrest.id.substring(0, 8) + '...' : 'N/A'}</td>
+                                    <td>${arrest.timestamp ? new Date(arrest.timestamp).toLocaleString() : 'N/A'}</td>
+                                    <td>${arrest.submittedBy || 'N/A'}</td>
+                                    <td>${arrest.submittedByBadge || 'N/A'}</td>
+                                    <td>${arrest.department || 'N/A'}</td>
+                                    <td>${arrest.suspectName || 'N/A'}</td>
+                                    <td>$${parseFloat(arrest.totalFines || 0).toFixed(2)}</td>
+                                    <td>${parseFloat(arrest.totalJailTime || 0).toFixed(0)}s</td>
+                                    <td>${arrest.warrantNeeded ? 'YES' : 'NO'}</td>
+                                    <td>${arrest.servingWarrant ? 'YES' : 'NO'}</td>
+                                    <td title="${details}">${details.length > 30 ? details.substring(0, 30) + '...' : details}</td>
+                                `;
+                            });
+                        }
+                        arrestCountDisplay.textContent = arrests.length;
+
+                        document.querySelectorAll('.arrest-checkbox').forEach(checkbox => {
+                            checkbox.addEventListener('change', toggleDeleteButtonStateArrests);
+                        });
+                        selectAllArrestsCheckbox.checked = false;
+                        toggleDeleteButtonStateArrests();
+                    } else if (response) { 
+                        const errorData = await response.json();
+                        window.showCustomAlert(`Error: ${errorData.message || response.statusText}. Please check Worker logs.`, 'Error');
+                        arrestsTableBody.innerHTML = `<tr><td colspan="12" class="text-center theme-label text-red-500">Error loading data.</td></tr>`;
+                    }
+                } catch (error) {
+                    console.error('Error fetching arrests:', error);
+                    window.showCustomAlert('Network error: Could not connect to the Worker to fetch arrests.', 'Error');
+                    arrestsTableBody.innerHTML = `<tr><td colspan="12" class="text-center theme-label text-red-500">Network Error. Check console.</td></tr>`;
+                } finally {
+                    adminInfoDisplay.textContent = `Welcome, Admin ${loggedInUser.username} (Badge: ${loggedInUser.badgeNumber})!`;
+                }
+            }
+
             // --- Fetch & Display Shift Logs Function with Filtering ---
             async function fetchAndDisplayShiftLogs() {
                 shiftLogsTableBody.innerHTML = '<tr><td colspan="15" class="text-center theme-label">Loading shift logs...</td></tr>'; 
@@ -903,6 +1025,21 @@
                 toggleDeleteButtonStateCitations();
             });
 
+            // --- NEW: Checkbox Selection Logic & Delete Button State for ARRESTS ---
+            function toggleDeleteButtonStateArrests() {
+                const checkedCheckboxes = document.querySelectorAll('.arrest-checkbox:checked');
+                deleteSelectedArrestsBtn.disabled = checkedCheckboxes.length === 0;
+            }
+
+            selectAllArrestsCheckbox.addEventListener('change', function() {
+                const isChecked = this.checked;
+                document.querySelectorAll('.arrest-checkbox').forEach(checkbox => {
+                    checkbox.checked = isChecked;
+                });
+                toggleDeleteButtonStateArrests();
+            });
+
+
             // --- Checkbox Selection Logic & Delete Button State for SHIFT LOGS ---
             function toggleDeleteButtonStateShiftLogs() {
                 const checkedCheckboxes = document.querySelectorAll('.shiftlog-checkbox:checked');
@@ -965,7 +1102,56 @@
                 }
             });
 
-            // --- NEW: Batch Deletion Functionality for SHIFT LOGS (includes R2 deletion) ---
+            // --- NEW: Batch Deletion Functionality for ARRESTS ---
+            deleteSelectedArrestsBtn.addEventListener('click', async function() {
+                const selectedIds = [];
+                document.querySelectorAll('.arrest-checkbox:checked').forEach(checkbox => {
+                    if (checkbox.dataset.id) {
+                        selectedIds.push(checkbox.dataset.id);
+                    }
+                });
+
+                if (selectedIds.length === 0) {
+                    window.showCustomAlert('Please select at least one arrest to delete.', 'Warning');
+                    return;
+                }
+
+                const confirmed = await window.showCustomConfirm(`Are you sure you want to delete ${selectedIds.length} selected arrest(s)? This action cannot be undone.`, 'Confirm Deletion');
+                if (!confirmed) {
+                    return; // User cancelled
+                }
+
+                adminInfoDisplay.textContent = `Deleting ${selectedIds.length} arrests...`;
+                deleteSelectedArrestsBtn.disabled = true;
+
+                try {
+                    // This endpoint does not exist yet. You will need to add it to your Worker.
+                    const response = await fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/admin/arrests', {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ ids: selectedIds })
+                    });
+
+                    if (response && response.ok) {
+                        const result = await response.json();
+                        window.showCustomAlert('Deletion successful: ' + result.message, 'Success');
+                        selectAllArrestsCheckbox.checked = false;
+                        await fetchAndDisplayArrests(); // Refresh arrests
+                    } else if (response) {
+                        const errorData = await response.json();
+                        window.showCustomAlert('Deletion failed: ' + (errorData.message || "Endpoint not found (404). Backend may need updating."), 'Error');
+                    }
+                } catch (error) {
+                    console.error('Error during arrest deletion:', error);
+                    window.showCustomAlert('An error occurred during arrest deletion. Check console for details.', 'Error');
+                } finally {
+                    deleteSelectedArrestsBtn.disabled = false;
+                }
+            });
+
+            // --- Batch Deletion Functionality for SHIFT LOGS (includes R2 deletion) ---
             deleteSelectedShiftLogsBtn.addEventListener('click', async function() {
                 const selectedIds = [];
                 document.querySelectorAll('.shiftlog-checkbox:checked').forEach(checkbox => {
@@ -1188,8 +1374,9 @@
 
             // --- Filter Event Listeners ---
             applyFilterBtn.addEventListener('click', function() {
-                fetchAndDisplayCitations(); // Now calls with parameters
-                fetchAndDisplayShiftLogs(); // Already calls with parameters
+                fetchAndDisplayCitations(); 
+                fetchAndDisplayArrests(); // NEW
+                fetchAndDisplayShiftLogs(); 
             });
 
             clearFilterBtn.addEventListener('click', function() {
@@ -1206,11 +1393,13 @@
                 if (filterCallsignInput) filterCallsignInput.value = '';
 
                 fetchAndDisplayCitations();
+                fetchAndDisplayArrests(); // NEW
                 fetchAndDisplayShiftLogs();
             });
 
             refreshButton.addEventListener('click', function() {
                 fetchAndDisplayCitations();
+                fetchAndDisplayArrests(); // NEW
                 fetchAndDisplayShiftLogs();
                 fetchAndDisplayUsers(); // Refresh users on main refresh
                 fetchAndDisplayPenalCodes(); // Refresh penal codes on main refresh
@@ -1237,31 +1426,32 @@
 
             // --- User Management Functions ---
             async function fetchAndDisplayUsers() {
-                usersTableBody.innerHTML = '<tr><td colspan="8" class="text-center theme-label">Loading users...</td></tr>';
+                usersTableBody.innerHTML = '<tr><td colspan="9" class="text-center theme-label">Loading users...</td></tr>';
                 try {
-                    const [usersResponse, citationsResponse, shiftLogsResponse] = await Promise.all([
+                    const [usersResponse, citationsResponse, shiftLogsResponse, arrestsResponse] = await Promise.all([
                         fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/admin/users'),
-                        fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/citations'), // Now accessible by all authenticated users
-                        fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/shift-logs') // Now accessible by all authenticated users
+                        fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/citations'), 
+                        fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/shift-logs'),
+                        fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/arrests') // NEW
                     ]);
 
                     if (!usersResponse || !usersResponse.ok) throw new Error('Failed to fetch users.');
-                    // For citations and shift logs, we don't throw if not ok, as they might be empty or filtered
+                    
                     let allUsers = await usersResponse.json();
                     
-                    // MODIFICATION: Force sort by user ID (creation order) to override any alphabetical sorting from the backend.
                     allUsers.sort((a, b) => a.id - b.id); 
 
                     const allCitations = (citationsResponse && citationsResponse.ok) ? await citationsResponse.json() : [];
                     const allShiftLogs = (shiftLogsResponse && shiftLogsResponse.ok) ? await shiftLogsResponse.json() : [];
+                    const allArrests = (arrestsResponse && arrestsResponse.ok) ? await arrestsResponse.json() : []; // NEW
 
                     usersTableBody.innerHTML = '';
                     if (allUsers.length === 0) {
-                        usersTableBody.innerHTML = '<tr><td colspan="8" class="text-center theme-label">No users found.</td></tr>';
+                        usersTableBody.innerHTML = '<tr><td colspan="9" class="text-center theme-label">No users found.</td></tr>';
                     } else {
                         allUsers.forEach(user => {
-                            // Filter counts by the original submittedBy/submittedByUsername, not the prefixed keys
                             const citationCount = allCitations.filter(c => c.submittedBy === user.username || c.submittedByBadge === user.badge_number).length;
+                            const arrestCount = allArrests.filter(a => a.submittedBy === user.username || a.submittedByBadge === user.badge_number).length; // NEW
                             const shiftLogCount = allShiftLogs.filter(sl => sl.submittedByUsername === user.username || sl.submittedByBadge === user.badge_number).length;
 
                             const row = usersTableBody.insertRow();
@@ -1276,7 +1466,10 @@
                                         <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
                                     </select>
                                 </td>
-                                <td>${citationCount}</td> <td>${shiftLogCount}</td> <td>
+                                <td>${citationCount}</td>
+                                <td>${arrestCount}</td>
+                                <td>${shiftLogCount}</td> 
+                                <td>
                                     <button class="theme-button-danger py-1 px-3 rounded-md font-semibold delete-user-btn" data-user-id="${user.id}">Delete</button>
                                 </td>
                             `;
@@ -1286,7 +1479,7 @@
                 } catch (error) {
                     console.error('Error fetching users or counts:', error);
                     window.showCustomAlert('Network error: Could not connect to fetch user data or counts.', 'Error');
-                    usersTableBody.innerHTML = `<tr><td colspan="8" class="text-center theme-label text-red-500">Error loading users.</td></tr>`;
+                    usersTableBody.innerHTML = `<tr><td colspan="9" class="text-center theme-label text-red-500">Error loading users.</td></tr>`;
                 }
             }
 
@@ -1471,7 +1664,7 @@
                 } catch (error) {
                     console.error('Error saving penal code changes:', error);
                     window.showCustomAlert('Network error saving penal code changes.', 'Error');
-                }
+V                }
             });
 
             cancelEditPenalCodeBtn.addEventListener('click', function() {
@@ -1569,6 +1762,7 @@
 
             // --- Initial Load ---
             fetchAndDisplayCitations();
+            fetchAndDisplayArrests(); // NEW
             fetchAndDisplayShiftLogs();
             fetchAndDisplayUsers();
             fetchAndDisplayPenalCodes();
