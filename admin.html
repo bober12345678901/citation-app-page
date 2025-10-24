@@ -142,28 +142,52 @@
             justify-content: center;
         }
         
-        /* Style for the <details> dropdown in tables */
+        /* --- NEW STYLES for overlapping dropdown --- */
+        .admin-table details {
+            position: relative; /* Make details the positioning parent */
+        }
         .admin-table details > summary {
             cursor: pointer;
-            display: inline-block; /* Prevents summary from taking full width */
+            display: inline-block; 
+            white-space: nowrap; /* Keep summary on one line */
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            max-width: 120px; /* Make the summary part skinny */
+            padding-right: 5px; /* Space from the dropdown marker */
         }
-        .admin-table details > div {
-            padding: 8px; 
-            background: var(--input-bg-color); 
+        
+        /* Class for overlapping dropdown content */
+        .admin-table .dropdown-content {
+            position: absolute;
+            background: var(--box-bg-color); /* Use box background */
+            border: 1px solid var(--border-color);
             border-radius: 4px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            padding: 10px; 
             margin-top: 5px; 
-            max-height: 150px; 
+            max-height: 200px; /* Max height before scrolling */
             overflow-y: auto; 
             word-break: break-word; /* Break long words */
-            border: 1px solid var(--border-color);
+            z-index: 10; /* Make it overlap */
+            
+            /* "Weirdly skinny" part */
+            width: 200px; /* Set a specific skinny width */
+            
+            display: block; 
+            left: 0; /* Align with the start of the summary */
         }
-        .admin-table details[open] > summary {
-            margin-bottom: 5px; /* Add space when open */
+
+        /* Hide the div content when details is not open */
+        .admin-table details:not([open]) > .dropdown-content {
+            display: none;
         }
+        
         /* Style for pre-formatted text (like incident details) */
-        .admin-table details > div.preserve-whitespace {
+        .admin-table .dropdown-content.preserve-whitespace {
             white-space: pre-wrap; 
+            width: 300px; /* Give notes more space */
         }
+        /* --- END NEW STYLES --- */
 
     </style>
 </head>
@@ -303,11 +327,13 @@
                             <th>Badge #</th>
                             <th>Department</th>
                             <th>Suspect Name</th>
-                            <th>Charges</th> <th>Fines</th>
+                            <th>Charges</th>
+                            <th>Fines</th>
                             <th>Jail Time</th>
                             <th>Warrant?</th>
                             <th>Serving?</th>
-                            <th>Incident Details</th> </tr>
+                            <th>Incident Details</th>
+                        </tr>
                     </thead>
                     <tbody>
                         </tbody>
@@ -770,7 +796,7 @@
                 });
             });
 
-            // --- Fetch & Display Citations Function ---
+            // --- MODIFIED: Fetch & Display Citations Function ---
             async function fetchAndDisplayCitations() {
                 adminInfoDisplay.textContent = 'Loading citations...';
                 citationsTableBody.innerHTML = '<tr><td colspan="9" class="text-center theme-label">Loading data...</td></tr>';
@@ -816,6 +842,12 @@
                         } else {
                             citations.forEach(citation => {
                                 const row = citationsTableBody.insertRow();
+                                
+                                // Handle null/undefined text for summaries
+                                const citationType = citation.violationType || 'N/A';
+                                const citationNotes = citation.violationDetails || 'N/A';
+                                const notesSummary = citationNotes.split('\n')[0]; // Get first line
+
                                 row.innerHTML = `
                                     <td><input type="checkbox" class="citation-checkbox theme-input" data-id="${citation.id}"></td>
                                     <td>${citation.id ? citation.id.substring(0, 8) + '...' : 'N/A'}</td>
@@ -823,9 +855,26 @@
                                     <td>${citation.submittedBy || 'N/A'}</td>
                                     <td>${citation.submittedByBadge || 'N/A'}</td>
                                     <td>${citation.violatorName || 'N/A'}</td>
-                                    <td>${citation.violationType || 'N/A'}</td>
+                                    
+                                    <td>
+                                        <details>
+                                            <summary>${citationType}</summary>
+                                            <div class="dropdown-content">
+                                                ${citationType}
+                                            </div>
+                                        </details>
+                                    </td>
+                                    
                                     <td>$${parseFloat(citation.totalAmountDue || 0).toFixed(2)}</td>
-                                    <td>${citation.violationDetails || 'N/A'}</td>
+                                    
+                                    <td>
+                                        <details>
+                                            <summary>${notesSummary}</summary>
+                                            <div class="dropdown-content preserve-whitespace">
+                                                ${citationNotes}
+                                            </div>
+                                        </details>
+                                    </td>
                                 `;
                             });
                         }
@@ -896,18 +945,17 @@
                             arrests.forEach(arrest => {
                                 const row = arrestsTableBody.insertRow();
                                 
-                                // --- NEW Charges Logic ---
+                                // --- Charges Logic ---
                                 const charges = arrest.appliedCharges || [];
                                 let chargesSummary = charges.length > 0 ? charges.map(c => c.code || 'N/A').join(', ') : 'N/A';
-                                if (chargesSummary.length > 30) chargesSummary = chargesSummary.substring(0, 30) + '...'; // Truncate summary
                                 
                                 const chargesDetails = charges.length > 0 
                                     ? charges.map(c => `<strong>${c.code || 'N/A'}:</strong> ${c.description || 'N/A'}`).join('<br>') 
                                     : 'N/A';
 
-                                // --- NEW Incident Details Logic ---
+                                // --- Incident Details Logic ---
                                 const details = arrest.incidentDetails || 'N/A';
-                                const detailsSummary = details.length > 30 ? details.substring(0, 30) + '...' : (details || 'N/A');
+                                const detailsSummary = details.split('\n')[0]; // Get first line for summary
 
                                 // --- Updated row.innerHTML ---
                                 row.innerHTML = `
@@ -922,7 +970,9 @@
                                     <td>
                                         <details>
                                             <summary>${chargesSummary}</summary>
-                                            <div>${chargesDetails}</div>
+                                            <div class="dropdown-content">
+                                                ${chargesDetails}
+                                            </div>
                                         </details>
                                     </td>
                                     
@@ -934,7 +984,9 @@
                                     <td>
                                         <details>
                                             <summary>${detailsSummary}</summary>
-                                            <div class="preserve-whitespace">${details}</div>
+                                            <div class="dropdown-content preserve-whitespace">
+                                                ${details}
+                                            </div>
                                         </details>
                                     </td>
                                 `;
@@ -961,7 +1013,7 @@
                 }
             }
 
-            // --- Fetch & Display Shift Logs Function with Filtering ---
+            // --- MODIFIED: Fetch & Display Shift Logs Function with Filtering ---
             async function fetchAndDisplayShiftLogs() {
                 shiftLogsTableBody.innerHTML = '<tr><td colspan="15" class="text-center theme-label">Loading shift logs...</td></tr>'; 
                 adminInfoDisplay.textContent = 'Loading shift logs...';
@@ -1010,6 +1062,11 @@
                         } else {
                             shiftLogs.forEach(log => {
                                 const row = shiftLogsTableBody.insertRow();
+                                
+                                // Handle null/undefined text for summaries
+                                const shiftNotes = log.additionalNotes || 'N/A';
+                                const notesSummary = shiftNotes.split('\n')[0]; // Get first line
+
                                 row.innerHTML = `
                                     <td><input type="checkbox" class="shiftlog-checkbox theme-input" data-id="${log.id}"></td>
                                     <td>${log.id ? log.id.substring(0, 8) + '...' : 'N/A'}</td>
@@ -1024,7 +1081,16 @@
                                     <td>${log.trafficStops || 0}</td>
                                     <td>${log.citations || 0}</td>
                                     <td>${log.arrests || 0}</td>
-                                    <td>${log.additionalNotes || 'N/A'}</td>
+                                    
+                                    <td>
+                                        <details>
+                                            <summary>${notesSummary}</summary>
+                                            <div class="dropdown-content preserve-whitespace">
+                                                ${shiftNotes}
+                                            </div>
+                                        </details>
+                                    </td>
+                                    
                                     <td>
                                         ${log.screenshotUrl ? `<img src="${log.screenshotUrl}" alt="Shift Log Screenshot" class="screenshot-thumbnail" style="max-width: 100px; max-height: 100px; cursor: pointer;">` : 'N/A'}
                                     </td>
