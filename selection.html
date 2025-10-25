@@ -742,12 +742,15 @@
 
             // Toggle the chat window when the bubble is clicked
             chatToggle.addEventListener('click', () => {
-                chatWidget.classList.toggle('hidden');
-                if (!chatWidget.classList.contains('hidden')) {
-                    chatInput.focus();
-                }
-            });
-
+				if (chatWidget.classList.contains('hidden')) {
+					chatWidget.classList.remove('hidden');
+					chatWidget.style.display = 'flex';  // Make sure it becomes visible again
+					chatInput.focus();
+				} else {
+					chatWidget.classList.add('hidden');
+					chatWidget.style.display = 'none';  // Force it to hide
+				}
+			});
             // Handle sending a message
             chatForm.addEventListener('submit', (event) => {
                 event.preventDefault(); // Stop the form from submitting
