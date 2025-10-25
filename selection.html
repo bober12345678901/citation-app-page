@@ -723,21 +723,60 @@
             const chatInput = document.getElementById('chat-input');
             const chatMessages = document.getElementById('chat-messages');
 
-            // The 5 "unhelpful" responses
-            const botResponses = [
-                "What?",
-                "Refresh the website.",
-                "I don't know.",
-                "Can you ask a question regarding the website please?",
-                "Sorry, I am not programmed to help with that."
-            ];
+const botResponses = [
+    "What?",
+    "Refresh the website.",
+    "I don't know.",
+    "Can you ask a question regarding the website please?",
+    "Sorry, I am not programmed to help with that.",
+    "Interesting... I’ll pretend I understood that.",
+    "Try turning your monitor off and on again.",
+    "Hmm... that sounds like a *you* problem.",
+    "404: brain not found.",
+    "My last brain cell just left the chat.",
+    "That’s above my pay grade.",
+    "Have you tried asking Google?",
+    "Processing... never mind, I forgot.",
+    "Hold on, I’ll ask my supervisor—oh wait, I don’t have one.",
+    "Please insert one (1) clue into me.",
+    "Good question! Unfortunately, I wasn’t listening.",
+    "That sounds important, but I’m just here for decoration."
+];
 
-            // Word lists for responses
-            const greetings = ["hi", "hello", "hey", "yo", "sup", "howdy", "greetings"];
-            const profanities = ["fuck", "shit", "bitch", "cunt", "asshole", "damn", "ass"]; 
-            
-            const greetingResponses = ["Hello!", "Hi there!", "Hey!", "Greetings!"];
-            const profanityResponses = ["F*** YOU!", "WHAT DID YOU SAY?!", "********!", "DON'T YOU DARE!", "AAAAAARGH!"];
+// Greeting keywords and responses
+const greetings = ["hi", "hello", "hey", "yo", "sup", "howdy", "greetings"];
+const greetingResponses = [
+    "Hello!",
+    "Hi there!",
+    "Hey hey!",
+    "Greetings, human!",
+    "Howdy partner!",
+    "Hey! Need some unhelpful assistance?"
+];
+
+// Profanity filter and angry replies
+const profanities = ["fuck", "shit", "bitch", "cunt", "asshole", "damn", "ass"];
+const profanityResponses = [
+    "F*** YOU!",
+    "WHAT DID YOU SAY?!",
+    "********!",
+    "DON'T YOU DARE!",
+    "AAAAAARGH!",
+    "Watch your language!",
+    "Calm down there, cowboy.",
+    "I'm just a bot... why so angry?"
+];
+
+// Math-related extra reactions
+const mathSnarkyResponses = [
+    "Math? I didn’t sign up for this.",
+    "I dropped out of calculator school.",
+    "Numbers again? Ugh.",
+    "Okay… one sec… carry the 1… divide by zero… yeah, no clue.",
+    "Let me guess... you want me to *solve* that?",
+    "Umm, sure. Let’s pretend that’s correct.",
+    "If my circuits are right, that’s probably… something."
+];
 
 
             // Toggle the chat window when the bubble is clicked
@@ -832,33 +871,24 @@
 
             // NEW: Function to solve simple math
             function solveMath(expression) {
-                try {
-                    // This regex checks that the string contains ONLY numbers,
-                    // operators, parentheses, and spaces.
-                    // This is a safety measure to prevent execution of other code.
-                    const mathRegex = /^[0-9+\-*/().% \t]+$/;
-                    
-                    if (!mathRegex.test(expression)) {
-                        return null; // Doesn't look like math
-                    }
+				try {
+					const mathRegex = /^[0-9+\-*/().% \t]+$/;
+					if (!mathRegex.test(expression)) return null;
 
-                    // Using 'new Function()' is safer than 'eval()'
-                    const result = new Function('return ' + expression)();
-                    
-                    if (typeof result === 'number' && isFinite(result)) {
-                        // Give a themed response
-                        if (Number.isInteger(result)) {
-                            return `I'm not a calculator, but... I'm pretty sure that's ${result}.`;
-                        } else {
-                            // Format floats to max 4 decimal places
-                            return `I'm not a calculator, but... I'm pretty sure that's ${result.toFixed(4)}.`;
-                        }
-                    }
-                    return null; // Valid JS but not a number
-                } catch (e) {
-                    return null; // Not valid math (e.g., "5 +")
-                }
-            }
+					const result = new Function('return ' + expression)();
+					if (typeof result === 'number' && isFinite(result)) {
+						const snark = mathSnarkyResponses[Math.floor(Math.random() * mathSnarkyResponses.length)];
+						if (Number.isInteger(result)) {
+							return `${snark} Anyway, I think it’s ${result}.`;
+						} else {
+							return `${snark} Anyway, maybe it's ${result.toFixed(4)}.`;
+						}
+					}
+					return null;
+				} catch (e) {
+					return null;
+				}
+			}
 
             // Function to get and show a random UNHELPFUL bot response
             function showBotResponse() {
