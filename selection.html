@@ -249,6 +249,42 @@
             border-radius: 0.375rem;
             margin-left: 0.5rem;
         }
+
+        /* --- STYLES FOR TYPING INDICATOR --- */
+        .typing-indicator {
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.5rem;
+            background-color: var(--button-secondary-bg); /* Same as bot-message */
+            color: var(--text-color);
+            align-self: flex-start;
+            display: inline-block;
+        }
+        .typing-indicator span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--text-color);
+            opacity: 0.4;
+            margin: 0 2px;
+            animation: pulse 1.4s infinite alternate;
+        }
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes pulse {
+            0% {
+                opacity: 0.4;
+                transform: scale(0.8);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
     </style>
 </head>
 <body class="min-h-screen theme-app-container flex items-center justify-center p-4">
@@ -381,7 +417,7 @@
         </div>
     </div>
 
-	<div id="chat-toggle" title="Open AI Help">
+    <div id="chat-toggle" title="Open AI Help">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-8 h-8 pointer-events-none">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z" />
         </svg>          
@@ -458,7 +494,7 @@
                     leaderboardButton.classList.remove('hidden'); // Show Leaderboard button for admin
                 } else {
                     adminButton.classList.add('hidden'); // Hide Admin button for normal users
-                    leaderboardButton.classList.remove('hidden'); // Show Leaderboard button for normal users
+                    leaderbody.classList.remove('hidden'); // Show Leaderboard button for normal users
                 }
             }
 
@@ -696,13 +732,11 @@
                 "Sorry, I am not programmed to help with that."
             ];
 
-            // NEW: Word lists for responses
+            // Word lists for responses
             const greetings = ["hi", "hello", "hey", "yo", "sup", "howdy", "greetings"];
-            // This is a simple list. A real-world filter would be more complex.
             const profanities = ["fuck", "shit", "bitch", "cunt", "asshole", "damn", "ass"]; 
             
             const greetingResponses = ["Hello!", "Hi there!", "Hey!", "Greetings!"];
-            // "Screamed" profanity responses
             const profanityResponses = ["F*** YOU!", "WHAT DID YOU SAY?!", "********!", "DON'T YOU DARE!", "AAAAAARGH!"];
 
 
@@ -721,35 +755,35 @@
                 const userInputLower = userInput.toLowerCase(); // For matching
 
                 if (userInput) {
-                    // Add the user's message to the chat
                     addChatMessage(userInput, 'user');
-                    // Clear the input field
                     chatInput.value = '';
                     
-                    // NEW: Response Logic
-                    let responseType = 'default'; // Start with default
-                    
-                    // Check for greetings (exact match)
-                    if (greetings.includes(userInputLower)) {
-                        responseType = 'greeting';
-                    } else {
-                        // Check for profanities (contains)
-                        for (const profanity of profanities) {
-                            if (userInputLower.includes(profanity)) {
-                                responseType = 'profanity';
-                                break; // Found one, stop checking
-                            }
-                        }
-                    }
+                    // 1. Show typing indicator immediately
+                    showTypingIndicator();
 
-                    // Show a response after a short delay based on type
-                    if (responseType === 'greeting') {
-                        setTimeout(showGreetingResponse, 1000);
-                    } else if (responseType === 'profanity') {
-                        setTimeout(showProfanityResponse, 1000);
+                    // 2. Calculate random delay
+                    const typingDelay = getRandomTypingTime();
+                    
+                    // 3. Determine which response function to use
+                    const mathResult = solveMath(userInput);
+                    let responseFunction;
+
+                    if (greetings.includes(userInputLower)) {
+                        responseFunction = showGreetingResponse;
+                    } else if (profanities.some(profanity => userInputLower.includes(profanity))) {
+                        responseFunction = showProfanityResponse;
+                    } else if (mathResult !== null) {
+                        // Create a function on the fly to pass the math result
+                        responseFunction = () => addChatMessage(mathResult, 'bot');
                     } else {
-                        setTimeout(showBotResponse, 1000);
+                        responseFunction = showBotResponse; // Default
                     }
+                    
+                    // 4. Set timeout to remove typing and show response
+                    setTimeout(() => {
+                        removeTypingIndicator();
+                        responseFunction(); // Call the determined response function
+                    }, typingDelay);
                 }
             });
 
@@ -764,6 +798,65 @@
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             }
 
+            // Function to get random typing time
+            function getRandomTypingTime() {
+                // Random time between 500ms (0.5s) and 2000ms (2s)
+                return Math.floor(Math.random() * (2000 - 500 + 1)) + 500;
+            }
+
+            // Function to show typing indicator
+            function showTypingIndicator() {
+                // Check if one is already showing, remove it (prevents duplicates)
+                removeTypingIndicator(); 
+
+                const indicator = document.createElement('div');
+                indicator.id = 'typing-indicator';
+                indicator.classList.add('typing-indicator');
+                indicator.innerHTML = '<span></span><span></span><span></span>';
+                chatMessages.appendChild(indicator);
+
+                // Auto-scroll to the bottom
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            // Function to remove typing indicator
+            function removeTypingIndicator() {
+                const indicator = document.getElementById('typing-indicator');
+                if (indicator) {
+                    indicator.remove();
+                }
+            }
+
+            // NEW: Function to solve simple math
+            function solveMath(expression) {
+                try {
+                    // This regex checks that the string contains ONLY numbers,
+                    // operators, parentheses, and spaces.
+                    // This is a safety measure to prevent execution of other code.
+                    const mathRegex = /^[0-9+\-*/().% \t]+$/;
+                    
+                    if (!mathRegex.test(expression)) {
+                        return null; // Doesn't look like math
+                    }
+
+                    // Using 'new Function()' is safer than 'eval()'
+                    const result = new Function('return ' + expression)();
+                    
+                    if (typeof result === 'number' && isFinite(result)) {
+                        // Give a themed response
+                        if (Number.isInteger(result)) {
+                            return `I'm not a calculator, but... I'm pretty sure that's ${result}.`;
+                        } else {
+                            // Format floats to max 4 decimal places
+                            return `I'm not a calculator, but... I'm pretty sure that's ${result.toFixed(4)}.`;
+                        }
+                    }
+                    return null; // Valid JS but not a number
+                } catch (e) {
+                    return null; // Not valid math (e.g., "5 +")
+                }
+            }
+
             // Function to get and show a random UNHELPFUL bot response
             function showBotResponse() {
                 const randomIndex = Math.floor(Math.random() * botResponses.length);
@@ -771,14 +864,14 @@
                 addChatMessage(response, 'bot');
             }
 
-            // NEW: Function for GREETING response
+            // Function for GREETING response
             function showGreetingResponse() {
                 const randomIndex = Math.floor(Math.random() * greetingResponses.length);
                 const response = greetingResponses[randomIndex];
                 addChatMessage(response, 'bot');
             }
 
-            // NEW: Function for PROFANITY response
+            // Function for PROFANITY response
             function showProfanityResponse() {
                 const randomIndex = Math.floor(Math.random() * profanityResponses.length);
                 const response = profanityResponses[randomIndex];
