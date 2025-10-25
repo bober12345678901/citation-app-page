@@ -192,9 +192,8 @@
 
         #chat-widget-header {
             padding: 0.75rem 1rem;
-            /* UPDATED: Made background match widget and added border */
-            background-color: var(--box-bg-color); 
-            border-bottom: 1px solid var(--border-color);
+            /* UPDATED: Reverted to border-color to make it different from the widget body */
+            background-color: var(--border-color); 
             color: var(--text-color);
             font-weight: 600;
         }
@@ -223,8 +222,8 @@
         }
 
         .bot-message {
-            /* UPDATED: Changed to a different, lighter gray variable */
-            background-color: var(--button-secondary-hover-bg); 
+            /* UPDATED: Changed to the standard secondary button background */
+            background-color: var(--button-secondary-bg); 
             color: var(--text-color);
             align-self: flex-start;
         }
