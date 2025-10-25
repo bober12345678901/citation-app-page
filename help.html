@@ -192,8 +192,7 @@
 
         #chat-widget-header {
             padding: 0.75rem 1rem;
-            /* UPDATED: Reverted to border-color to make it different from the widget body */
-            background-color: var(--border-color); 
+            background-color: var(--border-color); /* Darker header */
             color: var(--text-color);
             font-weight: 600;
         }
@@ -222,8 +221,7 @@
         }
 
         .bot-message {
-            /* UPDATED: Changed to the standard secondary button background */
-            background-color: var(--button-secondary-bg); 
+            background-color: var(--button-secondary-bg); /* Lighter gray */
             color: var(--text-color);
             align-self: flex-start;
         }
@@ -682,7 +680,7 @@
             // --- End Help Desk Embed Modal Functionality ---
 
 
-            // --- NEW: AI CHAT BOX SCRIPT ---
+            // --- UPDATED: AI CHAT BOX SCRIPT ---
             const chatToggle = document.getElementById('chat-toggle');
             const chatWidget = document.getElementById('chat-widget');
             const chatForm = document.getElementById('chat-form');
@@ -698,6 +696,16 @@
                 "Sorry, I am not programmed to help with that."
             ];
 
+            // NEW: Word lists for responses
+            const greetings = ["hi", "hello", "hey", "yo", "sup", "howdy", "greetings"];
+            // This is a simple list. A real-world filter would be more complex.
+            const profanities = ["fuck", "shit", "bitch", "cunt", "asshole", "damn", "ass"]; 
+            
+            const greetingResponses = ["Hello!", "Hi there!", "Hey!", "Greetings!"];
+            // "Screamed" profanity responses
+            const profanityResponses = ["F*** YOU!", "WHAT DID YOU SAY?!", "********!", "DON'T YOU DARE!", "AAAAAARGH!"];
+
+
             // Toggle the chat window when the bubble is clicked
             chatToggle.addEventListener('click', () => {
                 chatWidget.classList.toggle('hidden');
@@ -710,6 +718,7 @@
             chatForm.addEventListener('submit', (event) => {
                 event.preventDefault(); // Stop the form from submitting
                 const userInput = chatInput.value.trim();
+                const userInputLower = userInput.toLowerCase(); // For matching
 
                 if (userInput) {
                     // Add the user's message to the chat
@@ -717,8 +726,30 @@
                     // Clear the input field
                     chatInput.value = '';
                     
-                    // Show a bot response after a short delay
-                    setTimeout(showBotResponse, 1000);
+                    // NEW: Response Logic
+                    let responseType = 'default'; // Start with default
+                    
+                    // Check for greetings (exact match)
+                    if (greetings.includes(userInputLower)) {
+                        responseType = 'greeting';
+                    } else {
+                        // Check for profanities (contains)
+                        for (const profanity of profanities) {
+                            if (userInputLower.includes(profanity)) {
+                                responseType = 'profanity';
+                                break; // Found one, stop checking
+                            }
+                        }
+                    }
+
+                    // Show a response after a short delay based on type
+                    if (responseType === 'greeting') {
+                        setTimeout(showGreetingResponse, 1000);
+                    } else if (responseType === 'profanity') {
+                        setTimeout(showProfanityResponse, 1000);
+                    } else {
+                        setTimeout(showBotResponse, 1000);
+                    }
                 }
             });
 
@@ -733,12 +764,24 @@
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             }
 
-            // Function to get and show a random bot response
+            // Function to get and show a random UNHELPFUL bot response
             function showBotResponse() {
-                // Get a random response from the list
                 const randomIndex = Math.floor(Math.random() * botResponses.length);
                 const response = botResponses[randomIndex];
-                
+                addChatMessage(response, 'bot');
+            }
+
+            // NEW: Function for GREETING response
+            function showGreetingResponse() {
+                const randomIndex = Math.floor(Math.random() * greetingResponses.length);
+                const response = greetingResponses[randomIndex];
+                addChatMessage(response, 'bot');
+            }
+
+            // NEW: Function for PROFANITY response
+            function showProfanityResponse() {
+                const randomIndex = Math.floor(Math.random() * profanityResponses.length);
+                const response = profanityResponses[randomIndex];
                 addChatMessage(response, 'bot');
             }
             // --- END: AI CHAT BOX SCRIPT ---
