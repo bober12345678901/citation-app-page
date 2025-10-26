@@ -140,7 +140,15 @@
 
 <header class="theme-section-bg shadow-lg fixed top-0 w-full z-50">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-    <h1 class="text-3xl font-bold theme-text-color">User Dashboard</h1>
+    
+    <div class="flex items-end space-x-4">
+        <h1 class="text-3xl font-bold theme-text-color">User Dashboard</h1>
+        
+        <a href="selection.html" 
+           class="text-sm font-medium theme-subtle-text hover:text-[var(--accent-color)] transition-colors mb-1">
+            (Go to Legacy Dashboard)
+        </a>
+        </div>
 
     <nav class="space-x-4 flex items-center">
       <p class="theme-text-color font-medium hidden sm:block">
@@ -594,7 +602,6 @@ if (logoutButton) {
           sessionStorage.removeItem('loggedInUser');
           sessionStorage.removeItem('userStats');       // Clear Stats Cache
           sessionStorage.removeItem('statsLastUpdated'); // Clear Timestamp Cache
-          // sessionStorage.clear(); // Use clear if you want to wipe EVERYTHING
           // --- END CACHE CLEAR FIX ---
 
           window.location.href = 'index.html';
