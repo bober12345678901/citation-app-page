@@ -794,7 +794,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const cacheKey = 'userStats';
     const cached = sessionStorage.getItem(cacheKey);
 
-    // If 'force' is true (Refresh button clicked), fetch new data and write to cache.
+    // Flag to track if we successfully loaded from cache
+    let loadedFromCache = false;
+
+    // If 'force' is true (Refresh button clicked OR initial fetch needed), fetch new data and write to cache.
     if (force) {
       try {
         const username = userInfo.username.toLowerCase();
@@ -831,12 +834,11 @@ document.addEventListener('DOMContentLoaded', function () {
         };
         sessionStorage.setItem(cacheKey, JSON.stringify(statsToCache));
         
-        // --- ADDED CONFIRMATION LINE ---
         console.log('Statistics saved to cache.', statsToCache);
-        // ---------------------------------
         
         sessionStorage.setItem('statsLastUpdated', new Date().toISOString());
         updateTimestamp();
+
       } catch (err) {
         console.error('Error fetching stats:', err);
         citationCountEl.textContent = '--';
@@ -849,7 +851,7 @@ document.addEventListener('DOMContentLoaded', function () {
       return; // Stop execution after fetching.
     }
 
-    // If 'force' is false (automatic page load), just try to read from cache.
+    // --- Initial Page Load (force === false) ---
     if (cached) {
       try {
         const parsed = JSON.parse(cached);
@@ -859,27 +861,32 @@ document.addEventListener('DOMContentLoaded', function () {
           shiftCountEl.textContent = parsed.shifts;
           arrestCountEl.textContent = parsed.arrests;
           updateTimestamp();
-        } else {
-          // Cache is for a different user, show defaults
-          citationCountEl.textContent = '--';
-          shiftCountEl.textContent = '--';
-          arrestCountEl.textContent = '--';
-        }
+          loadedFromCache = true;
+          // --- ADDED CONFIRMATION LOG FOR LOADING FROM CACHE ---
+          console.log('Statistics loaded from cache.', parsed);
+          // -----------------------------------------------------
+        } 
       } catch (e) {
-        // Cache is corrupt, show defaults
-        console.error('Error parsing cached stats:', e);
-        citationCountEl.textContent = '--';
-        shiftCountEl.textContent = '--';
-        arrestCountEl.textContent = '--';
+        console.error('Error parsing cached stats, cache will be refreshed:', e);
+        // Fall through to the auto-refresh logic below
       }
-    } else {
-      // No cache, show defaults. Do not fetch.
+    }
+    
+    // If no cache data was successfully loaded, trigger an auto-refresh after a small delay
+    if (!loadedFromCache) {
+      // Show placeholder data while waiting for auto-fetch
       citationCountEl.textContent = '--';
       shiftCountEl.textContent = '--';
       arrestCountEl.textContent = '--';
+      
+      // Auto-refresh: Silently fetch data to populate the cache
+      setTimeout(() => {
+          console.log('Cache empty/invalid. Automatically fetching fresh statistics...');
+          loadStats(true); // Force a server fetch
+      }, 500); // 500ms delay to ensure the page renders quickly first
     }
     
-    // Hide loader and show content (with cached data or defaults)
+    // Hide loader and show content (with cached data or defaults, either way, the tiles are visible)
     loaderEl.classList.add('hidden');
     contentEl.classList.remove('hidden');
   }
