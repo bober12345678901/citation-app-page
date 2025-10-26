@@ -883,7 +883,7 @@ document.addEventListener('DOMContentLoaded', function () {
       setTimeout(() => {
           console.log('Cache empty/invalid. Automatically fetching fresh statistics...');
           loadStats(true); // Force a server fetch
-      }, 500); // 500ms delay to ensure the page renders quickly first
+      }, 0); // 500ms delay to ensure the page renders quickly first
     }
     
     // Hide loader and show content (with cached data or defaults, either way, the tiles are visible)
