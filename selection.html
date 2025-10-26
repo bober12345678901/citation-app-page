@@ -753,13 +753,46 @@ document.addEventListener('DOMContentLoaded', () => {
             removeTypingIndicator(typing);
             const lower = text.toLowerCase();
             let reply;
-            if (greetings.some(g => lower.includes(g))) {
+
+            // --- 1. Check for Math Functionality (FIX) ---
+            // Regex to check if the input looks like a simple arithmetic expression
+            const mathRegex = /^\s*[\d\s\.\+\-\*\/\(\)]+\s*$/; 
+            
+            // Further refine the string by removing only digits, spaces, and the operators + - * / . ( )
+            const cleanedText = text.replace(/[\d\s\.\+\-\*\/\(\)]/g, ''); 
+            
+            // If the cleaned text is empty AND the input passed the regex check, try to evaluate it
+            if (cleanedText.length === 0 && mathRegex.test(text)) {
+                try {
+                    // WARNING: eval() can be dangerous. It is used here to fulfill the request for math functionality.
+                    const result = eval(text); 
+                    if (isFinite(result)) { // Check for valid number
+                         reply = `The answer is: ${result}`;
+                    } else {
+                        // If it evaluates to non-finite (e.g., division by zero), treat as error/non-math
+                        reply = botResponses[Math.floor(Math.random() * botResponses.length)];
+                    }
+                } catch (error) {
+                    // If eval fails (syntax error), fall back to non-math response
+                    reply = botResponses[Math.floor(Math.random() * botResponses.length)];
+                }
+            } 
+            
+            // --- 2. Check for Greetings ---
+            else if (greetings.some(g => lower.includes(g))) {
                 reply = greetingResponses[Math.floor(Math.random() * greetingResponses.length)];
-            } else if (profanities.some(p => lower.includes(p))) {
+            } 
+            
+            // --- 3. Check for Profanities ---
+            else if (profanities.some(p => lower.includes(p))) {
                 reply = profanityResponses[Math.floor(Math.random() * profanityResponses.length)];
-            } else {
+            } 
+            
+            // --- 4. Default Non-Helpful Response ---
+            else {
                 reply = botResponses[Math.floor(Math.random() * botResponses.length)];
             }
+
             addChatMessage(reply, 'bot');
         }, 800 + Math.random() * 800);
     });
