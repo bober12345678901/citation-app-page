@@ -788,8 +788,15 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   async function loadStats(force = false) {
-    loaderEl.classList.remove('hidden');
-    contentEl.classList.add('hidden');
+    // Only show loader and hide content during a server fetch
+    if (force) {
+        loaderEl.classList.remove('hidden');
+        contentEl.classList.add('hidden');
+        citationCountEl.textContent = '--';
+        shiftCountEl.textContent = '--';
+        arrestCountEl.textContent = '--';
+    }
+
 
     const cacheKey = 'userStats';
     const cached = sessionStorage.getItem(cacheKey);
@@ -849,12 +856,13 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // --- Initial Page Load (force === false) ---
-    // If cache is present, load it. If not, the placeholders remain. No automatic fetch.
+    // If cache is present, load it. If not, the HTML placeholders remain.
     if (cached) {
       try {
         const parsed = JSON.parse(cached);
         // Check if cached stats belong to the current user
         if (parsed.username === userInfo.username) {
+          // *** FIX: Update text content immediately to show the numbers ***
           citationCountEl.textContent = parsed.citations;
           shiftCountEl.textContent = parsed.shifts;
           arrestCountEl.textContent = parsed.arrests;
@@ -863,28 +871,20 @@ document.addEventListener('DOMContentLoaded', function () {
           console.log('Statistics loaded from cache.', parsed);
 
         } else {
-          // Cache is for a different user, show defaults, and do not trigger a new fetch
+          // Cache is for a different user, explicitly reset to placeholders if needed
+          // The HTML already defaults to '--', but this ensures the log is clear.
           console.warn('Cached stats found but belong to a different user. Click refresh to update.');
-          citationCountEl.textContent = '--';
-          shiftCountEl.textContent = '--';
-          arrestCountEl.textContent = '--';
         }
       } catch (e) {
-        // Cache is corrupt, show defaults, and do not trigger a new fetch
+        // Cache is corrupt, the HTML placeholders remain
         console.error('Error parsing cached stats. Click refresh to get new data.', e);
-        citationCountEl.textContent = '--';
-        shiftCountEl.textContent = '--';
-        arrestCountEl.textContent = '--';
       }
     } else {
-      // No cache found, show defaults. Do not fetch.
+      // No cache found, the HTML placeholders remain.
       console.log('No stats found in cache. Click refresh to get initial data.');
-      citationCountEl.textContent = '--';
-      shiftCountEl.textContent = '--';
-      arrestCountEl.textContent = '--';
     }
     
-    // Hide loader and show content (with cached data or defaults)
+    // Ensure content is visible (loader is never shown unless manually refreshed)
     loaderEl.classList.add('hidden');
     contentEl.classList.remove('hidden');
   }
