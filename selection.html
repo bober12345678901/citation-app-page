@@ -400,7 +400,6 @@
 
         </main>
     </div>
-
     <div id="fullscreenEmbedModal" class="hidden">
         <button id="closeEmbedBtn">X</button>
         <div id="fullscreenEmbedContent">
@@ -723,6 +722,9 @@
             const chatInput = document.getElementById('chat-input');
             const chatMessages = document.getElementById('chat-messages');
 
+// NEW: Link HTML for experimental dashboard response
+const experimentalDashboardLinkHTML = `<a href="selectionexp.html" class="theme-button-primary" style="display:inline-block; padding:5px 10px; text-decoration:none; border-radius:5px; margin-top: 5px;">Go to Experimental Dashboard</a>`;
+
 const botResponses = [
     "What?",
     "Refresh the website.",
@@ -822,6 +824,9 @@ const mathSnarkyResponses = [
                     } else if (mathResult !== null) {
                         // Create a function on the fly to pass the math result
                         responseFunction = () => addChatMessage(mathResult, 'bot');
+                    } else if (userInputLower.includes('go to dashboard')) {
+                        // NEW LOGIC: Respond with the dashboard link
+                        responseFunction = () => addChatMessage(`Here is the link you requested: ${experimentalDashboardLinkHTML}`, 'bot', true);
                     } else {
                         responseFunction = showBotResponse; // Default
                     }
@@ -834,11 +839,19 @@ const mathSnarkyResponses = [
                 }
             });
 
-            // Function to add a new message to the chat window
-            function addChatMessage(text, sender) {
+            // Function to add a new message to the chat window (UPDATED to handle HTML)
+            function addChatMessage(text, sender, isHTML = false) { 
                 const messageElement = document.createElement('div');
                 messageElement.classList.add('chat-message', `${sender}-message`);
-                messageElement.textContent = text;
+
+                if (isHTML) {
+                    messageElement.innerHTML = text; // Use innerHTML for the link
+                    // A little extra style to make it look like a response box
+                    messageElement.style.padding = '10px'; 
+                } else {
+                    messageElement.textContent = text;
+                }
+                
                 chatMessages.appendChild(messageElement);
                 
                 // Auto-scroll to the bottom

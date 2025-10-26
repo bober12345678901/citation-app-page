@@ -181,3 +181,15 @@ pre {
 .custom-modal-header.error { color: #dc2626; /* red-600 */ }
 .custom-modal-header.info { color: #2563eb; /* blue-600 */ }
 .custom-modal-header.warning { color: #fbbf24; /* amber-400 */ }
+/* Universal transition for theme properties.
+  This applies a smooth 0.3s transition to all elements (body *)
+  for the specific properties your theme variables control.
+*/
+body, body * {
+    transition: 
+        background-color 0.3s ease,
+        color 0.3s ease,
+        border-color 0.3s ease,
+        fill 0.3s ease,
+        stroke 0.3s ease;
+}

@@ -40,6 +40,12 @@ document.addEventListener('DOMContentLoaded', () => {
      * Applies the selected theme by setting CSS variables on the root element.
      */
     function applyTheme(themeName) {
+		function updateModalThemeColors() {
+    const modalHeader = document.getElementById('customModalTitle');
+    const modalBody = document.getElementById('customModalMessage');
+    if (modalHeader) modalHeader.style.color = getComputedStyle(document.documentElement).getPropertyValue('--text-color');
+    if (modalBody) modalBody.style.color = getComputedStyle(document.documentElement).getPropertyValue('--text-color');
+}
         let theme = themePresets[themeName];
         
         if (!theme) {
@@ -93,6 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         sessionStorage.setItem('selectedTheme', themeName); 
+		updateModalThemeColors();
     }
 
     function saveCustomColors() {
@@ -307,3 +314,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 });
+function updateModalThemeColors() {
+    const modalHeader = document.getElementById('customModalTitle');
+    const modalBody = document.getElementById('customModalMessage');
+    const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-color') || '';
+    if (modalHeader) {
+        // set inline style to guarantee precedence
+        modalHeader.style.setProperty('color', textColor.trim());
+    }
+    if (modalBody) {
+        modalBody.style.setProperty('color', textColor.trim());
+    }
+}
+
+
