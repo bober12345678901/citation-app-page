@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" href="favicon.png" type="image/png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Test Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+    <script src="theme.js"></script>
+    <style>
+        /* The main container should look like a dashboard card */
+        .dashboard-form-container {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: box-shadow 0.3s;
+        }
+
+        /* FIX: Ensure the theme dropdown menu (if rendered) has a solid background */
+        .theme-dropdown-menu {
+            background-color: var(--box-bg-color); 
+            border: 1px solid var(--border-color); 
+        }
+
+        /* ===== header-safe-spacing (RECOMMENDED) ===== */
+        /* creates a CSS variable that will be set from JS to the exact header height */
+        :root {
+          --app-header-height: 5rem; /* fallback if JS hasn't run yet */
+        }
+        
+        header.theme-section-bg {
+            background-color: var(--box-bg-color) !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 0;
+            height: auto;
+            min-height: 4rem;
+            z-index: 50;
+            box-sizing: border-box;
+        }
+        
+        .main-header {
+            width: calc(100% - 250px);
+            left: 250px;
+        }
+        
+        .main-content-wrapper {
+            margin-left: 250px;
+            flex-grow: 1;
+            box-sizing: border-box;
+            /* Padding is set by JS below */
+        }
+        
+        @media (max-width: 1024px) {
+            .sidebar { display: none; }
+            .main-content-wrapper, .main-header {
+                margin-left: 0;
+                width: 100%;
+                left: 0;
+            }
+        }
+        /* --- Sidebar Styles --- */
+        .sidebar {
+            width: 250px;
+            min-width: 250px;
+            background-color: var(--box-bg-color);
+            color: var(--text-color);
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            padding-top: 2rem;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+            z-index: 40;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .sidebar-item {
+            display: block;
+            padding: 0.75rem 1.5rem;
+            font-size: 1.125rem;
+            font-weight: 500;
+            border-left: 5px solid transparent;
+            transition: background-color 0.2s, border-left-color 0.2s;
+        }
+        .sidebar-item:hover, .sidebar-item.active {
+            background-color: var(--input-bg-color);
+        }
+        .sidebar-item.active {
+            border-left-color: var(--accent-color);
+            color: var(--accent-color);
+            font-weight: 700;
+        }
+        .sidebar-user-info {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.875rem;
+        }
+        /* --- Tile Styling (borrowed from selection.html) --- */
+        .theme-tile-bg { background-color: var(--card-bg-color); }
+        .theme-tile-border { border: 1px solid var(--border-color); }
+        .theme-text-color { color: var(--text-color); }
+        .large-tile-padding { padding: 1.5rem; font-size: 1.125rem; }
+        .large-tile-padding .text-lg { font-size: 1.35rem; }
+        .large-tile-padding .w-8 { width: 2.5rem; height: 2.5rem; }
+    </style>
+</head>
+<body class="min-h-screen theme-app-container flex flex-row theme-bg-color">
+    
+    <div id="customModalOverlay" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="custom-modal theme-lookup-box p-6 rounded-xl shadow-xl max-w-sm w-full mx-4 sm:mx-auto">
+            <h3 id="customModalTitle" class="custom-modal-header theme-title text-xl font-bold mb-4">Alert</h3>
+            <p id="customModalMessage" class="custom-modal-body theme-label mb-6"></p>
+            <div id="customModalButtons" class="custom-modal-footer flex justify-end space-x-3">
+                <button id="customModalCancelBtn" class="theme-button-secondary py-2 px-4 rounded-lg font-semibold hidden">Cancel</button>
+                <button id="customModalOkBtn" class="theme-button-primary py-2 px-4 rounded-lg font-semibold">OK</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="sidebar">
+        <div>
+            <div class="text-2xl font-bold px-6 mb-8 text-[var(--accent-color)]">Shadow LE Test</div>
+            
+            <a href="admin_test_selection.html" class="sidebar-item active">Test Dashboard</a>
+            <a href="citation2.html" class="sidebar-item theme-text-color">Test Citation (2)</a>
+            <a href="arrest2.html" class="sidebar-item theme-text-color">Test Arrest (2)</a>
+            <a href="shift_log2.html" class="sidebar-item theme-text-color">Test Shift Log (2)</a>
+            <a href="warrant_log2.html" class="sidebar-item theme-text-color">Test Warrant Log (2)</a>
+        </div>
+        
+        <div class="sidebar-user-info theme-subtle-text">
+            <p class="font-bold mb-1 theme-text-color" id="sidebarUsernameDisplay">USERNAME</p>
+            <a href="settings.html" class="block theme-subtle-text hover:text-[var(--accent-color)]">Settings</a>
+            <button id="sidebarLogoutButton" class="block mt-2 font-medium text-red-400 hover:text-red-500 transition-colors">Log out</button>
+        </div>
+    </div>
+    <header class="theme-section-bg fixed top-0 w-full z-50 main-header">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+        
+        <div class="flex items-end space-x-4">
+            <h1 class="text-3xl font-bold theme-text-color">Admin Test Menu</h1>
+            <a href="selection.html" class="text-sm font-medium theme-subtle-text hover:text-[var(--accent-color)] transition-colors mb-1">
+                (Go to Live Dashboard)
+            </a>
+        </div>
+
+        <nav class="space-x-4 flex items-center">
+          <p class="theme-text-color font-medium hidden sm:block">
+            Welcome, <span id="userNameDisplay">Admin</span>
+          </p>
+
+          <div class="relative inline-block text-left">
+            <button id="themeToggle" type="button"
+              class="p-2 rounded-full theme-text-color hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-colors flex items-center justify-center space-x-1"
+              aria-expanded="false" aria-haspopup="true">
+              <span id="currentThemeIcon" class="w-6 h-6 flex items-center justify-center"></span>
+              <svg id="dropdownArrow" class="w-4 h-4 transition-transform duration-200"
+                fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+            <div id="themeDropdownMenu"
+              class="absolute right-0 mt-2 w-48 rounded-lg shadow-2xl ring-1 ring-black ring-opacity-10 origin-top-right hidden theme-dropdown-menu">
+              <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="themeToggle"
+                id="themeOptions"></div>
+            </div>
+          </div>
+
+          <button id="logoutButton"
+            class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
+            Log Out
+          </button>
+        </nav>
+      </div>
+    </header>
+    <main class="main-content-wrapper flex items-start justify-center p-4" id="mainContentArea">
+        <div class="container mx-auto max-w-7xl w-full p-8 rounded-xl shadow-lg transition-colors duration-300 border border-solid dashboard-form-container theme-lookup-box">
+             <h2 class="theme-title text-2xl font-bold mb-8 text-center">Development/Testing Modules</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                <a href="citation2.html" class="block p-6 large-tile-padding rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
+                    <div class="flex items-center space-x-4">
+                         <svg class="w-8 h-8 text-[var(--accent-color)] transition-colors duration-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" fill="currentColor" preserveAspectRatio="xMidYMid meet">
+							<g transform="translate(0.000000,50.000000) scale(0.100000,-0.100000)" stroke="none">
+								<path d="M175 481 c-6 -6 -32 -11 -60 -13 l-50 -3 0 -215 0 -215 185 0 185 0 0 215 0 215 -50 3 c-27 2 -54 7 -59 13 -6 5 -40 9 -76 9 -36 0 -70 -4 -75 -9z m135 -41 l0 -30 -60 0 -60 0 0 30 0 30 60 0 60 0 0 -30z m-140 0 c0 -5 -16 -10 -35 -10 l-35 0 0 -180 0 -180 150 0 150 0 0 180 0 180 -35 0 c-19 0 -35 5 -35 10 0 6 20 10 45 10 l45 0 0 -200 0 -200 -170 0 -170 0 0 200 0 200 45 0 c25 0 45 -4 45 -10z m5 -40 c3 -5 37 -10 75 -10 38 0 72 5 75 10 3 6 17 10 31 10 l24 0 0 -160 0 -160 -130 0 -130 0 0 160 0 160 24 0 c14 0 28 -4 31 -10z"/>
+								<path d="M160 300 c0 -6 37 -10 90 -10 53 0 90 4 90 10 0 6 -37 10 -90 10 -53 0 -90 -4 -90 -10z"/>
+								<path d="M160 240 c0 -6 37 -10 90 -10 53 0 90 4 90 10 0 6 -37 10 -90 10 -53 0 -90 -4 -90 -10z"/>
+								<path d="M160 180 c0 -6 37 -10 90 -10 53 0 90 4 90 10 0 6 -37 10 -90 10 -53 0 -90 -4 -90 -10z"/>
+							</g>
+						</svg>
+                        <span class="text-lg font-semibold">TEST: Issue Citation (2)</span>
+                    </div>
+                </a>
+
+                <a href="arrest2.html" class="block p-6 large-tile-padding rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
+                    <div class="flex items-center space-x-4">
+                        <svg class="w-8 h-8 text-[var(--accent-color)] transition-colors duration-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" fill="currentColor" preserveAspectRatio="xMidYMid meet">
+							<g transform="translate(0.000000,50.000000) scale(0.100000,-0.100000)" stroke="none">
+								<path d="M272 468 c-7 -7 -12 -18 -12 -25 0 -7 -9 -17 -21 -24 -17 -9 -25 -7 -43 10 -28 26 -38 26 -61 1 -10 -11 -31 -20 -47 -20 -41 0 -88 -48 -88 -90 0 -43 23 -93 55 -118 74 -58 185 -23 185 59 0 14 9 34 20 44 25 23 25 33 -1 61 -24 26 -17 48 13 38 17 -5 19 -2 16 22 -4 35 12 40 43 15 21 -17 22 -22 11 -40 -10 -18 -10 -21 3 -21 8 0 18 12 21 27 12 46 -62 93 -94 61z m-60 -85 l47 -46 -20 -25 c-10 -14 -19 -36 -19 -49 0 -32 -42 -73 -75 -73 -60 0 -125 63 -125 121 0 38 36 79 69 79 15 0 36 9 46 20 10 11 21 20 24 20 3 0 27 -21 53 -47z"/>
+								<path d="M185 369 c-4 -6 -5 -13 -2 -16 7 -7 27 6 27 18 0 12 -17 12 -25 -2z"/>
+								<path d="M57 352 c-39 -43 2 -125 69 -138 61 -11 91 37 62 101 -23 50 -100 72 -131 37z m98 -27 c39 -39 29 -95 -18 -95 -24 0 -77 53 -77 77 0 47 56 57 95 18z"/>
+								<path d="M315 414 c-18 -19 -14 -58 11 -85 23 -26 17 -49 -16 -55 -37 -8 -54 -27 -47 -56 3 -13 -1 -32 -9 -42 -24 -33 -18 -84 14 -116 58 -58 164 -48 209 19 31 46 29 83 -6 123 -16 19 -31 45 -33 58 -3 22 -8 25 -40 24 -42 -1 -52 18 -18 36 20 11 25 35 14 64 -10 27 -24 18 -18 -12 5 -25 3 -29 -16 -27 -30 2 -46 32 -31 58 16 25 8 32 -14 11z m105 -163 c0 -10 14 -35 30 -56 38 -47 38 -79 1 -115 -50 -51 -132 -52 -171 -3 -23 30 -25 58 -5 93 7 14 11 37 8 52 -5 25 -2 27 48 36 81 15 89 14 89 -7z"/>
+								<path d="M340 236 c0 -8 4 -17 9 -20 10 -7 23 19 14 28 -11 11 -23 6 -23 -8z"/>
+								<path d="M311 174 c-38 -31 -39 -57 -5 -91 21 -21 32 -25 66 -20 27 3 51 16 64 28 75 71 -45 151 -125 83z m110 -4 c27 -15 24 -45 -7 -69 -32 -25 -61 -27 -92 -5 -27 19 -28 38 -2 64 22 22 70 26 101 10z"/>
+							</g>
+						</svg>
+                        <span class="text-lg font-semibold">TEST: Process Arrest (2)</span>
+                    </div>
+                </a>
+
+                <a href="shift_log2.html" class="block p-6 large-tile-padding rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
+                    <div class="flex items-center space-x-4">
+                        <svg class="w-8 h-8 text-[var(--accent-color)] transition-colors duration-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" fill="currentColor" preserveAspectRatio="xMidYMid meet">
+						<g transform="translate(0,50) scale(0.1,-0.1)" stroke="none">
+							<path d="M80 460 c-19 -19 -20 -33 -20 -214 0 -190 1 -195 22 -210 18 -13 55 -16 190 -16 103 0 168 4 168 10 0 6 -68 11 -171 12 -148 3 -173 5 -182 20 -8 12 -7 21 2 32 11 13 40 16 182 16 l169 0 0 185 0 185 -170 0 c-157 0 -172 -2 -190 -20z m340 -165 l0 -165 -154 0 c-85 0 -161 -3 -170 -6 -14 -5 -16 12 -16 153 0 110 4 163 12 171 8 8 60 12 170 12 l158 0 0 -165z"/>
+							<path d="M134 396 c-3 -8 -4 -25 -2 -38 3 -23 5 -23 123 -23 l120 0 0 35 0 35 -118 3 c-95 2 -118 0 -123 -12z m226 -26 c0 -19 -7 -20 -105 -20 -98 0 -105 1 -105 20 0 19 7 20 105 20 98 0 105 -1 105 -20z"/>
+						</g>
+					</svg>
+                        <span class="text-lg font-semibold">TEST: Submit Shift Log (2)</span>
+                    </div>
+                </a>
+
+                <a href="warrant_log2.html" class="block p-6 large-tile-padding rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
+                    <div class="flex items-center space-x-4">
+                        <svg class="w-8 h-8 text-[var(--accent-color)] transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6-6h6m6 0h-6m6-4H6a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2z"></path></svg>
+                        <span class="text-lg font-semibold">TEST: Submit Warrant (2)</span>
+                    </div>
+                </a>
+
+                <a href="admin2.html" class="block p-6 large-tile-padding rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
+                    <div class="flex items-center space-x-4">
+                        <svg class="w-8 h-8 text-[var(--accent-color)] transition-colors duration-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" fill="currentColor" preserveAspectRatio="xMidYMid meet">
+							<g transform="translate(0.000000,50.000000) scale(0.100000,-0.100000)" stroke="none">
+								<path d="M180 475 c-25 -14 -69 -32 -99 -41 l-54 -16 7 -66 c14 -132 77 -251 167 -318 l49 -36 28 21 c47 33 109 106 136 160 28 55 56 157 56 208 0 29 -4 33 -42 44 -23 6 -68 24 -100 40 -69 35 -89 35 -148 4z m155 -30 c44 -19 88 -35 98 -35 12 0 17 -8 17 -27 0 -50 -30 -155 -58 -206 -33 -61 -117 -147 -144 -147 -30 0 -116 94 -148 163 -28 60 -50 144 -50 193 0 16 6 24 18 24 9 0 51 16 92 34 41 19 80 34 85 35 6 1 46 -15 90 -34z"/>
+							</g>
+						</svg>
+                        <span class="text-lg font-semibold">TEST: Admin Panel (2)</span>
+                    </div>
+                </a>
+
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- UTILITY FUNCTIONS (Standard definitions for safety) ---
+        if (typeof window.showCustomAlert === 'undefined') {
+            window.showCustomAlert = (message, type = 'info', title = null) => {
+                return new Promise(resolve => {
+                    const modalOverlay = document.getElementById('customModalOverlay');
+                    const modalTitle = document.getElementById('customModalTitle');
+                    const modalMessage = document.getElementById('customModalMessage');
+                    const modalOkBtn = document.getElementById('customModalOkBtn');
+                    const modalCancelBtn = document.getElementById('customModalCancelBtn');
+
+                    modalTitle.textContent = title || (type === 'success' ? 'Success!' : type === 'error' ? 'Error!' : type === 'warning' ? 'Warning!' : 'Information');
+                    modalMessage.textContent = message;
+                    modalTitle.classList.remove('success', 'error', 'warning', 'info');
+                    modalTitle.classList.add(type.replace(/\s+/g, '-'));
+                    modalCancelBtn.classList.add('hidden');
+                    modalOkBtn.classList.remove('hidden');
+                    modalOkBtn.textContent = 'OK';
+
+                    modalOverlay.classList.remove('hidden');
+                    document.body.style.overflow = 'hidden';
+                    modalOkBtn.focus();
+
+                    modalOkBtn.onclick = () => {
+                        modalOverlay.classList.add('hidden');
+                        document.body.style.overflow = '';
+                        modalOkBtn.onclick = null;
+                        resolve();
+                    };
+                    modalCancelBtn.onclick = null;
+                });
+            };
+        }
+        if (typeof window.showCustomConfirm === 'undefined') {
+            window.showCustomConfirm = (message, title = "Confirm Action") => {
+                return new Promise((resolve) => {
+                    const modalOverlay = document.getElementById('customModalOverlay');
+                    const modalTitle = document.getElementById('customModalTitle');
+                    const modalMessage = document.getElementById('customModalMessage');
+                    const modalOkBtn = document.getElementById('customModalOkBtn');
+                    const modalCancelBtn = document.getElementById('customModalCancelBtn');
+
+                    modalTitle.textContent = title;
+                    modalMessage.textContent = message;
+                    modalTitle.classList.remove('success', 'error', 'warning', 'info');
+                    modalTitle.classList.add('info');
+
+                    modalCancelBtn.classList.remove('hidden');
+                    modalOkBtn.classList.remove('hidden');
+                    modalOkBtn.textContent = 'Yes'; // Set to Yes
+                    modalCancelBtn.textContent = 'No'; // Set to No
+
+                    modalOverlay.classList.remove('hidden');
+                    document.body.style.overflow = 'hidden';
+                    modalOkBtn.focus();
+
+                    const okHandler = () => {
+                        modalOverlay.classList.add('hidden');
+                        document.body.style.overflow = '';
+                        modalOkBtn.removeEventListener('click', okHandler);
+                        modalCancelBtn.removeEventListener('click', cancelHandler);
+                        resolve(true);
+                    };
+                    const cancelHandler = () => {
+                        modalOverlay.classList.add('hidden');
+                        document.body.style.overflow = '';
+                        modalOkBtn.removeEventListener('click', okHandler);
+                        modalCancelBtn.removeEventListener('click', cancelHandler);
+                        resolve(false);
+                    };
+
+                    modalOkBtn.addEventListener('click', okHandler);
+                    modalCancelBtn.addEventListener('click', cancelHandler);
+                });
+            };
+        }
+
+        // Function to handle redirection to login page and clear session storage
+        function redirectToLogin(message = "Your session has expired. Please log in again.") {
+            console.warn("Redirecting to login:", message);
+            window.showCustomAlert(message, "Session Expired").then(() => {
+                sessionStorage.clear();
+                window.location.href = 'index.html';
+            });
+        }
+        
+        // --- JWT Decoding (Client-side, for expiration check) ---
+        function decodeJwt(token) {
+            if (!token) return null;
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) {
+                console.error("Error decoding JWT:", e);
+                return null;
+            }
+        }
+        
+        // This is a minimal, non-functional refresh token placeholder for the client-side dashboard logic
+        // The robust implementation would need to be moved here for a real application.
+        async function mockRefreshAuthToken() {
+            // In a test environment, we just assume token is valid if it exists, or fail refresh.
+            return !!sessionStorage.getItem('authToken');
+        }
+
+        async function checkAdminStatus() {
+            const loggedInUserString = sessionStorage.getItem('loggedInUser');
+            if (!loggedInUserString) {
+                redirectToLogin("Please log in.");
+                return false;
+            }
+            const loggedInUser = JSON.parse(loggedInUserString);
+
+            // In a secure app, this would verify the token server-side.
+            if (loggedInUser.role !== 'admin') {
+                window.showCustomAlert("Access Denied: You must be an administrator to view this test dashboard.", "Access Denied").then(() => {
+                    sessionStorage.clear();
+                    window.location.href = 'selection.html'; // Redirect to live dashboard or login
+                });
+                return false;
+            }
+
+            // Update user display names
+            const username = loggedInUser.username || 'Admin';
+            document.getElementById('userNameDisplay').textContent = username;
+            document.getElementById('sidebarUsernameDisplay').textContent = username;
+            return true;
+        }
+
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            if (!(await checkAdminStatus())) {
+                return;
+            }
+
+            const logoutButton = document.getElementById('logoutButton');
+            const sidebarLogoutButton = document.getElementById('sidebarLogoutButton');
+            
+            function handleLogout(event) {
+                event.preventDefault();
+                window.showCustomConfirm("Are you sure you want to log out?", "Confirm Logout").then((confirmed) => {
+                    if (confirmed) {
+                        sessionStorage.removeItem('authToken');
+                        sessionStorage.removeItem('loggedInUser');
+                        sessionStorage.removeItem('userStats');       
+                        sessionStorage.removeItem('statsLastUpdated'); 
+                        window.location.href = 'index.html';
+                    }
+                });
+            }
+            if (logoutButton) logoutButton.addEventListener('click', handleLogout);
+            if (sidebarLogoutButton) sidebarLogoutButton.addEventListener('click', handleLogout);
+        });
+
+        // Dynamic Header Height Script (The fix that works!)
+        (function() {
+            function syncHeaderHeight() {
+              const header = document.querySelector('header.main-header') || document.querySelector('header.theme-section-bg.main-header') || document.querySelector('header.theme-section-bg');
+              const mainContent = document.getElementById('mainContentArea');
+              if (!header || !mainContent) return;
+              
+              // measure true height (includes wrapping) + 1rem (16px) for breathing room
+              const height = header.offsetHeight || 0;
+              const safePadding = height + 16; 
+              
+              // Apply as inline style to the main content area
+              mainContent.style.paddingTop = safePadding + 'px';
+
+              // set as CSS variable too (for consistency, though inline style is now primary)
+              document.documentElement.style.setProperty('--app-header-height', height + 'px');
+            }
+
+            // run on load and resize (and after a short timeout to catch fonts/images)
+            window.addEventListener('DOMContentLoaded', () => {
+              syncHeaderHeight();
+              // a small timeout helps if fonts/images change header height after load
+              setTimeout(syncHeaderHeight, 250);
+            });
+            window.addEventListener('resize', syncHeaderHeight);
+            
+            // Re-run on theme changes if necessary, assuming theme.js provides an event
+            if (window.matchMedia) {
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', syncHeaderHeight);
+            }
+        })();
+    </script>
+</body>
+</html>
