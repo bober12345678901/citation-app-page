@@ -788,108 +788,106 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   async function loadStats(force = false) {
-    // Only show loader and hide content during a server fetch
-    if (force) {
+    const cacheKey = 'userStats';
+    const cached = sessionStorage.getItem(cacheKey);
+    let shouldFetch = force;
+    
+    // Logic for Initial Load (force = false): Always fetch if the cache is missing or belongs to a different user.
+    if (!force) {
+        if (!cached) {
+            console.log('No stats found in cache. Forcing initial server fetch.');
+            shouldFetch = true;
+        } else {
+            try {
+                const parsed = JSON.parse(cached);
+                if (parsed.username !== userInfo.username) {
+                    console.log('Cached stats belong to a different user. Forcing initial server fetch.');
+                    shouldFetch = true;
+                } else {
+                    // Cache is valid and for the current user, display it immediately
+                    citationCountEl.textContent = parsed.citations;
+                    shiftCountEl.textContent = parsed.shifts;
+                    arrestCountEl.textContent = parsed.arrests;
+                    updateTimestamp();
+                    console.log('Statistics loaded from cache.', parsed);
+                    
+                    // Since we loaded from cache, we're done.
+                    loaderEl.classList.add('hidden');
+                    contentEl.classList.remove('hidden');
+                    return; 
+                }
+            } catch (e) {
+                console.error('Error parsing cached stats. Forcing initial server fetch.', e);
+                shouldFetch = true;
+            }
+        }
+    }
+
+
+    // --- Execute Server Fetch (Only runs if force is true OR cache was invalid/missing on load) ---
+    if (shouldFetch) {
         loaderEl.classList.remove('hidden');
         contentEl.classList.add('hidden');
         citationCountEl.textContent = '--';
         shiftCountEl.textContent = '--';
         arrestCountEl.textContent = '--';
+
+        try {
+            const username = userInfo.username.toLowerCase();
+            const [citationsRes, shiftsRes, arrestsRes] = await Promise.all([
+                fetch(`${baseUrl}/citations`, { headers }),
+                fetch(`${baseUrl}/shift-logs`, { headers }),
+                fetch(`${baseUrl}/arrest-logs`, { headers }),
+            ]);
+
+            let citations = 0, shifts = 0, arrests = 0;
+
+            if (citationsRes.ok) {
+                const data = await citationsRes.json();
+                citations = data.filter(c => c.submittedBy?.toLowerCase() === username).length;
+            }
+            if (shiftsRes.ok) {
+                const data = await shiftsRes.json();
+                shifts = data.filter(s => s.submittedByUsername?.toLowerCase() === username).length;
+            }
+            if (arrestsRes.ok) {
+                const data = await arrestsRes.json();
+                arrests = data.filter(a => a.submittedByUsername?.toLowerCase() === username).length;
+            }
+
+            // Update DOM with fresh data
+            citationCountEl.textContent = citations;
+            shiftCountEl.textContent = shifts;
+            arrestCountEl.textContent = arrests;
+
+            // Cache fresh data
+            const statsToCache = {
+                username: userInfo.username,
+                citations,
+                shifts,
+                arrests,
+            };
+            sessionStorage.setItem(cacheKey, JSON.stringify(statsToCache));
+            
+            console.log('Statistics saved to cache.', statsToCache);
+            
+            sessionStorage.setItem('statsLastUpdated', new Date().toISOString());
+            updateTimestamp();
+
+        } catch (err) {
+            console.error('Error fetching stats:', err);
+            citationCountEl.textContent = '--';
+            shiftCountEl.textContent = '--';
+            arrestCountEl.textContent = '--';
+        } finally {
+            loaderEl.classList.add('hidden');
+            contentEl.classList.remove('hidden');
+        }
     }
-
-
-    const cacheKey = 'userStats';
-    const cached = sessionStorage.getItem(cacheKey);
-
-    // If 'force' is true (Refresh button clicked), fetch new data and write to cache.
-    if (force) {
-      try {
-        const username = userInfo.username.toLowerCase();
-        const [citationsRes, shiftsRes, arrestsRes] = await Promise.all([
-          fetch(`${baseUrl}/citations`, { headers }),
-          fetch(`${baseUrl}/shift-logs`, { headers }),
-          fetch(`${baseUrl}/arrest-logs`, { headers }),
-        ]);
-
-        let citations = 0, shifts = 0, arrests = 0;
-
-        if (citationsRes.ok) {
-          const data = await citationsRes.json();
-          citations = data.filter(c => c.submittedBy?.toLowerCase() === username).length;
-        }
-        if (shiftsRes.ok) {
-          const data = await shiftsRes.json();
-          shifts = data.filter(s => s.submittedByUsername?.toLowerCase() === username).length;
-        }
-        if (arrestsRes.ok) {
-          const data = await arrestsRes.json();
-          arrests = data.filter(a => a.submittedByUsername?.toLowerCase() === username).length;
-        }
-
-        citationCountEl.textContent = citations;
-        shiftCountEl.textContent = shifts;
-        arrestCountEl.textContent = arrests;
-
-        const statsToCache = {
-          username: userInfo.username,
-          citations,
-          shifts,
-          arrests,
-        };
-        sessionStorage.setItem(cacheKey, JSON.stringify(statsToCache));
-        
-        console.log('Statistics saved to cache.', statsToCache);
-        
-        sessionStorage.setItem('statsLastUpdated', new Date().toISOString());
-        updateTimestamp();
-
-      } catch (err) {
-        console.error('Error fetching stats:', err);
-        citationCountEl.textContent = '--';
-        shiftCountEl.textContent = '--';
-        arrestCountEl.textContent = '--';
-      } finally {
-        loaderEl.classList.add('hidden');
-        contentEl.classList.remove('hidden');
-      }
-      return; // Stop execution after fetching.
-    }
-
-    // --- Initial Page Load (force === false) ---
-    // If cache is present, load it. If not, the HTML placeholders remain.
-    if (cached) {
-      try {
-        const parsed = JSON.parse(cached);
-        // Check if cached stats belong to the current user
-        if (parsed.username === userInfo.username) {
-          // *** FIX: Update text content immediately to show the numbers ***
-          citationCountEl.textContent = parsed.citations;
-          shiftCountEl.textContent = parsed.shifts;
-          arrestCountEl.textContent = parsed.arrests;
-          updateTimestamp();
-          
-          console.log('Statistics loaded from cache.', parsed);
-
-        } else {
-          // Cache is for a different user, explicitly reset to placeholders if needed
-          // The HTML already defaults to '--', but this ensures the log is clear.
-          console.warn('Cached stats found but belong to a different user. Click refresh to update.');
-        }
-      } catch (e) {
-        // Cache is corrupt, the HTML placeholders remain
-        console.error('Error parsing cached stats. Click refresh to get new data.', e);
-      }
-    } else {
-      // No cache found, the HTML placeholders remain.
-      console.log('No stats found in cache. Click refresh to get initial data.');
-    }
-    
-    // Ensure content is visible (loader is never shown unless manually refreshed)
-    loaderEl.classList.add('hidden');
-    contentEl.classList.remove('hidden');
   }
 
   // Initialize + refresh click
+  // The first call will now check cache, and if invalid/missing, it will perform a fetch.
   loadStats();
   refreshBtn.addEventListener('click', () => loadStats(true));
   setInterval(updateTimestamp, 60 * 1000); // auto-refresh display every minute
