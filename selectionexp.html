@@ -589,7 +589,14 @@ if (logoutButton) {
     if (window.showCustomConfirm) {
       window.showCustomConfirm("Are you sure you want to log out?", "Confirm Logout").then((confirmed) => {
         if (confirmed) {
-          sessionStorage.clear();
+          // --- LOGOUT CACHE CLEAR FIX ---
+          sessionStorage.removeItem('authToken');
+          sessionStorage.removeItem('loggedInUser');
+          sessionStorage.removeItem('userStats');       // Clear Stats Cache
+          sessionStorage.removeItem('statsLastUpdated'); // Clear Timestamp Cache
+          // sessionStorage.clear(); // Use clear if you want to wipe EVERYTHING
+          // --- END CACHE CLEAR FIX ---
+
           window.location.href = 'index.html';
         }
       });
@@ -792,18 +799,14 @@ document.addEventListener('DOMContentLoaded', function () {
     const cached = sessionStorage.getItem(cacheKey);
     let shouldFetch = force;
     
-    // Logic for Initial Load (force = false): Always fetch if the cache is missing or belongs to a different user.
+    // --- Step 1: Handle Initial Load (force = false) ---
     if (!force) {
-        if (!cached) {
-            console.log('No stats found in cache. Forcing initial server fetch.');
-            shouldFetch = true;
-        } else {
+        let needsFetch = true;
+        
+        if (cached) {
             try {
                 const parsed = JSON.parse(cached);
-                if (parsed.username !== userInfo.username) {
-                    console.log('Cached stats belong to a different user. Forcing initial server fetch.');
-                    shouldFetch = true;
-                } else {
+                if (parsed.username === userInfo.username) {
                     // Cache is valid and for the current user, display it immediately
                     citationCountEl.textContent = parsed.citations;
                     shiftCountEl.textContent = parsed.shifts;
@@ -811,20 +814,33 @@ document.addEventListener('DOMContentLoaded', function () {
                     updateTimestamp();
                     console.log('Statistics loaded from cache.', parsed);
                     
+                    needsFetch = false; // We loaded successfully, do not fetch.
+                    
                     // Since we loaded from cache, we're done.
                     loaderEl.classList.add('hidden');
                     contentEl.classList.remove('hidden');
                     return; 
+                } else {
+                    console.log('Cached stats belong to a different user. Fetching fresh data.');
+                    // needsFetch remains true to proceed to fetch block
                 }
             } catch (e) {
-                console.error('Error parsing cached stats. Forcing initial server fetch.', e);
-                shouldFetch = true;
+                console.error('Error parsing cached stats. Fetching fresh data.', e);
+                // needsFetch remains true to proceed to fetch block
             }
+        } else {
+            console.log('No stats found in cache. Fetching fresh data.');
+             // needsFetch remains true to proceed to fetch block
+        }
+        
+        // If the cache was missing or invalid for this user, force a fetch
+        if (needsFetch) {
+             shouldFetch = true;
         }
     }
 
 
-    // --- Execute Server Fetch (Only runs if force is true OR cache was invalid/missing on load) ---
+    // --- Step 2: Execute Server Fetch (Always runs if force=true OR cache was invalid/missing on load) ---
     if (shouldFetch) {
         loaderEl.classList.remove('hidden');
         contentEl.classList.add('hidden');
