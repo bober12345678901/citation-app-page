@@ -4,14 +4,123 @@
     <link rel="icon" href="favicon.png" type="image/png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leaderboards</title>
+    <title>Department Leaderboards</title>
+	<!-- Theme Preloader – must be first in <head> -->
+<script>
+(function() {
+  try {
+    const saved = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const theme = saved || (prefersDark ? 'dark' : 'light');
+
+    document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.classList.add(theme);
+
+    // Optional: prevent any flicker before Tailwind/theme.js load
+    document.documentElement.style.backgroundColor =
+      theme === 'dark' ? '#0b1220' : '#ffffff';
+    document.documentElement.style.color =
+      theme === 'dark' ? '#e6eef8' : '#0f172a';
+  } catch (e) {
+    console.warn('Theme preload failed:', e);
+  }
+})();
+</script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="styles.css">
     <script src="theme.js"></script>
     <style>
-        /* --- AESTHETIC IMPROVEMENTS --- */
+        /* The main container should look like a dashboard card */
+        .dashboard-form-container {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: box-shadow 0.3s;
+        }
+
+        /* FIX: Ensure the theme dropdown menu (if rendered) has a solid background */
+        .theme-dropdown-menu {
+            background-color: var(--box-bg-color); 
+            border: 1px solid var(--border-color); 
+        }
+
+        /* ===== header-safe-spacing (RECOMMENDED) ===== */
+        :root {
+          --app-header-height: 5rem; /* fallback if JS hasn't run yet */
+        }
+        header.theme-section-bg {
+            background-color: var(--box-bg-color) !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 0;
+            height: auto;
+            min-height: 4rem;
+            z-index: 50;
+            box-sizing: border-box;
+        }
+        .main-header {
+            width: calc(100% - 250px);
+            left: 250px;
+        }
+        .main-content-wrapper {
+            margin-left: 250px;
+            flex-grow: 1;
+            box-sizing: border-box;
+            /* Padding is set by JS inline */
+        }
+        @media (max-width: 1024px) {
+            .sidebar { display: none; }
+            .main-content-wrapper, .main-header {
+                margin-left: 0;
+                width: 100%;
+                left: 0;
+            }
+        }
+        /* --- Sidebar Styles --- */
+        .sidebar {
+            width: 250px;
+            min-width: 250px;
+            background-color: var(--box-bg-color);
+            color: var(--text-color);
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            padding-top: 2rem;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+            z-index: 40;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .sidebar-item {
+            display: block;
+            padding: 0.75rem 1.5rem;
+            font-size: 1.125rem;
+            font-weight: 500;
+            border-left: 5px solid transparent;
+            transition: background-color 0.2s, border-left-color 0.2s;
+        }
+        .sidebar-item:hover, .sidebar-item.active {
+            background-color: var(--input-bg-color);
+        }
+        .sidebar-item.active {
+            border-left-color: var(--accent-color);
+            color: var(--accent-color);
+            font-weight: 700;
+        }
+        .sidebar-user-info {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.875rem;
+        }
+        /* --- End Sidebar/Header Styles --- */
+
+        /* --- AESTHETIC IMPROVEMENTS (Updated to use theme classes) --- */
         .leaderboard-section {
             margin-top: 2.5rem;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            background-color: var(--box-bg-color); /* Use box background for sections */
+            border: 1px solid var(--border-color);
         }
         .leaderboard-list {
             background-color: var(--input-bg-color);
@@ -28,9 +137,13 @@
             padding: 12px 1rem;
             border-radius: 6px;
             transition: background-color 0.2s ease-in-out;
+            color: var(--text-color); /* Ensure text color is thematic */
         }
         .leaderboard-item:nth-child(even) {
-            background-color: rgba(0, 0, 0, 0.1);
+            background-color: color-mix(in srgb, var(--input-bg-color) 90%, var(--border-color)); /* Slightly different row color */
+        }
+        .leaderboard-item:hover {
+            background-color: color-mix(in srgb, var(--input-bg-color) 70%, var(--accent-color));
         }
         .rank-number {
             font-weight: bold;
@@ -38,7 +151,7 @@
             width: 50px;
             text-align: right;
             margin-right: 15px;
-            color: var(--button-primary-bg);
+            color: var(--accent-color);
             flex-shrink: 0;
         }
         .username-display {
@@ -54,68 +167,88 @@
             min-width: 120px;
             text-align: right;
             flex-shrink: 0;
+            color: var(--text-color);
         }
         .rank-1 {
-            background-image: linear-gradient(to right, rgba(255, 215, 0, 0.2), rgba(255, 215, 0, 0.05));
+            /* Use mix for thematic gold color */
+            background-image: linear-gradient(to right, color-mix(in srgb, var(--accent-color) 20%, #FFD700), transparent);
             border-left: 4px solid #FFD700; /* Gold */
         }
         .rank-2 {
-            background-image: linear-gradient(to right, rgba(192, 192, 192, 0.2), rgba(192, 192, 192, 0.05));
+            background-image: linear-gradient(to right, color-mix(in srgb, var(--accent-color) 20%, #C0C0C0), transparent);
             border-left: 4px solid #C0C0C0; /* Silver */
         }
         .rank-3 {
-            background-image: linear-gradient(to right, rgba(205, 127, 50, 0.2), rgba(205, 127, 50, 0.05));
+            background-image: linear-gradient(to right, color-mix(in srgb, var(--accent-color) 20%, #CD7F32), transparent);
             border-left: 4px solid #CD7F32; /* Bronze */
         }
         @media (max-width: 640px) {
+            .leaderboard-section { padding: 1rem; }
             .leaderboard-list { max-height: 40vh; }
             .rank-number { font-size: 1em; width: 40px; margin-right: 10px; }
             .count-display { font-size: 0.9em; min-width: 90px; }
         }
     </style>
 </head>
-<body class="theme-dark min-h-screen flex flex-col theme-bg theme-text">
+<body class="theme-app-container flex flex-row font-sans">
     
     <div id="customAlertOverlay" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-        <div id="customAlert" class="theme-box theme-border p-6 rounded-xl shadow-2xl w-11/12 max-w-sm">
+        <div id="customAlert" class="theme-lookup-box theme-lookup-box p-6 rounded-xl shadow-2xl w-11/12 max-w-sm">
             <h4 id="customAlertTitle" class="text-xl font-bold mb-3 theme-label">Alert</h4>
-            <p id="customAlertMessage" class="mb-4 theme-text"></p>
-            <button id="customAlertButton" class="w-full theme-button theme-button-primary">OK</button>
+            <p id="customAlertMessage" class="mb-4 theme-label"></p>
+            <button id="customAlertButton" class="w-full theme-button-primary py-2 rounded-lg font-semibold">OK</button>
         </div>
     </div>
 
-    <header class="theme-section-bg shadow-lg fixed top-0 w-full z-50">
+    <div class="sidebar">
+        <div>
+            <div class="text-2xl font-bold px-6 mb-8 text-[var(--accent-color)]">Shadow LE Web</div>
+            
+            <a href="selection.html" class="sidebar-item theme-text-color">Dashboard</a>
+            <a href="citation.html" class="sidebar-item theme-text-color">Submit Citation</a>
+            <a href="arrest.html" class="sidebar-item theme-text-color">Submit Arrest Report</a>
+            <a href="shift_log.html" class="sidebar-item theme-text-color">Submit Shift Log</a>
+        </div>
+        
+        <div class="sidebar-user-info theme-subtle-text">
+            <p class="font-bold mb-1 theme-text-color" id="sidebarUsernameDisplay">USERNAME</p>
+            <p class="block theme-subtle-text">Shadow LE Web© 2025</p>
+            <button id="sidebarLogoutButton" class="block mt-2 font-medium text-red-400 hover:text-red-500 transition-colors">Log out</button>
+        </div>
+    </div>
+    <header class="theme-section-bg shadow-lg fixed top-0 w-full z-50 main-header">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
             <h1 class="text-3xl font-bold theme-text-color">Department Leaderboards</h1>
-            <nav class="space-x-4">
-                <a href="selection.html" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">Dashboard</a>
-                <a href="#" id="refreshButton" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">Refresh</a>
+            <nav class="space-x-4 flex items-center">
+                <a href="selection.html" class="theme-button-secondary py-2 px-6 rounded-lg font-semibold">Dashboard</a>
+                <button id="refreshButton" class="theme-button-primary py-2 px-6 rounded-lg font-semibold">Refresh</button>
+                <button id="logoutButton" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">Log Out</button>
             </nav>
         </div>
     </header>
+    <main class="main-content-wrapper max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full" id="mainContentArea">
+        <div class="container mx-auto max-w-4xl w-full theme-lookup-box p-8 sm:p-10 rounded-2xl dashboard-form-container border theme-tile-border transition-colors duration-300">
+            
+            <div id="userInfoDisplay" class="theme-section-bg p-4 rounded-lg shadow-inner mb-6 border theme-tile-border">
+                <h2 class="theme-label text-xl font-bold mb-2">Current Officer Stats:</h2>
+                <p class="theme-label font-semibold">Username: <span id="userUsername" class="font-normal"></span></p>
+                <p class="theme-label text-sm">Badge Number: <span id="userBadge" class="font-normal"></span></p>
+            </div>
 
-    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full mt-20">
-        
-        <!-- MODIFICATION: Swapped "Callsign" back to "Badge Number" -->
-        <div id="userInfoDisplay" class="theme-box p-4 rounded-lg shadow-lg mb-6">
-            <p class="theme-label font-semibold">User: <span id="userUsername"></span></p>
-            <p class="theme-text text-sm">Badge Number: <span id="userBadge"></span></p>
+            <section class="leaderboard-section">
+                <h3 class="text-2xl font-semibold theme-label border-b pb-2 mb-4">Citation Leaderboard</h3>
+                <div id="citationLeaderboardContainer" class="leaderboard-list">
+                    <div class="text-center theme-label p-4">Loading citation data...</div>
+                </div>
+            </section>
+
+            <section class="leaderboard-section">
+                <h3 class="text-2xl font-semibold theme-label border-b pb-2 mb-4">Shift Log Leaderboard</h3>
+                <div id="shiftLogLeaderboardContainer" class="leaderboard-list">
+                    <div class="text-center theme-label p-4">Loading shift log data...</div>
+                </div>
+            </section>
         </div>
-
-        <section class="leaderboard-section">
-            <h3 class="text-2xl font-semibold theme-label border-b pb-2 mb-4">Citation Leaderboard</h3>
-            <div id="citationLeaderboardContainer" class="leaderboard-list">
-                <div class="text-center theme-label p-4">Loading citation data...</div>
-            </div>
-        </section>
-
-        <section class="leaderboard-section">
-            <h3 class="text-2xl font-semibold theme-label border-b pb-2 mb-4">Shift Log Leaderboard</h3>
-            <div id="shiftLogLeaderboardContainer" class="leaderboard-list">
-                <div class="text-center theme-label p-4">Loading shift log data...</div>
-            </div>
-        </section>
-
     </main>
 
     <script>
@@ -140,40 +273,114 @@
         
         let apiBaseUrl = 'https://citation-app-worker.pnbober.workers.dev';
         
-        async function fetchWithAuth(url, options = {}) {
-            const token = sessionStorage.getItem('authToken');
-            const headers = { 'Content-Type': 'application/json', ...options.headers };
-            if (token) {
-                headers['Authorization'] = `Bearer ${token}`;
+        // --- JWT Decoding (Client-side) ---
+        function decodeJwt(token) {
+            if (!token) return null;
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) {
+                console.error("Error decoding JWT:", e);
+                return null;
             }
-            options.headers = headers;
-            return fetch(url, options);
         }
+        
+        // --- Token Refresh Mechanism (Mock/Placeholder) ---
+        async function refreshAuthToken() {
+            console.log("Attempting to refresh token...");
+            // In a real app, this would call your /refresh-token endpoint.
+            // For now, we assume failure if no token exists.
+            return false;
+        }
+
+        // --- Authenticated Fetch Wrapper ---
+        async function fetchWithAuth(url, options = {}) {
+            let token = sessionStorage.getItem('authToken');
+            const headers = { 'Content-Type': 'application/json', ...options.headers };
+
+            // Simplified token validation: if expired, try refresh, otherwise fail
+            const decodedToken = decodeJwt(token);
+            if (!token || !decodedToken || decodedToken.exp < (Date.now() / 1000)) {
+                if (await refreshAuthToken()) {
+                    token = sessionStorage.getItem('authToken');
+                } else {
+                    redirectToLogin("Your session has expired. Please log in again.");
+                    return { ok: false, status: 401 };
+                }
+            }
+            
+            headers['Authorization'] = `Bearer ${token}`;
+            options.headers = headers;
+
+            try {
+                const response = await fetch(url, options);
+                // Simple 401/403 retry logic (as seen in other files)
+                if ((response.status === 401 || response.status === 403) && await refreshAuthToken()) {
+                    token = sessionStorage.getItem('authToken');
+                    headers['Authorization'] = `Bearer ${token}`;
+                    options.headers = headers;
+                    return fetch(url, options); // Retry fetch
+                }
+                return response;
+            } catch (error) {
+                console.error("Network error during authenticated fetch:", error);
+                window.showCustomAlert('A network error occurred. Please check your internet connection.', 'Network Error');
+                return { ok: false, status: 500 };
+            }
+        }
+        
+        function redirectToLogin(message = "Your session has expired. Please log in again.") {
+            console.warn("Redirecting to login:", message);
+            window.showCustomAlert(message, "Session Expired").then(() => {
+                sessionStorage.clear();
+                window.location.href = 'index.html';
+            });
+        }
+
 
         // --- Leaderboard Logic ---
         document.addEventListener('DOMContentLoaded', () => {
-            const loggedInUser = JSON.parse(sessionStorage.getItem('loggedInUser'));
-            if (!loggedInUser) {
-                window.showCustomAlert('You must be logged in to view this page.', 'Authentication Required').then(() => {
-                    window.location.href = 'index.html';
-                });
+            const loggedInUserString = sessionStorage.getItem('loggedInUser');
+            if (!loggedInUserString) {
+                redirectToLogin('You must be logged in to view this page.');
                 return;
             }
+            const loggedInUser = JSON.parse(loggedInUserString);
 
-            // MODIFICATION: Set badge number instead of callsign
-            document.getElementById('userUsername').textContent = loggedInUser.username;
-            document.getElementById('userBadge').textContent = loggedInUser.badgeNumber;
-
+            // Set user info display
+            document.getElementById('userUsername').textContent = loggedInUser.username || 'N/A';
+            document.getElementById('userBadge').textContent = loggedInUser.badgeNumber || 'N/A';
 
             const citationLeaderboardContainer = document.getElementById('citationLeaderboardContainer');
             const shiftLogLeaderboardContainer = document.getElementById('shiftLogLeaderboardContainer');
             const refreshButton = document.getElementById('refreshButton');
+            
+            // Sidebar Logout setup
+            const sidebarLogoutButton = document.getElementById('sidebarLogoutButton');
+            if (sidebarLogoutButton) {
+                sidebarLogoutButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (window.showCustomConfirm) {
+                        window.showCustomConfirm("Are you sure you want to log out?", "Confirm Logout").then((confirmed) => {
+                            if (confirmed) {
+                                sessionStorage.clear();
+                                window.location.href = 'index.html';
+                            }
+                        });
+                    }
+                });
+            }
+
 
             function processLeaderboardData(data) {
                 const stats = {};
                 data.forEach(item => {
-                    const officerBadge = item.submittedByBadge;
+                    // Use a common identifier (Badge Number is robust for this app)
+                    const officerBadge = item.submittedByBadge || (item.submittedByUsername && loggedInUser.badgeNumber); 
                     const officerUsername = item.submittedByUsername || item.submittedBy || 'Unknown Officer'; 
+                    
                     if (officerBadge) {
                         if (!stats[officerBadge]) {
                             stats[officerBadge] = { username: officerUsername, count: 0 };
@@ -195,28 +402,31 @@
                     const itemDiv = document.createElement('div');
                     itemDiv.classList.add('leaderboard-item');
 
+                    let rankClass = '';
                     let rankContent = `${index + 1}.`;
                     if (index === 0) {
-                        itemDiv.classList.add('rank-1');
+                        rankClass = 'rank-1';
                         rankContent = `🥇 ${index + 1}`;
                     } else if (index === 1) {
-                        itemDiv.classList.add('rank-2');
+                        rankClass = 'rank-2';
                         rankContent = `🥈 ${index + 1}`;
                     } else if (index === 2) {
-                        itemDiv.classList.add('rank-3');
+                        rankClass = 'rank-3';
                         rankContent = `🥉 ${index + 1}`;
                     }
+                    if (rankClass) itemDiv.classList.add(rankClass);
 
                     itemDiv.innerHTML = `
                         <span class="rank-number">${rankContent}</span>
                         <span class="username-display">${stat.username}</span>
-                        <span class="count-display text-gray-400">${stat.count} ${type}(s)</span>
+                        <span class="count-display">${stat.count} ${type}(s)</span>
                     `;
                     container.appendChild(itemDiv);
                 });
             }
 
             async function fetchAndDisplayLeaderboards() {
+                // Display loading state
                 citationLeaderboardContainer.innerHTML = `<div class="text-center theme-label p-4">Fetching Citation data...</div>`;
                 shiftLogLeaderboardContainer.innerHTML = `<div class="text-center theme-label p-4">Fetching Shift Log data...</div>`;
 
@@ -226,18 +436,20 @@
                         fetchWithAuth(`${apiBaseUrl}/shift-logs`)
                     ]);
 
+                    let citationData = [];
                     if (citationResponse.ok) {
-                        const citationData = await citationResponse.json();
+                        citationData = await citationResponse.json();
                         renderLeaderboard(citationLeaderboardContainer, processLeaderboardData(citationData), 'citation');
                     } else {
-                        citationLeaderboardContainer.innerHTML = `<div class="text-center theme-label text-red-500 p-4">Failed to load data (${citationResponse.status}).</div>`;
+                        citationLeaderboardContainer.innerHTML = `<div class="text-center theme-label text-red-500 p-4">Failed to load citations.</div>`;
                     }
                     
+                    let shiftLogData = [];
                     if (shiftLogResponse.ok) {
-                        const shiftLogData = await shiftLogResponse.json();
+                        shiftLogData = await shiftLogResponse.json();
                         renderLeaderboard(shiftLogLeaderboardContainer, processLeaderboardData(shiftLogData), 'shift log');
                     } else {
-                        shiftLogLeaderboardContainer.innerHTML = `<div class="text-center theme-label text-red-500 p-4">Failed to load data (${shiftLogResponse.status}).</div>`;
+                        shiftLogLeaderboardContainer.innerHTML = `<div class="text-center theme-label text-red-500 p-4">Failed to load shift logs.</div>`;
                     }
                 } catch (error) {
                     console.error('Error fetching leaderboard data:', error);
@@ -252,7 +464,29 @@
 
             fetchAndDisplayLeaderboards();
         });
+        
+        // --- DYNAMIC HEADER HEIGHT SCRIPT (The fix that works!) ---
+        (function() {
+            function syncHeaderHeight() {
+              const header = document.querySelector('header.main-header') || document.querySelector('header.theme-section-bg.main-header') || document.querySelector('header.theme-section-bg');
+              const mainContent = document.getElementById('mainContentArea');
+              if (!header || !mainContent) return;
+              
+              const height = header.offsetHeight || 0;
+              const safePadding = height + 16; // 1rem (16px) for breathing room
+              
+              mainContent.style.paddingTop = safePadding + 'px';
+
+              document.documentElement.style.setProperty('--app-header-height', height + 'px');
+            }
+
+            window.addEventListener('DOMContentLoaded', async () => {
+                syncHeaderHeight();
+                setTimeout(syncHeaderHeight, 250); // Re-run after potential font/image load
+            });
+            window.addEventListener('resize', syncHeaderHeight);
+        })();
+        // --- END DYNAMIC HEADER HEIGHT SCRIPT ---
     </script>
 </body>
 </html>
-

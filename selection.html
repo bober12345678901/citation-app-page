@@ -5,6 +5,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Dashboard</title>
+	<!-- Theme Preloader – must be first in <head> -->
+<script>
+(function() {
+  try {
+    const saved = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const theme = saved || (prefersDark ? 'dark' : 'light');
+
+    document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.classList.add(theme);
+
+    // Optional: prevent any flicker before Tailwind/theme.js load
+    document.documentElement.style.backgroundColor =
+      theme === 'dark' ? '#0b1220' : '#ffffff';
+    document.documentElement.style.color =
+      theme === 'dark' ? '#e6eef8' : '#0f172a';
+  } catch (e) {
+    console.warn('Theme preload failed:', e);
+  }
+})();
+</script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="styles.css">
     <script src="theme.js"></script>
@@ -20,6 +42,7 @@
             background-color: var(--input-bg-color);
             border-color: var(--accent-color);
         }
+        /* Dashboard-specific styling */
         .theme-section-bg {
             background-color: var(--box-bg-color);
         }
@@ -35,7 +58,6 @@
         .theme-subtle-text {
             color: var(--subtle-text-color);
         }
-
         /* New class for the larger tiles (20% increase) */
         .large-tile-padding {
             padding: 1.5rem; /* Base padding */
@@ -64,20 +86,19 @@
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s ease, visibility 0.3s ease;
-            padding-top: 4rem; /* Space for the header */
+            padding-top: 4rem;
         }
         .fullscreen-embed-modal.show {
             opacity: 1;
             visibility: visible;
         }
-        /* NOTE: The ID #fullscreenEmbedContent is now the wrapper for content and title. */
         .modal-content {
             background-color: var(--bg-color); /* This will be the content's background color when showing iframes/videos/pdfs */
             padding: 2rem;
             border-radius: 0.75rem;
             width: 95%;
             max-width: 90vw;
-            height: 90vh; /* Use height for fullscreen display */
+            height: 90vh;
             max-height: 90vh;
             overflow: hidden;
             transform: scale(0.95);
@@ -106,26 +127,95 @@
             margin-bottom: 1rem;
             border-bottom: 1px solid var(--border-color);
         }
-        /* Style for content inside the modal (iframe or dynamic content) */
-        /* NOTE: Now targetting #dynamicEmbedContent's children */
         #dynamicEmbedContent > iframe, 
         #dynamicEmbedContent > embed, 
         #dynamicEmbedContent > .aspect-video {
-            flex-grow: 1; /* Allows the content to fill the remaining space */
+            flex-grow: 1; 
             border: none;
             width: 100%;
         }
-        
-        /* Ensure the dynamic content area also acts as a flex container to manage its children */
         #dynamicEmbedContent {
             flex-grow: 1; 
             display: flex;
             flex-direction: column;
             width: 100%;
         }
+
+        /* --- New Sidebar/Header Styles for Unification --- */
+        /* ===== header-safe-spacing (RECOMMENDED) ===== */
+        :root {
+          --app-header-height: 5rem; /* fallback if JS hasn't run yet */
+        }
+        header.theme-section-bg {
+            background-color: var(--box-bg-color) !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 0;
+            height: auto;
+            min-height: 4rem;
+            z-index: 50;
+            box-sizing: border-box;
+        }
+        .main-header {
+            width: calc(100% - 250px);
+            left: 250px;
+        }
+        .main-content-wrapper {
+            margin-left: 250px;
+            flex-grow: 1;
+            box-sizing: border-box;
+            padding-top: 0; /* Padding is set by JS inline */
+        }
+        @media (max-width: 1024px) {
+            .sidebar { display: none; }
+            .main-content-wrapper, .main-header {
+                margin-left: 0;
+                width: 100%;
+                left: 0;
+            }
+        }
+        /* --- Sidebar Styles --- */
+        .sidebar {
+            width: 250px;
+            min-width: 250px;
+            background-color: var(--box-bg-color);
+            color: var(--text-color);
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            padding-top: 2rem;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+            z-index: 40;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .sidebar-item {
+            display: block;
+            padding: 0.75rem 1.5rem;
+            font-size: 1.125rem;
+            font-weight: 500;
+            border-left: 5px solid transparent;
+            transition: background-color 0.2s, border-left-color 0.2s;
+        }
+        .sidebar-item:hover, .sidebar-item.active {
+            background-color: var(--input-bg-color);
+        }
+        .sidebar-item.active {
+            border-left-color: var(--accent-color);
+            color: var(--accent-color);
+            font-weight: 700;
+        }
+        .sidebar-user-info {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.875rem;
+        }
+        /* --- End Sidebar/Header Styles --- */
     </style>
 </head>
-<body class="theme-bg-color min-h-screen font-sans">
+<body class="theme-bg-color min-h-screen font-sans flex flex-row">
 
     <div id="customModalOverlay" class="modal-overlay">
         <div class="custom-modal">
@@ -137,56 +227,67 @@
             </div>
         </div>
     </div>
-
-<header class="theme-section-bg shadow-lg fixed top-0 w-full z-50">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
     
-    <div class="flex items-end space-x-4">
-        <h1 class="text-3xl font-bold theme-text-color">User Dashboard</h1>
+    <div class="sidebar">
+        <div>
+            <div class="text-2xl font-bold px-6 mb-8 text-[var(--accent-color)]">Shadow LE Web</div>
+            
+            <a href="selection.html" class="sidebar-item active">Dashboard</a>
+            <a href="citation.html" class="sidebar-item theme-text-color">Submit Citation</a>
+            <a href="arrest.html" class="sidebar-item theme-text-color">Submit Arrest Report</a>
+            <a href="shift_log.html" class="sidebar-item theme-text-color">Submit Shift Log</a>
+        </div>
         
-        <a href="selection_old.html" 
-           class="text-sm font-medium theme-subtle-text hover:text-[var(--accent-color)] transition-colors mb-1">
-            (Go to Legacy Dashboard)
-        </a>
+        <div class="sidebar-user-info theme-subtle-text">
+            <p class="font-bold mb-1 theme-text-color" id="sidebarUsernameDisplay">USERNAME</p>
+            <p class="block theme-subtle-text">Shadow LE Web© 2025</p>
+            <button id="sidebarLogoutButton" class="block mt-2 font-medium text-red-400 hover:text-red-500 transition-colors">Log out</button>
         </div>
+    </div>
+    <header class="theme-section-bg shadow-lg fixed top-0 w-full z-50 main-header">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+        
+        <div class="flex items-end space-x-4">
+            <h1 class="text-3xl font-bold theme-text-color">User Dashboard</h1>
+            
+            <a href="selection_old.html" 
+               class="text-sm font-medium theme-subtle-text hover:text-[var(--accent-color)] transition-colors mb-1">
+                (Go to Legacy Dashboard)
+            </a>
+            </div>
 
-    <nav class="space-x-4 flex items-center">
-      <p class="theme-text-color font-medium hidden sm:block">
-        Welcome, <span id="userNameDisplay">User</span>
-      </p>
+        <nav class="space-x-4 flex items-center">
+          <p class="theme-text-color font-medium hidden sm:block">
+            Welcome, <span id="userNameDisplay">User</span>
+          </p>
 
-      <div class="relative inline-block text-left">
-        <button id="themeToggle" type="button"
-          class="p-2 rounded-full theme-text-color hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-colors flex items-center justify-center space-x-1"
-          aria-expanded="false" aria-haspopup="true">
-          <span id="currentThemeIcon" class="w-6 h-6 flex items-center justify-center"></span>
-          <svg id="dropdownArrow" class="w-4 h-4 transition-transform duration-200"
-            fill="none" stroke="currentColor" viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </button>
-        <div id="themeDropdownMenu"
-          class="absolute right-0 mt-2 w-48 rounded-lg shadow-2xl theme-section-bg ring-1 ring-black ring-opacity-10 origin-top-right hidden theme-dropdown-menu">
-          <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="themeToggle"
-            id="themeOptions"></div>
-        </div>
+          <div class="relative inline-block text-left">
+            <button id="themeToggle" type="button"
+              class="p-2 rounded-full theme-text-color hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-colors flex items-center justify-center space-x-1"
+              aria-expanded="false" aria-haspopup="true">
+              <span id="currentThemeIcon" class="w-6 h-6 flex items-center justify-center"></span>
+              <svg id="dropdownArrow" class="w-4 h-4 transition-transform duration-200"
+                fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+            <div id="themeDropdownMenu"
+              class="absolute right-0 mt-2 w-48 rounded-lg shadow-2xl theme-section-bg ring-1 ring-black ring-opacity-10 origin-top-right hidden theme-dropdown-menu">
+              <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="themeToggle"
+                id="themeOptions"></div>
+            </div>
+          </div>
+
+          <button id="logoutButton"
+            class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
+            Log Out
+          </button>
+        </nav>
       </div>
-
-      <button id="logoutButton"
-        class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
-        Log Out
-      </button>
-    </nav>
-  </div>
-</header>
-
-
-
-
-
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-20" id="mainContentArea">
+    </header>
+    <main class="main-content-wrapper max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" id="mainContentArea">
         <h2 class="text-2xl font-semibold mb-6 theme-text-color">Modules & Resources</h2>
 		<section id="userStatsSection" class="col-span-12 p-6 rounded-2xl shadow-lg theme-section-bg border theme-tile-border transition-transform transform hover:scale-[1.01] mb-8">
   <div class="flex items-center justify-between mb-4">
@@ -480,10 +581,12 @@
                 if (loggedInUserString) {
                     const loggedInUser = JSON.parse(loggedInUserString);
                     const userNameDisplay = document.getElementById('userNameDisplay');
+                    const sidebarUsernameDisplay = document.getElementById('sidebarUsernameDisplay');
                     
                     if (userNameDisplay) {
 						// Match selection.html behavior
 						userNameDisplay.textContent = loggedInUser.username || 'User';
+                        sidebarUsernameDisplay.textContent = loggedInUser.username || 'USERNAME';
 					}
 
                     const adminButton = document.getElementById('adminButton');
@@ -587,233 +690,59 @@
             }
         });
 		const logoutButton = document.getElementById('logoutButton');
-if (logoutButton) {
-  logoutButton.addEventListener('click', function (event) {
-    event.preventDefault();
-    // Use custom confirm modal (from theme.js)
-    if (window.showCustomConfirm) {
-      window.showCustomConfirm("Are you sure you want to log out?", "Confirm Logout").then((confirmed) => {
-        if (confirmed) {
-          // --- LOGOUT CACHE CLEAR FIX ---
-          sessionStorage.removeItem('authToken');
-          sessionStorage.removeItem('loggedInUser');
-          sessionStorage.removeItem('userStats');       // Clear Stats Cache
-          sessionStorage.removeItem('statsLastUpdated'); // Clear Timestamp Cache
-          // --- END CACHE CLEAR FIX ---
+        const sidebarLogoutButton = document.getElementById('sidebarLogoutButton');
 
-          window.location.href = 'index.html';
-        }
-      });
-    } else {
-      // Fallback if theme.js modal isn’t loaded
-      if (confirm("Are you sure you want to log out?")) {
-        sessionStorage.clear();
-        window.location.href = 'index.html';
-      }
-    }
-  });
-}
-    </script>
-<button id="chat-toggle" title="Open AI Help" type="button"
-    class="fixed bottom-6 right-6 w-14 h-14 rounded-full flex items-center justify-center shadow-lg cursor-pointer z-50 transition-transform duration-200"
-    style="background-color: var(--accent-color); color: var(--button-text-color); border: none;">
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-        stroke-width="2.5" stroke="currentColor" class="w-7 h-7 pointer-events-none">
-        <path stroke-linecap="round" stroke-linejoin="round"
-              d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 
-                 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442
-                 -.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0
-                 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"/>
-    </svg>
-</button>
-
-<div id="chat-widget"
-    class="hidden fixed bottom-24 right-6 w-96 max-w-[90vw] h-[480px] rounded-xl shadow-2xl flex flex-col overflow-hidden z-50 transition-all duration-300"
-    style="background-color: var(--box-bg-color); border: 1px solid var(--border-color);">
-    
-    <div id="chat-widget-header" class="p-3 font-semibold flex justify-between items-center"
-        style="background-color: var(--border-color); color: var(--text-color);">
-        <span>AI Help Bot</span>
-        <button id="chat-close" class="text-sm font-bold px-2 rounded transition"
-            style="color: var(--button-text-color); background-color: var(--accent-color);">X</button>
-    </div>
-
-    <div id="chat-messages" class="flex flex-col gap-2 p-3 overflow-y-auto flex-grow"
-        style="background-color: var(--input-bg-color); color: var(--text-color);">
-        <div class="chat-message bot-message"
-             style="background-color: var(--button-secondary-bg); color: var(--text-color);
-                    padding: 0.5rem 0.75rem; border-radius: 0.5rem; align-self: flex-start;">
-            Hello! How can I not help you?
-        </div>
-    </div>
-
-    <form id="chat-form" class="flex items-center px-2 py-2"
-          style="background-color: color-mix(in srgb, var(--input-bg-color) 85%, black);
-                 border-top: 1px solid var(--border-color);">
-        <input id="chat-input" type="text" placeholder="Ask a question..."
-               class="flex-grow px-3 py-2 border-none outline-none rounded-md mr-2"
-               style="background-color: var(--box-bg-color); color: var(--text-color);" autocomplete="off" />
-        <button type="submit" id="chat-send-btn"
-                class="px-4 py-2 font-semibold border-none rounded-md transition"
-                style="background-color: var(--accent-color); color: var(--button-text-color);">
-            Send
-        </button>
-    </form>
-</div>
-
-<script>
-// --- CHATBOT FUNCTIONALITY (MODIFIED) ---
-document.addEventListener('DOMContentLoaded', () => {
-    const chatToggle = document.getElementById('chat-toggle');
-    const chatWidget = document.getElementById('chat-widget');
-    const chatClose = document.getElementById('chat-close');
-    const chatForm = document.getElementById('chat-form');
-    const chatInput = document.getElementById('chat-input');
-    const chatMessages = document.getElementById('chat-messages');
-
-    const botResponses = [
-        "What?", "Refresh the website.", "I don't know.",
-        "Can you ask a question regarding the website please?",
-        "Sorry, I am not programmed to help with that.",
-        "Try turning your monitor off and on again.",
-        "Hmm... that sounds like a you problem.",
-        "My last brain cell just left the chat.",
-        "That’s above my pay grade.",
-        "Have you tried asking Google?",
-        "I forgot.", "Hold on, I’ll ask my supervisor.",
-        "Great question, but I’m just here for decoration."
-    ];
-    const greetings = ["hi", "hello", "hey", "yo", "sup"];
-    const greetingResponses = ["Hello!", "Hey there!", "Hi!", "Howdy!", "Greetings, officer!"];
-    const profanities = ["fuck","shit","bitch","asshole","cunt","damn","dick","fag","piss"];
-    const profanityResponses = [
-        "Whoa there, language!", "Easy, officer!",
-        "Watch your mouth!", "Calm down, partner.", "Let's keep it civil!"
-    ];
-    
-    // Function to check user role at runtime
-    function isCurrentUserAdmin() {
-        try {
-            const loggedInUserString = sessionStorage.getItem('loggedInUser');
-            if (loggedInUserString) {
-                const user = JSON.parse(loggedInUserString);
-                return user.role === 'admin';
-            }
-        } catch (e) {
-            console.error("Error reading user role from session:", e);
-        }
-        return false;
-    }
-
-
-    chatToggle.addEventListener('click', () => {
-        chatWidget.classList.toggle('hidden');
-        if (!chatWidget.classList.contains('hidden')) chatInput.focus();
-    });
-    chatClose.addEventListener('click', () => chatWidget.classList.add('hidden'));
-
-    function addChatMessage(text, sender) {
-        const msg = document.createElement('div');
-        msg.classList.add('chat-message');
-        msg.style.padding = '0.5rem 0.75rem';
-        msg.style.borderRadius = '0.5rem';
-        msg.style.maxWidth = '80%';
-        msg.style.wordWrap = 'break-word';
-        if (sender === 'user') {
-            msg.style.backgroundColor = 'var(--accent-color)';
-            msg.style.color = 'var(--button-text-color)';
-            msg.style.alignSelf = 'flex-end';
-        } else {
-            msg.style.backgroundColor = 'var(--button-secondary-bg)';
-            msg.style.color = 'var(--text-color)';
-            msg.style.alignSelf = 'flex-start';
-        }
-        // Use innerHTML to render the hyperlink
-        msg.innerHTML = text; 
-        chatMessages.appendChild(msg);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-
-    function showTypingIndicator() {
-        const indicator = document.createElement('div');
-        indicator.classList.add('typing-indicator');
-        indicator.style.padding = '0.5rem 0.75rem';
-        indicator.style.borderRadius = '0.5rem';
-        indicator.style.backgroundColor = 'var(--button-secondary-bg)';
-        indicator.style.color = 'var(--text-color)';
-        indicator.style.alignSelf = 'flex-start';
-        indicator.innerHTML = '<span>●</span><span>●</span><span>●</span>';
-        indicator.querySelectorAll('span').forEach((dot, i) => {
-            dot.style.animation = `blink 1.2s infinite ${i * 0.2}s alternate`;
-        });
-        chatMessages.appendChild(indicator);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-        return indicator;
-    }
-
-    function removeTypingIndicator(indicator) {
-        if (indicator && indicator.parentNode) indicator.parentNode.removeChild(indicator);
-    }
-
-    chatForm.addEventListener('submit', e => {
-        e.preventDefault();
-        const text = chatInput.value.trim();
-        if (!text) return;
-        addChatMessage(text, 'user');
-        chatInput.value = '';
-        const typing = showTypingIndicator();
-
-        setTimeout(() => {
-            removeTypingIndicator(typing);
-            const lower = text.toLowerCase();
-            let reply;
-            
-            // --- 1. Check for Admin Dashboard Command (NEW FUNCTIONALITY) ---
-            if (isCurrentUserAdmin() && lower.includes("go to admin")) {
-                 // Use innerHTML formatting for the hyperlink
-                reply = `Sure thing! You can access the **Admin Dashboard** here: <a href="admin_selection.html" class="text-[var(--accent-color)] hover:underline font-bold">Admin Panel</a>.`;
-            }
-
-            // --- 2. Check for Math Functionality (FIXED FOR SAFETY) ---
-            if (reply === undefined) {
-                const mathRegex = /^\s*[\d\s\.\+\-\*\/\(\)]+\s*$/; 
-                const cleanedText = text.replace(/[\d\s\.\+\-\*\/\(\)]/g, ''); 
-                
-                if (cleanedText.length === 0 && mathRegex.test(text)) {
-                    try {
-                        // NOTE: In a real environment, use a secure math library (like math.js) instead of eval().
-                        // Keeping eval() here only because the user's original logic relied on it.
-                        const result = eval(text); 
-                        if (isFinite(result)) { 
-                             reply = `The answer is: ${result}`;
+        if (logoutButton || sidebarLogoutButton) {
+            function handleLogout(event) {
+                event.preventDefault();
+                // Use custom confirm modal (from theme.js)
+                if (window.showCustomConfirm) {
+                    window.showCustomConfirm("Are you sure you want to log out?", "Confirm Logout").then((confirmed) => {
+                        if (confirmed) {
+                            // --- LOGOUT CACHE CLEAR FIX ---
+                            sessionStorage.removeItem('authToken');
+                            sessionStorage.removeItem('loggedInUser');
+                            sessionStorage.removeItem('userStats');       // Clear Stats Cache
+                            sessionStorage.removeItem('statsLastUpdated'); // Clear Timestamp Cache
+                            // --- END CACHE CLEAR FIX ---
+                            window.location.href = 'index.html';
                         }
-                    } catch (error) {
-                        // Fall through to default if math fails
+                    });
+                } else {
+                    // Fallback if theme.js modal isn’t loaded
+                    if (confirm("Are you sure you want to log out?")) {
+                        sessionStorage.clear();
+                        window.location.href = 'index.html';
                     }
                 }
             }
-            
-            // --- 3. Check for Greetings ---
-            if (reply === undefined && greetings.some(g => lower.includes(g))) {
-                reply = greetingResponses[Math.floor(Math.random() * greetingResponses.length)];
-            } 
-            
-            // --- 4. Check for Profanities ---
-            if (reply === undefined && profanities.some(p => lower.includes(p))) {
-                reply = profanityResponses[Math.floor(Math.random() * profanityResponses.length)];
-            } 
-            
-            // --- 5. Default Non-Helpful Response ---
-            if (reply === undefined) {
-                reply = botResponses[Math.floor(Math.random() * botResponses.length)];
+            if (logoutButton) logoutButton.addEventListener('click', handleLogout);
+            if (sidebarLogoutButton) sidebarLogoutButton.addEventListener('click', handleLogout);
+        }
+
+        // --- DYNAMIC HEADER HEIGHT SCRIPT (The fix that works!) ---
+        (function() {
+            function syncHeaderHeight() {
+              const header = document.querySelector('header.main-header') || document.querySelector('header.theme-section-bg.main-header') || document.querySelector('header.theme-section-bg');
+              const mainContent = document.getElementById('mainContentArea');
+              if (!header || !mainContent) return;
+              
+              const height = header.offsetHeight || 0;
+              const safePadding = height + 16; // 1rem (16px) for breathing room
+              
+              mainContent.style.paddingTop = safePadding + 'px';
+
+              document.documentElement.style.setProperty('--app-header-height', height + 'px');
             }
 
-            addChatMessage(reply, 'bot');
-        }, 800 + Math.random() * 800);
-    });
-});
-// --- END CHATBOT FUNCTIONALITY ---
-
+            window.addEventListener('DOMContentLoaded', async () => {
+                // Check admin status on load, then proceeds with layout.
+                syncHeaderHeight();
+                setTimeout(syncHeaderHeight, 250); // Re-run after potential font/image load
+            });
+            window.addEventListener('resize', syncHeaderHeight);
+        })();
+        // --- END DYNAMIC HEADER HEIGHT SCRIPT ---
 
 // === Statistics Section Logic ===
 document.addEventListener('DOMContentLoaded', function () {
