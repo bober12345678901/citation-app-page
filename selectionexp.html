@@ -794,10 +794,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const cacheKey = 'userStats';
     const cached = sessionStorage.getItem(cacheKey);
 
-    // Flag to track if we successfully loaded from cache
-    let loadedFromCache = false;
-
-    // If 'force' is true (Refresh button clicked OR initial fetch needed), fetch new data and write to cache.
+    // If 'force' is true (Refresh button clicked), fetch new data and write to cache.
     if (force) {
       try {
         const username = userInfo.username.toLowerCase();
@@ -852,6 +849,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // --- Initial Page Load (force === false) ---
+    // If cache is present, load it. If not, the placeholders remain. No automatic fetch.
     if (cached) {
       try {
         const parsed = JSON.parse(cached);
@@ -861,32 +859,32 @@ document.addEventListener('DOMContentLoaded', function () {
           shiftCountEl.textContent = parsed.shifts;
           arrestCountEl.textContent = parsed.arrests;
           updateTimestamp();
-          loadedFromCache = true;
-          // --- ADDED CONFIRMATION LOG FOR LOADING FROM CACHE ---
+          
           console.log('Statistics loaded from cache.', parsed);
-          // -----------------------------------------------------
-        } 
+
+        } else {
+          // Cache is for a different user, show defaults, and do not trigger a new fetch
+          console.warn('Cached stats found but belong to a different user. Click refresh to update.');
+          citationCountEl.textContent = '--';
+          shiftCountEl.textContent = '--';
+          arrestCountEl.textContent = '--';
+        }
       } catch (e) {
-        console.error('Error parsing cached stats, cache will be refreshed:', e);
-        // Fall through to the auto-refresh logic below
+        // Cache is corrupt, show defaults, and do not trigger a new fetch
+        console.error('Error parsing cached stats. Click refresh to get new data.', e);
+        citationCountEl.textContent = '--';
+        shiftCountEl.textContent = '--';
+        arrestCountEl.textContent = '--';
       }
-    }
-    
-    // If no cache data was successfully loaded, trigger an auto-refresh after a small delay
-    if (!loadedFromCache) {
-      // Show placeholder data while waiting for auto-fetch
+    } else {
+      // No cache found, show defaults. Do not fetch.
+      console.log('No stats found in cache. Click refresh to get initial data.');
       citationCountEl.textContent = '--';
       shiftCountEl.textContent = '--';
       arrestCountEl.textContent = '--';
-      
-      // Auto-refresh: Silently fetch data to populate the cache
-      setTimeout(() => {
-          console.log('Cache empty/invalid. Automatically fetching fresh statistics...');
-          loadStats(true); // Force a server fetch
-      }, 0); // 500ms delay to ensure the page renders quickly first
     }
     
-    // Hide loader and show content (with cached data or defaults, either way, the tiles are visible)
+    // Hide loader and show content (with cached data or defaults)
     loaderEl.classList.add('hidden');
     contentEl.classList.remove('hidden');
   }
