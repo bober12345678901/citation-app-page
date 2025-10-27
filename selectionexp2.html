@@ -126,15 +126,15 @@
             margin-bottom: 1rem;
             border-bottom: 1px solid var(--border-color);
         }
-        #dynamicEmbedContent > iframe, 
-        #dynamicEmbedContent > embed, 
+        #dynamicEmbedContent > iframe,
+        #dynamicEmbedContent > embed,
         #dynamicEmbedContent > .aspect-video {
-            flex-grow: 1; 
+            flex-grow: 1;
             border: none;
             width: 100%;
         }
         #dynamicEmbedContent {
-            flex-grow: 1; 
+            flex-grow: 1;
             display: flex;
             flex-direction: column;
             width: 100%;
@@ -147,7 +147,7 @@
           --sidebar-width: 250px; /* Default expanded width */
           --sidebar-collapsed-width: 65px; /* Collapsed width for icons only */
         }
-        
+
         /* 1. Sidebar Styles (Updated for Collapse) */
         header.theme-section-bg {
             background-color: var(--box-bg-color) !important;
@@ -158,23 +158,23 @@
             min-height: 4rem;
             z-index: 50;
             box-sizing: border-box;
-            transition: width 0.3s, left 0.3s; /* REVERTED: Add transition back */
+            transition: width 0.3s, left 0.3s; /* MODIFIED: Add transition back for header animation */
         }
         .main-header {
             width: calc(100% - var(--sidebar-width));
             left: var(--sidebar-width);
         }
         .main-content-wrapper {
-            margin-left: var(--sidebar-width);
+            margin-left: var(--sidebar-width); /* Stays constant */
             flex-grow: 1;
             box-sizing: border-box;
             padding-top: 0; /* Padding is set by JS inline */
-            transition: margin-left 0.3s; /* REVERTED: Add transition back */
-            
-            position: relative; 
-            z-index: 1;         
+            transition: none; /* MODIFIED: Keep content fixed */
+
+            position: relative;
+            z-index: 1;
         }
-        
+
         /* Collapsed State Styles */
         .sidebar.collapsed {
             width: var(--sidebar-collapsed-width);
@@ -200,16 +200,14 @@
             transform: rotate(180deg);
         }
 
-        /* REVERTED: Restore main content shift */
-        .main-content-wrapper.collapsed {
-            margin-left: var(--sidebar-collapsed-width);
-        }
-
-        /* REVERTED: Restore header shift */
+        /* MODIFIED: Add header collapsed state back */
         .main-header.collapsed {
             width: calc(100% - var(--sidebar-collapsed-width));
             left: var(--sidebar-collapsed-width);
         }
+
+        /* Remove main content shift */
+        /* .main-content-wrapper.collapsed { ... } removed */
 
 
         @media (max-width: 1024px) {
@@ -219,6 +217,11 @@
                 width: 100%;
                 left: 0;
             }
+            /* Ensure header doesn't get collapsed class on small screens if sidebar is hidden */
+             .main-header.collapsed {
+                 width: 100%;
+                 left: 0;
+             }
         }
         /* --- Sidebar Styles --- */
         .sidebar {
@@ -236,7 +239,7 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            transition: width 0.3s; /* Add transition */
+            transition: width 0.3s; /* Sidebar width animation */
         }
         .sidebar-item {
             display: flex; /* Use flex for icon/text alignment */
@@ -301,17 +304,17 @@
             </div>
         </div>
     </div>
-    
+
     <div class="sidebar" id="appSidebar">
         <div id="sidebarToggle" class="sidebar-toggle-button">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
             </svg>
         </div>
-        
+
         <div>
             <div class="text-2xl font-bold px-6 mb-8 text-[var(--accent-color)] sidebar-title">Shadow LE Web</div>
-            
+
             <a href="selection.html" class="sidebar-item active">
                 <span class="sidebar-item-icon">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
@@ -337,7 +340,7 @@
                 <span class="sidebar-item-text">Submit Shift Log</span>
             </a>
         </div>
-        
+
         <div class="sidebar-user-info theme-subtle-text">
             <p class="font-bold mb-1 theme-text-color" id="sidebarUsernameDisplay">USERNAME</p>
             <p class="block theme-subtle-text">Shadow LE Web© 2025</p>
@@ -346,11 +349,11 @@
     </div>
     <header class="theme-section-bg shadow-lg fixed top-0 w-full z-50 main-header" id="appHeader">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-        
+
         <div class="flex items-end space-x-4">
             <h1 class="text-3xl font-bold theme-text-color">User Dashboard</h1>
-            
-            <a href="selection_old.html" 
+
+            <a href="selection_old.html"
                class="text-sm font-medium theme-subtle-text hover:text-[var(--accent-color)] transition-colors mb-1">
                 (Go to Legacy Dashboard)
             </a>
@@ -441,7 +444,7 @@
                     </div>
                 </a>
             </div>
-            
+
             <div class="col-span-12 sm:col-span-6 lg:col-span-3">
                 <a href="citation.html" class="block p-6 large-tile-padding rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
                     <div class="flex items-center space-x-4">
@@ -491,7 +494,7 @@
                     </div>
                 </a>
             </div>
-            
+
             <div class="col-span-12 sm:col-span-6 lg:col-span-3">
                 <button id="helpDeskTile" class="w-full text-left p-6 rounded-xl shadow-lg transition duration-300 hover:shadow-xl transform hover:scale-[1.02] theme-tile-bg theme-tile-border theme-text-color">
                     <div class="flex items-center space-x-4">
@@ -525,7 +528,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="col-span-12 sm:col-span-6 lg:col-span-3">
                 <div class="block p-6 rounded-xl shadow-lg theme-tile-bg theme-tile-border theme-text-color opacity-75 cursor-not-allowed">
                     <div class="flex items-center space-x-4">
@@ -554,16 +557,16 @@
 
     <div id="fullscreenEmbedModal" class="fullscreen-embed-modal">
         <button id="closeEmbedBtn" class="close-embed-btn">Close (Esc)</button>
-        <div id="fullscreenEmbedContent" class="modal-content"> 
+        <div id="fullscreenEmbedContent" class="modal-content">
             <h3 id="modalTitle" class="text-xl font-bold theme-text-color modal-header"></h3>
             <div id="dynamicEmbedContent" style="flex-grow: 1; border: none; width: 100%;">
                 </div>
         </div>
     </div>
-    
+
     <script>
         // IMPORTANT: Set your Cloudflare R2 Public URL here
-        const R2_BASE_URL = "https://pub-a91d9d22a6264a88b02227540eadf4cb.r2.dev/tutorials"; 
+        const R2_BASE_URL = "https://pub-a91d9d22a6264a88b02227540eadf4cb.r2.dev/tutorials";
 
         const fullscreenEmbedModal = document.getElementById('fullscreenEmbedModal');
         // REVISED: fullscreenEmbedContent is now the wrapper element
@@ -574,7 +577,7 @@
         const closeEmbedBtn = document.getElementById('closeEmbedBtn');
         const helpDeskUrl = 'help_desk.html';
 
-        
+
         /**
          * Dynamically loads PDF or Video content into the fullscreen modal.
          * @param {string} embedType - 'pdf' or 'video'
@@ -583,14 +586,14 @@
          */
         function openFullscreenEmbedModal(embedType, relativeUrl, title) {
             // Check dynamicEmbedContent instead of fullscreenEmbedContent (which is the wrapper)
-            if (!fullscreenEmbedModal || !dynamicEmbedContent) return; 
+            if (!fullscreenEmbedModal || !dynamicEmbedContent) return;
 
             const fullUrl = R2_BASE_URL + relativeUrl;
 
             // Clear previous content (only the dynamic content area)
             dynamicEmbedContent.innerHTML = '';
             // Reset background on the wrapper
-            fullscreenEmbedContent.style.backgroundColor = 'var(--bg-color)'; 
+            fullscreenEmbedContent.style.backgroundColor = 'var(--bg-color)';
 
             // Set the title (This will now work as modalTitle is NOT cleared)
             document.getElementById('modalTitle').textContent = title || 'Resource Viewer';
@@ -611,7 +614,7 @@
                 dynamicEmbedContent.appendChild(embed); // Use dynamic content area
             } else if (embedType === 'video') {
                 fullscreenEmbedContent.style.padding = '2rem'; // Restore padding for video spacing
-                
+
                 // Create a 16:9 responsive wrapper for the video, centered in the modal
                 const videoWrapper = document.createElement('div');
                 videoWrapper.classList.add('relative', 'w-full', 'max-w-4xl', 'mx-auto', 'aspect-video', 'flex-grow');
@@ -621,11 +624,11 @@
                 video.autoplay = true;
                 video.preload = 'auto';
                 video.setAttribute('allowfullscreen', '');
-                
+
                 const source = document.createElement('source');
                 source.src = fullUrl;
-                source.type = relativeUrl.includes('.mp4') ? 'video/mp4' : 'video/webm'; 
-                
+                source.type = relativeUrl.includes('.mp4') ? 'video/mp4' : 'video/webm';
+
                 video.appendChild(source);
                 video.classList.add('absolute', 'inset-0', 'w-full', 'h-full', 'rounded-xl', 'shadow-2xl');
 
@@ -633,7 +636,7 @@
                 dynamicEmbedContent.appendChild(videoWrapper); // Use dynamic content area
             } else if (embedType === 'iframe') {
                 // This is used for the Help Desk initial page (help_desk.html)
-                fullscreenEmbedContent.style.padding = '0'; 
+                fullscreenEmbedContent.style.padding = '0';
                 fullscreenEmbedContent.style.backgroundColor = 'var(--card-bg-color)';
                 // Title is already set above, but override with a specific one for the initial screen
                 document.getElementById('modalTitle').textContent = 'Help Desk Documentation';
@@ -657,33 +660,33 @@
 			if (!fullscreenEmbedModal) return;
 			document.body.style.overflow = ''; // Restore scrolling
 			fullscreenEmbedModal.classList.remove('show');
-    
+
 			// Find any video element in the dynamic content area and pause it to stop sound
 			const videoElement = dynamicEmbedContent.querySelector('video');
 			if (videoElement) {
 			videoElement.pause();
 			}
-    
-			// FIX: Clear content IMMEDIATELY, not after a setTimeout delay. 
+
+			// FIX: Clear content IMMEDIATELY, not after a setTimeout delay.
 			dynamicEmbedContent.innerHTML = ''; // Clear dynamic content immediately
 			fullscreenEmbedContent.style.padding = '2rem'; // Reset padding on the wrapper immediately
         }
 
-        
+
         // --- DOM Event Listeners ---
         document.addEventListener('DOMContentLoaded', function() {
-            
+
             // Added try...catch block to prevent uncaught errors from crashing the page
-            try { 
+            try {
                 // --- User Authentication and Display (Existing Logic) ---
                 const loggedInUserString = sessionStorage.getItem('loggedInUser');
-                
+
                 if (loggedInUserString) {
                     const loggedInUser = JSON.parse(loggedInUserString);
                     const userNameDisplay = document.getElementById('userNameDisplay');
                     const sidebarUsernameDisplay = document.getElementById('sidebarUsernameDisplay');
-                    
-                    if (userNameDisplay) {
+
+                    if (userNameDisplay && sidebarUsernameDisplay) {
 						// Match selection.html behavior
 						userNameDisplay.textContent = loggedInUser.username || 'User';
                         sidebarUsernameDisplay.textContent = loggedInUser.username || 'USERNAME';
@@ -699,7 +702,7 @@
                             leaderboardButton.classList.remove('hidden');
                         } else {
                             adminButton.classList.add('hidden');
-                            leaderboardButton.classList.remove('hidden');
+                            leaderboardButton.classList.remove('hidden'); // Leaderboard visible to non-admins too
                         }
                     }
                 } else {
@@ -713,20 +716,19 @@
                 if (helpDeskTile) {
                     helpDeskTile.addEventListener('click', () => {
                         // 1. Open the primary modal with the help_desk.html iframe
-                        // FIX: openFullscreenEmbedModal now works correctly even without the title argument for iframe
                         openFullscreenEmbedModal('iframe', helpDeskUrl);
 
                         // 2. Attach a listener to the iframe once it's loaded to handle nested R2 link clicks
                         const helpDeskIframe = document.getElementById('helpDeskIframe');
-                        
+
                         if (helpDeskIframe) {
                             helpDeskIframe.onload = function() {
                                 try {
                                     const iframeDocument = helpDeskIframe.contentDocument || helpDeskIframe.contentWindow.document;
-                                    
+
                                     // Check if we already attached the listener to prevent duplicates
                                     if (!iframeDocument.body.getAttribute('data-r2-listener-attached')) {
-                                        
+
                                         iframeDocument.body.addEventListener('click', function(event) {
                                             const target = event.target.closest('.r2-embed-link');
 
@@ -736,22 +738,21 @@
                                                 const type = target.getAttribute('data-embed-type');
                                                 const url = target.getAttribute('data-url');
                                                 const title = target.textContent;
-                                                
+
                                                 // Close the current iframe modal (the one showing help_desk.html)
-                                                closeFullscreenEmbedModal(); 
-                                                
+                                                closeFullscreenEmbedModal();
+
                                                 // Open the new fullscreen embed modal with the PDF/Video
-                                                // We add a slight delay to ensure the modal is fully closed before re-opening 
-                                                // (to prevent visual glitches during rapid transition)
+                                                // Add a slight delay for smoother transition
                                                 setTimeout(() => {
-                                                    openFullscreenEmbedModal(type, url, title); 
-                                                }, 100); 
+                                                    openFullscreenEmbedModal(type, url, title);
+                                                }, 100);
                                             }
                                         });
                                         iframeDocument.body.setAttribute('data-r2-listener-attached', 'true');
                                     }
                                 } catch (error) {
-                                    console.error("Error setting up iframe listener. Ensure help_desk.html is served from the same origin as the dashboard.", error);
+                                    console.error("Error setting up iframe listener. Ensure help_desk.html is served from the same origin.", error);
                                 }
                             };
                         }
@@ -769,11 +770,7 @@
                         if (fullscreenEmbedModal && fullscreenEmbedModal.classList.contains('show')) {
                             closeFullscreenEmbedModal();
                         }
-                        // Check for custom alert modal
-                        const customModalOverlay = document.getElementById('customModalOverlay');
-                        if (customModalOverlay && customModalOverlay.classList.contains('show')) {
-                             // Logic to handle ESC key for custom alert is now in theme.js
-                        }
+                        // Check for custom alert modal (handled in theme.js)
                     }
                 });
 
@@ -784,31 +781,31 @@
                     }
                 });
                 // --- End Modal Setup ---
-                
-                // --- Sidebar Collapse Logic (New) ---
+
+                // --- Sidebar Collapse Logic (Combined: Fixed Content, Animated Header) ---
                 const appSidebar = document.getElementById('appSidebar');
                 const sidebarToggle = document.getElementById('sidebarToggle');
-                const mainContentArea = document.getElementById('mainContentArea');
+                const mainContentArea = document.getElementById('mainContentArea'); // Keep for potential future use, but not toggling class
                 const appHeader = document.getElementById('appHeader');
                 const SIDEBAR_COLLAPSED_KEY = 'sidebarCollapsed';
-                
+
                 const isCollapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
-                
+
                 if (isCollapsed) {
                     appSidebar.classList.add('collapsed');
-                    mainContentArea.classList.add('collapsed'); // REVERTED: Add class back
-                    appHeader.classList.add('collapsed');     // REVERTED: Add class back
+                    appHeader.classList.add('collapsed'); // Apply collapsed state to header on load
+                    // mainContentArea class is NOT toggled
                 }
 
                 if (sidebarToggle) {
                     sidebarToggle.addEventListener('click', function() {
                         const isCurrentlyCollapsed = appSidebar.classList.toggle('collapsed');
-                        mainContentArea.classList.toggle('collapsed'); // REVERTED: Add toggle back
-                        appHeader.classList.toggle('collapsed');     // REVERTED: Add toggle back
+                        appHeader.classList.toggle('collapsed'); // MODIFIED: Toggle header class back
+                        // mainContentArea class is NOT toggled
                         localStorage.setItem(SIDEBAR_COLLAPSED_KEY, isCurrentlyCollapsed);
-                        
+
                         // Re-sync header height after collapse/expand transition completes
-                        setTimeout(syncHeaderHeight, 300); 
+                        setTimeout(syncHeaderHeight, 300);
                     });
                 }
                 // --- End Sidebar Collapse Logic ---
@@ -850,23 +847,22 @@
             if (sidebarLogoutButton) sidebarLogoutButton.addEventListener('click', handleLogout);
         }
 
-        // --- DYNAMIC HEADER HEIGHT SCRIPT (The fix that works!) ---
+        // --- DYNAMIC HEADER HEIGHT SCRIPT ---
         (function() {
             window.syncHeaderHeight = function() { // Made global to be called by sidebar toggle
               const header = document.getElementById('appHeader');
               const mainContent = document.getElementById('mainContentArea');
               if (!header || !mainContent) return;
-              
+
               const height = header.offsetHeight || 0;
               const safePadding = height + 16; // 1rem (16px) for breathing room
-              
+
               mainContent.style.paddingTop = safePadding + 'px';
 
               document.documentElement.style.setProperty('--app-header-height', height + 'px');
             }
 
             window.addEventListener('DOMContentLoaded', async () => {
-                // Check admin status on load, then proceeds with layout.
                 syncHeaderHeight();
                 setTimeout(syncHeaderHeight, 250); // Re-run after potential font/image load
             });
@@ -915,11 +911,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const cacheKey = 'userStats';
     const cached = sessionStorage.getItem(cacheKey);
     let shouldFetch = force;
-    
+
     // --- Step 1: Handle Initial Load (force = false) ---
     if (!force) {
         let needsFetch = true;
-        
+
         if (cached) {
             try {
                 const parsed = JSON.parse(cached);
@@ -930,13 +926,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     arrestCountEl.textContent = parsed.arrests;
                     updateTimestamp();
                     console.log('Statistics loaded from cache.', parsed);
-                    
+
                     needsFetch = false; // We loaded successfully, do not fetch.
-                    
+
                     // Since we loaded from cache, we're done.
                     loaderEl.classList.add('hidden');
                     contentEl.classList.remove('hidden');
-                    return; 
+                    return;
                 } else {
                     console.log('Cached stats belong to a different user. Fetching fresh data.');
                     // needsFetch remains true to proceed to fetch block
@@ -949,7 +945,7 @@ document.addEventListener('DOMContentLoaded', function () {
             console.log('No stats found in cache. Fetching fresh data.');
              // needsFetch remains true to proceed to fetch block
         }
-        
+
         // If the cache was missing or invalid for this user, force a fetch
         if (needsFetch) {
              shouldFetch = true;
@@ -986,7 +982,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (arrestsRes.ok) {
                 const data = await arrestsRes.json();
                 // Assuming arrest data structure has submittedBy or similar for filtering
-                arrests = data.filter(a => a.submittedBy?.toLowerCase() === username).length; 
+                arrests = data.filter(a => a.submittedBy?.toLowerCase() === username).length;
             }
 
             // Update DOM with fresh data
@@ -1002,9 +998,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 arrests,
             };
             sessionStorage.setItem(cacheKey, JSON.stringify(statsToCache));
-            
+
             console.log('Statistics saved to cache.', statsToCache);
-            
+
             sessionStorage.setItem('statsLastUpdated', new Date().toISOString());
             updateTimestamp();
 
@@ -1021,7 +1017,6 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // Initialize + refresh click
-  // The first call will now check cache, and if invalid/missing, it will perform a fetch.
   loadStats();
   refreshBtn.addEventListener('click', () => loadStats(true));
   setInterval(updateTimestamp, 60 * 1000); // auto-refresh display every minute
@@ -1033,7 +1028,7 @@ document.addEventListener('DOMContentLoaded', function () {
 <style>
 @keyframes blink {
     0% { opacity: 0.3; transform: scale(0.9); }
-    100% { opacity: 1.2); }
+    100% { opacity: 1; transform: scale(1.2); }
 }
 </style>
 
