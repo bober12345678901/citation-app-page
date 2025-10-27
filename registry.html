@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" href="favicon.png" type="image/png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Registry Lookup</title>
+	<script>
+  // prevent light-mode flash before theme.js runs
+  (function() {
+    try {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme) {
+        document.documentElement.classList.add(savedTheme);
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      } else {
+        // optional: match system preference if no saved theme
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const theme = prefersDark ? 'dark' : 'light';
+        document.documentElement.classList.add(theme);
+        document.documentElement.setAttribute('data-theme', theme);
+      }
+    } catch(e) {
+      console.warn('Theme preloader failed:', e);
+    }
+    // Hide until theme styles are applied, then unhide
+    document.documentElement.style.visibility = 'hidden';
+    window.addEventListener('DOMContentLoaded', () => {
+      document.documentElement.style.visibility = '';
+    });
+  })();
+</script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+    <script src="theme.js"></script>
+    <style>
+        /* Container styling */
+        .dashboard-form-container {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: box-shadow 0.3s;
+        }
+
+       /* --- New Sidebar/Header Styles for Unification (Copied from shift_log.html) --- */
+        :root {
+          --app-header-height: 5rem;
+          --sidebar-width: 250px;
+          --sidebar-collapsed-width: 65px;
+        }
+        header.theme-section-bg {
+            background-color: var(--box-bg-color) !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: fixed; top: 0; height: auto; min-height: 4rem; z-index: 50; box-sizing: border-box; transition: width 0.3s, left 0.3s;
+        }
+        .main-header { width: calc(100% - var(--sidebar-width)); left: var(--sidebar-width); }
+        .main-content-wrapper { margin-left: var(--sidebar-width); flex-grow: 1; box-sizing: border-box; padding-top: 0; transition: none; position: relative; z-index: 1; }
+        .sidebar.collapsed { width: var(--sidebar-collapsed-width); min-width: var(--sidebar-collapsed-width); }
+        .sidebar.collapsed .sidebar-item { padding: 0.75rem 0; justify-content: center; }
+        .sidebar.collapsed .sidebar-item-text, .sidebar.collapsed .sidebar-user-info, .sidebar.collapsed .sidebar-title, .sidebar.collapsed .sidebar-logout-text { display: none; }
+        .sidebar.collapsed .sidebar-item-icon { margin-left: 0; }
+        .sidebar.collapsed .sidebar-item.active { border-left-color: transparent; }
+        .sidebar.collapsed .sidebar-toggle-button { transform: translateY(-50%) rotate(180deg); }
+        .main-header.collapsed { width: calc(100% - var(--sidebar-collapsed-width)); left: var(--sidebar-collapsed-width); }
+        @media (max-width: 1024px) {
+            .sidebar { display: block; }
+            .main-content-wrapper { margin-left: var(--sidebar-width); }
+            .main-header { width: calc(100% - var(--sidebar-width)); left: var(--sidebar-width); }
+             .sidebar.collapsed { width: 0; min-width: 0; overflow: hidden; box-shadow: none; border-right: none;}
+             .sidebar.collapsed .sidebar-toggle-button { right: -30px; }
+             .main-content-wrapper.collapsed { margin-left: 0; }
+             .main-header.collapsed { width: 100%; left: 0; }
+        }
+        .sidebar {
+            width: var(--sidebar-width); min-width: var(--sidebar-width); background-color: var(--box-bg-color); color: var(--text-color); position: fixed; top: 0; left: 0; height: 100vh; padding-top: 2rem; box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2); z-index: 40; display: flex; flex-direction: column; justify-content: space-between; transition: width 0.3s, min-width 0.3s; border-right: 1px solid var(--border-color);
+        }
+        .sidebar-item { display: flex; align-items: center; padding: 0.75rem 1.5rem; font-size: 1.125rem; font-weight: 500; border-left: 5px solid transparent; transition: background-color 0.2s, border-left-color 0.2s; }
+        .sidebar-item:hover, .sidebar-item.active { background-color: var(--input-bg-color); }
+        .sidebar-item.active { border-left-color: var(--accent-color); color: var(--accent-color); font-weight: 700; }
+        .sidebar-item-icon { min-width: 24px; text-align: center; }
+        .sidebar-item-text { margin-left: 1rem; transition: opacity 0.3s; }
+        .sidebar-user-info { padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); font-size: 0.875rem; transition: opacity 0.3s; }
+        .sidebar-toggle-button { position: absolute; right: -12px; top: 50%; transform: translateY(-50%); width: 24px; height: 24px; border-radius: 50%; background-color: var(--accent-color); color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); transition: transform 0.3s, background-color 0.3s, right 0.3s; z-index: 50; }
+        /* --- End Sidebar/Header Styles --- */
+
+        /* General form styles matching dashboard theme */
+        .theme-input {
+            border-radius: 0.5rem; padding: 0.75rem; border-color: var(--border-color); box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
+        }
+        /* Style for the results area */
+        #resultsArea {
+             border: 1px solid var(--border-color);
+             background-color: var(--input-bg-color); /* Slightly different bg for contrast */
+        }
+        .results-label {
+            font-weight: 600; /* semibold */
+            color: var(--subtle-text-color);
+            min-width: 100px; /* Align labels */
+            display: inline-block;
+        }
+        .results-value {
+             color: var(--text-color);
+        }
+
+    </style>
+</head>
+<body class="min-h-screen theme-app-container flex flex-row theme-bg-color">
+
+    <div id="customModalOverlay" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="custom-modal theme-lookup-box p-6 rounded-xl shadow-xl max-w-sm w-full mx-4 sm:mx-auto">
+            <h3 id="customModalTitle" class="custom-modal-header theme-title text-xl font-bold mb-4">Alert</h3>
+            <p id="customModalMessage" class="custom-modal-body theme-label mb-6"></p>
+            <div id="customModalButtons" class="custom-modal-footer flex justify-end space-x-3">
+                <button id="customModalCancelBtn" class="theme-button-secondary py-2 px-4 rounded-lg font-semibold hidden">Cancel</button>
+                <button id="customModalOkBtn" class="theme-button-primary py-2 px-4 rounded-lg font-semibold">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar" id="appSidebar">
+        <div id="sidebarToggle" class="sidebar-toggle-button">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path></svg>
+        </div>
+        <div>
+            <div class="text-2xl font-bold px-6 mb-8 text-[var(--accent-color)] sidebar-title">Shadow LE Web</div>
+            <a href="selection.html" class="sidebar-item theme-text-color">
+                <span class="sidebar-item-icon"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg></span>
+                <span class="sidebar-item-text">Dashboard</span>
+            </a>
+            <a href="citation.html" class="sidebar-item theme-text-color">
+                <span class="sidebar-item-icon"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg></span>
+                <span class="sidebar-item-text">Submit Citation</span>
+            </a>
+            <a href="arrest.html" class="sidebar-item theme-text-color">
+                <span class="sidebar-item-icon"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg></span>
+                <span class="sidebar-item-text">Submit Arrest Report</span>
+            </a>
+            <a href="shift_log.html" class="sidebar-item theme-text-color">
+                 <span class="sidebar-item-icon"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></span>
+                <span class="sidebar-item-text">Submit Shift Log</span>
+            </a>
+             <a href="registry.html" class="sidebar-item active"> <span class="sidebar-item-icon">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16l2.879-2.879a3 3 0 014.242 0L18 16m-6-8v7m-4-4h.01M16 12h.01M4 16l2.879-2.879a3 3 0 014.242 0L13 15m5-1v6m0-6V9a2 2 0 00-2-2h-3.172a2 2 0 00-1.414.586l-4.828 4.828a2 2 0 000 2.828l3.172 3.172a2 2 0 002.828 0L18 16m-6-8h.01"></path></svg>
+                 </span>
+                <span class="sidebar-item-text">Vehicle Registry</span>
+            </a>
+        </div>
+        <div class="sidebar-user-info theme-subtle-text">
+            <p class="font-bold mb-1 theme-text-color" id="sidebarUsernameDisplay">USERNAME</p>
+            <p class="block theme-subtle-text">Shadow LE Web© 2025</p>
+            <button id="sidebarLogoutButton" class="block mt-2 font-medium text-red-400 hover:text-red-500 transition-colors sidebar-logout-text">Log out</button>
+        </div>
+    </div>
+
+    <header class="theme-section-bg fixed top-0 w-full z-50 main-header" id="appHeader">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div class="flex items-end space-x-4">
+                <h1 class="text-3xl font-bold theme-text-color">Vehicle Lookup</h1> <a href="selection.html" class="text-sm font-medium theme-subtle-text hover:text-[var(--accent-color)] transition-colors mb-1">(Back to Dashboard)</a>
+            </div>
+            <nav class="space-x-4 flex items-center">
+                <p class="theme-text-color font-medium hidden sm:block">Welcome, <span id="userNameDisplay">Officer</span></p>
+                <div class="relative inline-block text-left">
+                    <button id="themeToggle" type="button" class="p-2 rounded-full theme-text-color hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-colors flex items-center justify-center space-x-1" aria-expanded="false" aria-haspopup="true">
+                        <span id="currentThemeIcon" class="w-6 h-6 flex items-center justify-center"></span>
+                        <svg id="dropdownArrow" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div id="themeDropdownMenu" class="absolute right-0 mt-2 w-48 rounded-lg shadow-2xl ring-1 ring-black ring-opacity-10 origin-top-right hidden theme-dropdown-menu">
+                        <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="themeToggle" id="themeOptions"></div>
+                    </div>
+                </div>
+                <button id="logoutButton" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">Log Out</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content-wrapper flex items-start justify-center p-4" id="mainContentArea">
+        <div class="container mx-auto max-w-2xl w-full theme-lookup-box p-8 sm:p-10 rounded-2xl dashboard-form-container border theme-tile-border transition-colors duration-300">
+            <h2 class="theme-title text-3xl font-bold text-center mb-8">Vehicle Registry Lookup</h2>
+
+            <form id="lookupForm" class="mb-6">
+                <label for="plateInput" class="theme-label block mb-2 font-medium">Enter License Plate:</label>
+                <div class="flex items-center space-x-3">
+                    <input type="text" id="plateInput" name="plate" required
+                           class="theme-input flex-grow p-3 border rounded-lg uppercase"
+                           placeholder="e.g., LSPD123">
+                    <button type="submit" id="lookupButton" class="theme-button-primary py-3 px-6 rounded-lg font-semibold">
+                        Lookup
+                    </button>
+                </div>
+            </form>
+
+            <div id="loadingIndicator" class="text-center theme-subtle-text mt-4 hidden">
+                 <svg class="animate-spin h-5 w-5 theme-text-color inline-block mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Looking up plate...
+            </div>
+
+            <p id="errorMessage" class="text-red-500 text-center mt-4 hidden"></p>
+
+
+            <div id="resultsArea" class="mt-6 p-6 rounded-lg theme-section-bg shadow-inner hidden">
+                <h3 class="theme-title font-semibold text-xl mb-4">Vehicle Details</h3>
+
+                <div id="vehicleData" class="space-y-2">
+                    <p><span class="results-label">Plate:</span> <span id="resultPlate" class="results-value font-mono">--</span></p>
+                    <p><span class="results-label">Make:</span> <span id="resultMake" class="results-value">--</span></p>
+                    <p><span class="results-label">Model:</span> <span id="resultModel" class="results-value">--</span></p>
+                    <p><span class="results-label">Color:</span> <span id="resultColor" class="results-value">--</span></p>
+                    <p><span class="results-label">Status:</span> <span id="resultStatus" class="results-value font-semibold">--</span></p>
+                    <p><span class="results-label">Owner ID:</span> <span id="resultOwnerId" class="results-value font-mono">--</span></p>
+                     </div>
+
+                <p id="notFoundMessage" class="theme-subtle-text text-center py-4 hidden">Vehicle not found in registry.</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- UTILITY FUNCTIONS (Copied from shift_log.html for standalone usability) ---
+        // Basic Alert/Confirm/Redirect/Auth logic needed
+        if (typeof window.showCustomAlert === 'undefined') { window.showCustomAlert = (msg) => alert(msg); }
+        if (typeof window.showCustomConfirm === 'undefined') { window.showCustomConfirm = (msg) => confirm(msg); }
+        function redirectToLogin(message = "Session expired.") {
+            console.warn("Redirecting to login:", message);
+            window.showCustomAlert(message).then(() => {
+                sessionStorage.clear(); window.location.href = 'index.html';
+            });
+        }
+        // Basic stubs for JWT/Auth refresh - replace with your actual functions
+        function decodeJwt(token) { try { return JSON.parse(atob(token.split('.')[1])); } catch (e) { return null; } }
+        async function refreshAuthToken() { return false; } // Replace with actual refresh logic
+        async function fetchWithAuth(url, options = {}) {
+            let token = sessionStorage.getItem('authToken');
+             if (!token) { redirectToLogin(); return null; } // Basic check
+            options.headers = { ...options.headers, 'Authorization': `Bearer ${token}` };
+            try {
+                const response = await fetch(url, options);
+                 if (response.status === 401 || response.status === 403) { redirectToLogin(); return null; } // Basic handling
+                return response;
+            } catch (error) { console.error("Fetch error:", error); window.showCustomAlert('Network error.'); return null; }
+        }
+        // --- END UTILITY FUNCTIONS ---
+
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = sessionStorage.getItem('authToken');
+            if (!token) {
+                redirectToLogin("You must be logged in to view the registry.");
+                return;
+            }
+
+            // --- Get DOM Elements ---
+            const lookupForm = document.getElementById('lookupForm');
+            const plateInput = document.getElementById('plateInput');
+            const lookupButton = document.getElementById('lookupButton');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const errorMessage = document.getElementById('errorMessage');
+            const resultsArea = document.getElementById('resultsArea');
+            const vehicleData = document.getElementById('vehicleData');
+            const notFoundMessage = document.getElementById('notFoundMessage');
+
+            // Result spans
+            const resultPlate = document.getElementById('resultPlate');
+            const resultMake = document.getElementById('resultMake');
+            const resultModel = document.getElementById('resultModel');
+            const resultColor = document.getElementById('resultColor');
+            const resultStatus = document.getElementById('resultStatus');
+            const resultOwnerId = document.getElementById('resultOwnerId');
+
+            const userNameDisplay = document.getElementById('userNameDisplay');
+            const sidebarUsernameDisplay = document.getElementById('sidebarUsernameDisplay');
+            const logoutButton = document.getElementById('logoutButton');
+            const sidebarLogoutButton = document.getElementById('sidebarLogoutButton');
+            const mainContentArea = document.getElementById('mainContentArea');
+
+            // Load user info
+            const loggedInUserString = sessionStorage.getItem('loggedInUser');
+            if (loggedInUserString) {
+                const loggedInUser = JSON.parse(loggedInUserString);
+                if (userNameDisplay && sidebarUsernameDisplay) {
+                    userNameDisplay.textContent = loggedInUser.username || 'Officer';
+                    sidebarUsernameDisplay.textContent = loggedInUser.username || 'USERNAME';
+                }
+            } else {
+                redirectToLogin("User session data not found.");
+                return;
+            }
+
+            // Setup Logout button
+            function handleLogout(event) {
+                event.preventDefault();
+                window.showCustomConfirm("Are you sure you want to log out?", "Confirm Logout").then((confirmed) => {
+                    if (confirmed) {
+                        sessionStorage.clear(); // Clear all session data on logout
+                        window.location.href = 'index.html';
+                    }
+                });
+            }
+            if (logoutButton) logoutButton.addEventListener('click', handleLogout);
+            if (sidebarLogoutButton) sidebarLogoutButton.addEventListener('click', handleLogout);
+
+             // --- Sidebar Collapse Logic ---
+            const appSidebar = document.getElementById('appSidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const appHeader = document.getElementById('appHeader');
+            const SIDEBAR_COLLAPSED_KEY = 'sidebarCollapsed';
+            const isCollapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
+
+            if (isCollapsed) {
+                appSidebar.classList.add('collapsed'); appHeader.classList.add('collapsed');
+                 if (window.innerWidth <= 1024) mainContentArea.classList.add('collapsed');
+            } else {
+                 if (window.innerWidth <= 1024) mainContentArea.classList.remove('collapsed');
+            }
+            function toggleSidebar() {
+                const isCurrentlyCollapsed = appSidebar.classList.toggle('collapsed');
+                appHeader.classList.toggle('collapsed');
+                 if (window.innerWidth <= 1024) mainContentArea.classList.toggle('collapsed', isCurrentlyCollapsed);
+                localStorage.setItem(SIDEBAR_COLLAPSED_KEY, isCurrentlyCollapsed);
+                setTimeout(syncHeaderHeight, 300);
+            }
+            if (sidebarToggle) sidebarToggle.addEventListener('click', toggleSidebar);
+             // --- End Sidebar Collapse Logic ---
+
+             // --- Swipe Gesture Logic ---
+            let touchStartX = 0, touchEndX = 0; const swipeThreshold = 50;
+            document.body.addEventListener('touchstart', (e) => {
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') { touchStartX = null; return; }
+                 touchStartX = e.changedTouches[0].screenX; }, { passive: true });
+            document.body.addEventListener('touchend', (e) => {
+                 if (touchStartX === null) return; touchEndX = e.changedTouches[0].screenX; handleSwipeGesture(); }, { passive: true });
+            function handleSwipeGesture() {
+                 if (window.innerWidth >= 1024) return; const deltaX = touchEndX - touchStartX; const isSidebarCollapsed = appSidebar.classList.contains('collapsed');
+                if (deltaX < -swipeThreshold && !isSidebarCollapsed) toggleSidebar(); else if (deltaX > swipeThreshold && isSidebarCollapsed) toggleSidebar();
+                touchStartX = 0; touchEndX = 0;
+            }
+             // --- End Swipe Gesture Logic ---
+
+            // --- Lookup Form Submission ---
+            lookupForm.addEventListener('submit', async function(event) {
+                event.preventDefault();
+                const plate = plateInput.value.trim().toUpperCase();
+                if (!plate) return;
+
+                // Reset UI
+                resultsArea.classList.add('hidden');
+                errorMessage.classList.add('hidden');
+                notFoundMessage.classList.add('hidden');
+                vehicleData.classList.add('hidden');
+                loadingIndicator.classList.remove('hidden');
+                lookupButton.disabled = true;
+
+                // MOCK API CALL - Replace with actual fetchWithAuth
+                console.log(`Looking up plate: ${plate}`);
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+
+                try {
+                    // --- Replace this block with your actual API call ---
+                    let found = false;
+                    let data = null;
+                    if (plate === 'TEST123') { // Example: Found
+                         found = true;
+                         data = {
+                            plate_number: 'TEST123',
+                            make: 'ExampleMake',
+                            model: 'ExampleModel',
+                            color: 'Blue',
+                            registration_status: 'Valid',
+                            owner_user_id: 'user123'
+                         };
+                    } else if (plate === 'EXPIRED') { // Example: Found but Expired
+                        found = true;
+                        data = {
+                            plate_number: 'EXPIRED',
+                            make: 'OldMake',
+                            model: 'OldModel',
+                            color: 'Red',
+                            registration_status: 'Expired',
+                            owner_user_id: 'user456'
+                         };
+                    }
+                     // --- End of mock block ---
+
+                    /* --- EXAMPLE Actual API Call ---
+                    const response = await fetchWithAuth(`/api/vehicles/lookup/${plate}`);
+                    if (!response) { // fetchWithAuth handles auth errors/redirects
+                        throw new Error("Authentication or network issue.");
+                    }
+
+                    if (response.ok) {
+                        data = await response.json();
+                        found = true;
+                    } else if (response.status === 404) {
+                        found = false;
+                    } else {
+                        throw new Error(`Server error: ${response.statusText}`);
+                    }
+                    */
+
+                    // --- Process results ---
+                    loadingIndicator.classList.add('hidden');
+                    resultsArea.classList.remove('hidden');
+
+                    if (found && data) {
+                        resultPlate.textContent = data.plate_number || '--';
+                        resultMake.textContent = data.make || '--';
+                        resultModel.textContent = data.model || '--';
+                        resultColor.textContent = data.color || '--';
+                        resultStatus.textContent = data.registration_status || '--';
+                        resultOwnerId.textContent = data.owner_user_id || '--';
+
+                        // Highlight status based on value (example)
+                        resultStatus.classList.remove('text-green-500', 'text-red-500', 'text-yellow-500');
+                        if (data.registration_status?.toLowerCase() === 'valid') {
+                            resultStatus.classList.add('text-green-500');
+                        } else if (data.registration_status?.toLowerCase() === 'expired' || data.registration_status?.toLowerCase() === 'stolen') {
+                             resultStatus.classList.add('text-red-500');
+                        } else {
+                             resultStatus.classList.add('text-yellow-500'); // For unknown or other statuses
+                        }
+
+                        vehicleData.classList.remove('hidden');
+                        notFoundMessage.classList.add('hidden');
+
+                    } else {
+                        // Not found
+                        vehicleData.classList.add('hidden');
+                        notFoundMessage.classList.remove('hidden');
+                    }
+
+                } catch (error) {
+                    console.error('Lookup failed:', error);
+                    loadingIndicator.classList.add('hidden');
+                    errorMessage.textContent = `Lookup failed: ${error.message || 'Check console.'}`;
+                    errorMessage.classList.remove('hidden');
+                    resultsArea.classList.add('hidden');
+                } finally {
+                    lookupButton.disabled = false;
+                }
+            });
+        });
+
+        // --- DYNAMIC HEADER HEIGHT SCRIPT ---
+        (function() {
+            window.syncHeaderHeight = function() { // Made global
+              const header = document.getElementById('appHeader');
+              const mainContent = document.getElementById('mainContentArea');
+              if (!header || !mainContent) return;
+              const height = header.offsetHeight || 0; const safePadding = height + 16;
+              mainContent.style.paddingTop = safePadding + 'px';
+              document.documentElement.style.setProperty('--app-header-height', height + 'px');
+            }
+            window.addEventListener('DOMContentLoaded', async () => { syncHeaderHeight(); setTimeout(syncHeaderHeight, 250); });
+            window.addEventListener('resize', syncHeaderHeight);
+        })();
+        // --- END DYNAMIC HEADER HEIGHT SCRIPT ---
+    </script>
+</body>
+</html>

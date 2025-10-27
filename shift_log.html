@@ -240,6 +240,22 @@
             margin-top: 0.5em;
             display: none;
         }
+
+        /* NEW: Class for the red "Stop Shift" button */
+        .button-danger {
+            background-color: #ef4444; /* bg-red-500 */
+            color: white;
+        }
+        .button-danger:hover {
+            background-color: #dc2626; /* bg-red-600 */
+        }
+        /* NEW: Debug speed indicator */
+        #debugSpeedIndicator {
+            font-size: 0.75rem; /* text-xs */
+            font-weight: 500; /* font-medium */
+            margin-left: 0.5rem; /* ml-2 */
+            color: #f59e0b; /* text-amber-500 */
+        }
     </style>
 </head>
 <body class="min-h-screen theme-app-container flex flex-row theme-bg-color">
@@ -363,11 +379,19 @@
                         <label for="callsign" class="theme-label block mb-2 font-medium">Callsign:</label>
                         <input type="text" id="callsign" name="callsign" required class="theme-input w-full p-3 border rounded-lg">
                     </div>
+
                     <div>
-                        <label for="shiftDuration" class="theme-label block mb-2 font-medium">Shift Duration (e.g., 2h 30m):</label>
-                        <input type="text" id="shiftDuration" name="shiftDuration" required class="theme-input w-full p-3 border rounded-lg">
+                        <div class="flex justify-between items-center mb-2">
+                            <label for="shiftDuration" class="theme-label block font-medium">Shift Duration:</label>
+                            <div class="flex items-center">
+                                <button type="button" id="startStopShiftBtn" class="theme-button-secondary text-sm py-1 px-3 rounded-md transition-colors">Start Shift</button>
+                                <span id="debugSpeedIndicator" style="display: none;"></span>
+                            </div>
+                        </div>
+                        <input type="text" id="shiftDuration" name="shiftDuration" required class="theme-input w-full p-3 border rounded-lg" placeholder="e.g., 2h 30m">
+                        <span id="shiftTimerDisplay" class="theme-subtle-text text-xs mt-1" style="display: none;"></span>
                     </div>
-                </div>
+                    </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-6 mb-8 p-6 rounded-xl theme-section-bg shadow-inner theme-tile-border border">
                     <h3 class="theme-title font-bold text-xl mb-6 col-span-full flex items-center">
@@ -592,6 +616,7 @@
                 return;
             }
 
+            // --- Get DOM Elements ---
             const shiftLogForm = document.getElementById('shiftLogForm');
             const usernameBadgeInput = document.getElementById('usernameBadge');
             const departmentDisplayInput = document.getElementById('departmentDisplay');
@@ -601,21 +626,48 @@
             const imagePreviewDiv = document.getElementById('imagePreview');
             const submitShiftLogBtn = document.getElementById('submitShiftLogBtn');
             const rateLimitMessage = document.getElementById('rateLimitMessage');
-
             const userNameDisplay = document.getElementById('userNameDisplay');
             const sidebarUsernameDisplay = document.getElementById('sidebarUsernameDisplay');
             const logoutButton = document.getElementById('logoutButton');
             const sidebarLogoutButton = document.getElementById('sidebarLogoutButton');
             const mainContentArea = document.getElementById('mainContentArea');
 
+            // --- Timer Elements ---
+            const startStopShiftBtn = document.getElementById('startStopShiftBtn');
+            const shiftDurationInput = document.getElementById('shiftDuration');
+            const shiftTimerDisplay = document.getElementById('shiftTimerDisplay');
+            const SHIFT_TIMER_KEY = 'shiftLog_startTime';
+            let shiftStartTime = null;
+            let shiftTimerInterval = null;
+
+            // --- NEW: Debugging ---
+            let timerSpeedFactor = 1;
+            const debugSpeedIndicator = document.getElementById('debugSpeedIndicator');
+
 
             let screenshotBase64 = null;
             let submissionBlocked = false;
-
-            const loggedInUserString = sessionStorage.getItem('loggedInUser');
             let loggedInUser = null;
             let userDepartment = 'N/A';
 
+            // --- NEW: Check for Debug Speed URL Parameter ---
+            const urlParams = new URLSearchParams(window.location.search);
+            const debugSpeedParam = urlParams.get('debugSpeed');
+            if (debugSpeedParam) {
+                const speed = parseFloat(debugSpeedParam);
+                if (!isNaN(speed) && speed > 0) {
+                    timerSpeedFactor = speed;
+                    console.log(`DEBUG: Timer speed set to ${timerSpeedFactor}x`);
+                    if (debugSpeedIndicator) {
+                        debugSpeedIndicator.textContent = `(${timerSpeedFactor}x Speed)`;
+                        debugSpeedIndicator.style.display = 'inline';
+                    }
+                }
+            }
+            // --- End Debug Speed Check ---
+
+
+            const loggedInUserString = sessionStorage.getItem('loggedInUser');
             if (loggedInUserString) {
                 loggedInUser = JSON.parse(loggedInUserString);
 
@@ -638,11 +690,13 @@
                 return;
             }
 
-            // Setup Logout button
+            // --- Setup Logout button ---
             function handleLogout(event) {
                 event.preventDefault();
                 window.showCustomConfirm("Are you sure you want to log out?", "Confirm Logout").then((confirmed) => {
                     if (confirmed) {
+                        // Clear timer on logout
+                        sessionStorage.removeItem(SHIFT_TIMER_KEY);
                         sessionStorage.removeItem('authToken');
                         sessionStorage.removeItem('loggedInUser');
                         sessionStorage.removeItem('userStats');
@@ -654,22 +708,21 @@
             if (logoutButton) logoutButton.addEventListener('click', handleLogout);
             if (sidebarLogoutButton) sidebarLogoutButton.addEventListener('click', handleLogout);
 
-             // --- Sidebar Collapse Logic (Copied from selection.html) ---
+             // --- Sidebar Collapse Logic ---
             const appSidebar = document.getElementById('appSidebar');
             const sidebarToggle = document.getElementById('sidebarToggle');
             const appHeader = document.getElementById('appHeader');
             const SIDEBAR_COLLAPSED_KEY = 'sidebarCollapsed';
-
             const isCollapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
 
             if (isCollapsed) {
                 appSidebar.classList.add('collapsed');
                 appHeader.classList.add('collapsed');
-                 if (window.innerWidth <= 1024) { // Only add collapsed to main on mobile if sidebar is collapsed
+                 if (window.innerWidth <= 1024) {
                     mainContentArea.classList.add('collapsed');
                 }
             } else {
-                 if (window.innerWidth <= 1024) { // Remove collapsed from main on mobile if sidebar is NOT collapsed
+                 if (window.innerWidth <= 1024) {
                     mainContentArea.classList.remove('collapsed');
                 }
             }
@@ -677,13 +730,12 @@
             function toggleSidebar() {
                 const isCurrentlyCollapsed = appSidebar.classList.toggle('collapsed');
                 appHeader.classList.toggle('collapsed');
-                 if (window.innerWidth <= 1024) { // Toggle main content only on mobile
+                 if (window.innerWidth <= 1024) {
                      mainContentArea.classList.toggle('collapsed', isCurrentlyCollapsed);
                 }
                 localStorage.setItem(SIDEBAR_COLLAPSED_KEY, isCurrentlyCollapsed);
-                setTimeout(syncHeaderHeight, 300); // Re-sync header height after transition
+                setTimeout(syncHeaderHeight, 300);
             }
-
 
             if (sidebarToggle) {
                 sidebarToggle.addEventListener('click', toggleSidebar);
@@ -693,46 +745,132 @@
              // --- Swipe Gesture Logic ---
             let touchStartX = 0;
             let touchEndX = 0;
-            const swipeThreshold = 50; // Minimum pixels for a swipe
+            const swipeThreshold = 50;
 
             document.body.addEventListener('touchstart', (event) => {
-                 // Ignore swipes if touching input elements to allow text selection
                 if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA' || event.target.tagName === 'SELECT') {
-                    touchStartX = null; // Invalidate swipe
+                    touchStartX = null;
                     return;
                 }
                  touchStartX = event.changedTouches[0].screenX;
-            }, { passive: true }); // Use passive for performance if possible
+            }, { passive: true });
 
             document.body.addEventListener('touchend', (event) => {
-                 if (touchStartX === null) return; // Swipe invalidated
-
+                 if (touchStartX === null) return;
                 touchEndX = event.changedTouches[0].screenX;
                 handleSwipeGesture();
             }, { passive: true });
 
             function handleSwipeGesture() {
-                 if (window.innerWidth >= 1024) return; // Only on mobile view
-
+                 if (window.innerWidth >= 1024) return;
                 const deltaX = touchEndX - touchStartX;
                 const isSidebarCollapsed = appSidebar.classList.contains('collapsed');
-
-                // Swipe Left to Collapse
                 if (deltaX < -swipeThreshold && !isSidebarCollapsed) {
-                    console.log("Swipe Left Detected - Collapsing Sidebar");
                     toggleSidebar();
                 }
-                // Swipe Right to Expand
                 else if (deltaX > swipeThreshold && isSidebarCollapsed) {
-                     console.log("Swipe Right Detected - Expanding Sidebar");
                     toggleSidebar();
                 }
-
-                // Reset coordinates
                 touchStartX = 0;
                 touchEndX = 0;
             }
              // --- End Swipe Gesture Logic ---
+
+            // --- Shift Timer Functions ---
+            function formatDuration(ms) {
+                const totalSeconds = Math.floor(ms / 1000);
+                const hours = Math.floor(totalSeconds / 3600);
+                const minutes = Math.floor((totalSeconds % 3600) / 60);
+                const seconds = totalSeconds % 60;
+                return `${hours}h ${minutes}m ${seconds}s`;
+            }
+
+            function formatDurationForInput(ms) {
+                const totalMinutes = Math.round(ms / (1000 * 60)); // Round to nearest minute
+                const hours = Math.floor(totalMinutes / 60);
+                const minutes = totalMinutes % 60;
+                // --- FIX: Return "0h 0m" if duration rounds to 0 ---
+                if (hours === 0 && minutes === 0 && ms > 0) return "0h 0m"; // Show 0h 0m if timer ran but was short
+                if (hours === 0 && minutes === 0 && ms <= 0) return "";    // Return empty if 0 or negative (shouldn't happen)
+                return `${hours}h ${minutes}m`;
+            }
+
+
+            function updateTimerDisplay() {
+                if (!shiftStartTime) return;
+                const realElapsed = Date.now() - shiftStartTime;
+                // NEW: Apply speed factor for display
+                const debugElapsed = realElapsed * timerSpeedFactor;
+                shiftTimerDisplay.textContent = `Time: ${formatDuration(debugElapsed)}`;
+            }
+
+            function runActiveTimerUI() {
+                startStopShiftBtn.textContent = 'Stop Shift';
+                startStopShiftBtn.classList.remove('theme-button-secondary');
+                startStopShiftBtn.classList.add('button-danger');
+                shiftDurationInput.readOnly = true;
+                shiftTimerDisplay.style.display = 'block';
+                // Update slightly faster if debugging to see changes quicker
+                const intervalTime = timerSpeedFactor > 1 ? 100 : 1000;
+                shiftTimerInterval = setInterval(updateTimerDisplay, intervalTime);
+                updateTimerDisplay(); // Run once immediately
+            }
+
+            function runInactiveTimerUI() {
+                if (shiftTimerInterval) clearInterval(shiftTimerInterval);
+                shiftTimerInterval = null;
+                startStopShiftBtn.textContent = 'Start Shift';
+                startStopShiftBtn.classList.add('theme-button-secondary');
+                startStopShiftBtn.classList.remove('button-danger');
+                shiftDurationInput.readOnly = false;
+                shiftTimerDisplay.style.display = 'none';
+                shiftTimerDisplay.textContent = '';
+            }
+
+            function startShift() {
+                shiftStartTime = Date.now();
+                sessionStorage.setItem(SHIFT_TIMER_KEY, shiftStartTime.toString());
+                runActiveTimerUI();
+            }
+
+            function stopShift(setInputValue = true) {
+                if (!shiftStartTime) return;
+                if (shiftTimerInterval) clearInterval(shiftTimerInterval);
+
+                const realDuration = Date.now() - shiftStartTime;
+                // NEW: Apply speed factor for input value
+                const debugDuration = realDuration * timerSpeedFactor;
+
+                if (setInputValue) {
+                    shiftDurationInput.value = formatDurationForInput(debugDuration);
+                }
+
+                sessionStorage.removeItem(SHIFT_TIMER_KEY);
+                shiftStartTime = null;
+                runInactiveTimerUI();
+            }
+
+            // Check for a running timer on page load
+            const savedStartTime = sessionStorage.getItem(SHIFT_TIMER_KEY);
+            if (savedStartTime) {
+                shiftStartTime = parseInt(savedStartTime, 10);
+                if (!isNaN(shiftStartTime)) { // Check if parsing was successful
+                    runActiveTimerUI();
+                } else {
+                     sessionStorage.removeItem(SHIFT_TIMER_KEY); // Clear invalid entry
+                }
+            }
+
+
+            // Add click listener to the button
+            startStopShiftBtn.addEventListener('click', () => {
+                if (shiftStartTime) {
+                    stopShift(true); // Stop and set input value
+                } else {
+                    startShift();
+                }
+            });
+            // --- END: Shift Timer Functions ---
 
 
             // Function to handle image processing and preview display
@@ -803,14 +941,19 @@
                     return;
                 }
 
+                // If timer is running, stop it and ensure the input has the (potentially sped-up) value
+                if (shiftStartTime) {
+                    stopShift(true);
+                }
+
                 const shiftLogData = {
                     yourUsername: loggedInUser.username,
                     badgeNumber: loggedInUser.badgeNumber,
                     department: userDepartment,
-                    rank: rankDisplayInput.value, // Now takes user input
+                    rank: rankDisplayInput.value,
                     hostOfTheSession: document.getElementById('hostSession').value,
                     callsign: document.getElementById('callsign').value,
-                    shiftDuration: document.getElementById('shiftDuration').value,
+                    shiftDuration: shiftDurationInput.value, // Use the value from the input (which now holds the potentially sped-up duration)
                     trafficStops: parseInt(document.getElementById('trafficStops').value, 10),
                     citations: parseInt(document.getElementById('citations').value, 10),
                     arrests: parseInt(document.getElementById('arrests').value, 10),
@@ -820,6 +963,11 @@
 
                 if (isNaN(shiftLogData.trafficStops) || isNaN(shiftLogData.citations) || isNaN(shiftLogData.arrests)) {
                     window.showCustomAlert("Traffic Stops, Citations Issued, and Arrests Made must be valid numbers.", "Input Error");
+                    return;
+                }
+
+                if (!shiftLogData.shiftDuration) {
+                    window.showCustomAlert("Please enter a Shift Duration or use the timer.", "Input Error");
                     return;
                 }
 
@@ -867,12 +1015,7 @@
 
                     if (response && response.ok) {
                         window.showCustomAlert(result.message, 'Success').then(() => {
-                            shiftLogForm.reset();
-                            imagePreviewDiv.innerHTML = '<p class="theme-label-small theme-label">No image selected</p>';
-                            screenshotBase64 = null;
-                            usernameBadgeInput.value = `${loggedInUser.username || 'N/A'} (Badge: ${loggedInUser.badgeNumber || 'N/A'})`;
-                            departmentDisplayInput.value = userDepartment;
-                            rankDisplayInput.value = ''; // Ensure rank is explicitly cleared, not reset to userRole
+                            shiftLogForm.reset(); // This will trigger the 'reset' event listener
                         });
                     } else if (response) {
                         window.showCustomAlert('Submission failed: ' + (result.message || response.statusText), 'Error');
@@ -883,12 +1026,17 @@
                 }
             });
 
-            // Clear form button functionality
-            document.querySelector('button[type="reset"]').addEventListener('click', function(event) {
+            // MODIFIED: Clear form button functionality
+            shiftLogForm.addEventListener('reset', function(event) {
+                // Use setTimeout to run after the form's native reset
                 setTimeout(() => {
+                    // Stop timer without setting input
+                    if(shiftStartTime) stopShift(false);
+                    shiftDurationInput.value = ''; // Ensure duration is cleared
+
                     usernameBadgeInput.value = `${loggedInUser.username || 'N/A'} (Badge: ${loggedInUser.badgeNumber || 'N/A'})`;
                     departmentDisplayInput.value = userDepartment;
-                    rankDisplayInput.value = ''; // Ensure rank is explicitly cleared, not reset to userRole
+                    rankDisplayInput.value = '';
                     imagePreviewDiv.innerHTML = '<p class="theme-label-small theme-label">No image selected</p>';
                     pasteTargetDiv.textContent = 'Paste image here (Ctrl+V or Cmd+V)';
                     screenshotBase64 = null;
