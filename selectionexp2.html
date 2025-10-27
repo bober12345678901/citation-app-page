@@ -197,7 +197,7 @@
             border-left-color: transparent; /* Hide border when collapsed for a cleaner look */
         }
         .sidebar.collapsed .sidebar-toggle-button {
-            transform: rotate(180deg);
+        transform: translateY(-50%) rotate(180deg);
         }
 
         /* MODIFIED: Add header collapsed state back */
@@ -275,7 +275,8 @@
         .sidebar-toggle-button {
             position: absolute;
             right: -12px;
-            top: 60px;
+            top: 50%;
+			transform: translateY(-50%);
             width: 24px;
             height: 24px;
             border-radius: 50%;

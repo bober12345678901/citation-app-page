@@ -41,22 +41,24 @@
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
             transition: box-shadow 0.3s;
         }
-        
+
         /* FIX: Ensure the theme dropdown menu (if rendered) has a solid background */
         .theme-dropdown-menu {
-            background-color: var(--box-bg-color); 
-            border: 1px solid var(--border-color); 
+            background-color: var(--box-bg-color);
+            border: 1px solid var(--border-color);
         }
 
+        /* --- New Sidebar/Header Styles for Unification (Copied from selection.html) --- */
         /* ===== header-safe-spacing (RECOMMENDED) ===== */
-        /* create a CSS variable that will be set from JS to the exact header height */
         :root {
           --app-header-height: 5rem; /* fallback if JS hasn't run yet */
+          --sidebar-width: 250px; /* Default expanded width */
+          --sidebar-collapsed-width: 65px; /* Collapsed width for icons only */
         }
 
-        /* FIX: Ensure the header is a solid color by explicitly setting the background on the header's theme class */
+        /* 1. Sidebar Styles (Updated for Collapse) */
         header.theme-section-bg {
-            background-color: var(--box-bg-color) !important; /* Use !important to ensure override */
+            background-color: var(--box-bg-color) !important;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             position: fixed;
             top: 0;
@@ -64,19 +66,69 @@
             min-height: 4rem;
             z-index: 50;
             box-sizing: border-box;
+            transition: width 0.3s, left 0.3s; /* Header animation */
         }
-        /* Override for main-header positioning if the screen is large enough for the sidebar */
         .main-header {
-            width: calc(100% - 250px);
-            left: 250px;
+            width: calc(100% - var(--sidebar-width));
+            left: var(--sidebar-width);
+        }
+        .main-content-wrapper {
+            margin-left: var(--sidebar-width); /* Stays constant */
+            flex-grow: 1;
+            box-sizing: border-box;
+            padding-top: 0; /* Padding is set by JS inline */
+            transition: none; /* Keep content fixed */
+
+            position: relative;
+            z-index: 1;
         }
 
+        /* Collapsed State Styles */
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed-width);
+            min-width: var(--sidebar-collapsed-width);
+        }
+        .sidebar.collapsed .sidebar-item {
+            padding: 0.75rem 0; /* Center icon when collapsed */
+            justify-content: center;
+        }
+        .sidebar.collapsed .sidebar-item-text,
+        .sidebar.collapsed .sidebar-user-info,
+        .sidebar.collapsed .sidebar-title,
+        .sidebar.collapsed .sidebar-logout-text {
+            display: none; /* Hide text elements */
+        }
+        .sidebar.collapsed .sidebar-item-icon {
+             margin-left: 0; /* Center icon when text is hidden */
+        }
+        .sidebar.collapsed .sidebar-item.active {
+            border-left-color: transparent; /* Hide border when collapsed for a cleaner look */
+        }
+        .sidebar.collapsed .sidebar-toggle-button {
+            transform: translateY(-50%) rotate(180deg); /* Combine transforms */
+        }
+        .main-header.collapsed {
+            width: calc(100% - var(--sidebar-collapsed-width));
+            left: var(--sidebar-collapsed-width);
+        }
 
-        /* --- New Sidebar Styles (Copied from citation.html) --- */
+        @media (max-width: 1024px) {
+            .sidebar { display: block; /* Ensure sidebar is block for swipe */ }
+            /* When sidebar is shown on mobile due to swipe or initially */
+            .main-content-wrapper { margin-left: var(--sidebar-width); }
+            .main-header { width: calc(100% - var(--sidebar-width)); left: var(--sidebar-width); }
+
+            /* When sidebar is collapsed on mobile */
+             .sidebar.collapsed { width: 0; min-width: 0; overflow: hidden; box-shadow: none; border-right: none;} /* Completely hide collapsed sidebar */
+             .sidebar.collapsed .sidebar-toggle-button { right: -30px; /* Move toggle button off-screen when hidden */}
+             .main-content-wrapper.collapsed { margin-left: 0; }
+             .main-header.collapsed { width: 100%; left: 0; }
+        }
+        /* --- Sidebar Styles --- */
         .sidebar {
-            width: 250px;
-            min-width: 250px;
-            background-color: var(--box-bg-color); /* Sidebar background color */
+            width: var(--sidebar-width);
+            min-width: var(--sidebar-width);
+            background-color: var(--box-bg-color);
             color: var(--text-color);
             position: fixed;
             top: 0;
@@ -88,9 +140,12 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            transition: width 0.3s, min-width 0.3s; /* Added min-width transition */
+             border-right: 1px solid var(--border-color); /* Add border for visual separation */
         }
         .sidebar-item {
-            display: block;
+            display: flex; /* Use flex for icon/text alignment */
+            align-items: center;
             padding: 0.75rem 1.5rem;
             font-size: 1.125rem;
             font-weight: 500;
@@ -105,31 +160,40 @@
             color: var(--accent-color);
             font-weight: 700;
         }
+        .sidebar-item-icon {
+            min-width: 24px; /* Ensure icon has space */
+            text-align: center;
+        }
+        .sidebar-item-text {
+            margin-left: 1rem;
+            transition: opacity 0.3s;
+        }
         .sidebar-user-info {
             padding: 1rem 1.5rem;
             border-top: 1px solid var(--border-color);
             font-size: 0.875rem;
+            transition: opacity 0.3s;
         }
-        /* Adjust main content area to make space for sidebar */
-        /* NOTE: The padding-top is now handled via inline style in the <main> tag to ensure priority. */
-        .main-content-wrapper {
-            margin-left: 250px;
-            flex-grow: 1;
-            box-sizing: border-box;
-            /* Removed padding-top here to rely on JS/inline style */
+        .sidebar-toggle-button {
+            position: absolute;
+            right: -12px;
+            top: 50%; /* Center vertically */
+            transform: translateY(-50%); /* Adjust vertical centering */
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s, background-color 0.3s, right 0.3s; /* Added right transition */
+            z-index: 50;
         }
-        @media (max-width: 1024px) {
-            .sidebar {
-                display: none;
-            }
-            .main-content-wrapper, .main-header {
-                margin-left: 0;
-                width: 100%;
-                left: 0;
-            }
-        }
-        /* --- End New Sidebar Styles --- */
-        
+        /* --- End Sidebar/Header Styles --- */
+
         /* Autocomplete suggestions dropdown styles */
         .autocomplete-suggestions {
             border: 1px solid var(--border-color);
@@ -157,7 +221,7 @@
             display: grid;
             grid-template-columns: 1fr 1fr auto; /* Charge, Jail Time, Remove Button */
             gap: 1.5rem; /* Increased spacing */
-            margin-bottom: 1.5rem; 
+            margin-bottom: 1.5rem;
             align-items: end;
         }
         .charge-group .input-wrapper {
@@ -175,7 +239,7 @@
              /* Match dashboard button style */
             padding: 0.75rem 1.5rem; /* py-3 px-6 */
         }
-        @media (max-width: 767px) { 
+        @media (max-width: 767px) {
             .charge-group {
                 grid-template-columns: 1fr;
             }
@@ -260,17 +324,17 @@
         }
         /* Styles for the penal code list modal */
         .penal-code-list-modal-content {
-            max-height: 400px; 
+            max-height: 400px;
             overflow-y: auto;
             padding: 1rem;
-            background-color: var(--input-bg-color); 
+            background-color: var(--input-bg-color);
             border-radius: 0.5rem;
             border: 1px solid var(--border-color);
         }
         .penal-code-list-modal-content div {
             padding: 0.75rem 0; /* Increased padding */
             border-bottom: 1px dashed var(--border-color);
-            color: var(--text-color); 
+            color: var(--text-color);
         }
         .penal-code-list-modal-content div:last-child {
             border-bottom: none;
@@ -307,30 +371,50 @@
             </div>
         </div>
     </div>
-    
-    <div class="sidebar">
-        <div>
-            <div class="text-2xl font-bold px-6 mb-8 text-[var(--accent-color)]">Shadow LE Web</div>
-            
-            <a href="selection.html" class="sidebar-item theme-text-color">Dashboard</a>
-            <a href="citation.html" class="sidebar-item theme-text-color">Submit Citation</a>
-            <a href="arrest.html" class="sidebar-item active">Submit Arrest Report</a>
-            <a href="shift_log.html" class="sidebar-item theme-text-color">Submit Shift Log</a>
+
+    <div class="sidebar" id="appSidebar"> <div id="sidebarToggle" class="sidebar-toggle-button">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+            </svg>
         </div>
-        
+
+        <div>
+            <div class="text-2xl font-bold px-6 mb-8 text-[var(--accent-color)] sidebar-title">Shadow LE Web</div> <a href="selection.html" class="sidebar-item theme-text-color">
+                <span class="sidebar-item-icon">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                </span>
+                <span class="sidebar-item-text">Dashboard</span>
+            </a>
+            <a href="citation.html" class="sidebar-item theme-text-color">
+                <span class="sidebar-item-icon">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                </span>
+                <span class="sidebar-item-text">Submit Citation</span>
+            </a>
+            <a href="arrest.html" class="sidebar-item active"> <span class="sidebar-item-icon">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                </span>
+                <span class="sidebar-item-text">Submit Arrest Report</span>
+            </a>
+            <a href="shift_log.html" class="sidebar-item theme-text-color">
+                <span class="sidebar-item-icon">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                </span>
+                <span class="sidebar-item-text">Submit Shift Log</span>
+            </a>
+        </div>
+
         <div class="sidebar-user-info theme-subtle-text">
             <p class="font-bold mb-1 theme-text-color" id="sidebarUsernameDisplay">USERNAME</p>
             <p class="block theme-subtle-text">Shadow LE Web© 2025</p>
-            <button id="sidebarLogoutButton" class="block mt-2 font-medium text-red-400 hover:text-red-500 transition-colors">Log out</button>
-        </div>
+            <button id="sidebarLogoutButton" class="block mt-2 font-medium text-red-400 hover:text-red-500 transition-colors sidebar-logout-text">Log out</button> </div>
     </div>
-    <header class="theme-section-bg fixed top-0 w-full z-50 main-header">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-        
+    <header class="theme-section-bg fixed top-0 w-full z-50 main-header" id="appHeader"> <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+
         <div class="flex items-end space-x-4">
             <h1 class="text-3xl font-bold theme-text-color">Process Arrest</h1>
-            
-            <a href="selection.html" 
+
+            <a href="selection.html"
                class="text-sm font-medium theme-subtle-text hover:text-[var(--accent-color)] transition-colors mb-1">
                 (Back to Dashboard)
             </a>
@@ -367,18 +451,17 @@
         </nav>
       </div>
     </header>
-    <main class="main-content-wrapper flex items-start justify-center p-4" id="mainContentArea"> 
-        <div class="container mx-auto max-w-4xl w-full theme-lookup-box p-8 sm:p-10 rounded-2xl dashboard-form-container border theme-tile-border transition-colors duration-300">
+    <main class="main-content-wrapper flex items-start justify-center p-4" id="mainContentArea"> <div class="container mx-auto max-w-4xl w-full theme-lookup-box p-8 sm:p-10 rounded-2xl dashboard-form-container border theme-tile-border transition-colors duration-300">
             <h2 class="theme-title text-3xl font-bold text-center mb-8">Arrest Report Details</h2>
             <form id="arrestForm">
-                
+
                 <div class="mb-8 p-6 rounded-xl theme-section-bg shadow-inner theme-tile-border border">
                     <h3 class="theme-title font-bold text-xl mb-6 flex items-center">
                         <svg class="w-6 h-6 mr-2 text-[var(--accent-color)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0h4"></path></svg>
                         Personnel & Suspect Details
                     </h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                        
+
                         <div>
                             <label for="arrestingOfficerBadge" class="theme-label block mb-2 font-medium">Arresting Officer Badge Number:</label>
                             <input type="text" id="arrestingOfficerBadge" name="arrestingOfficerBadge" required class="theme-input w-full p-3 border rounded-lg">
@@ -429,7 +512,7 @@
                         <button type="button" id="viewAllPenalCodesBtn" class="theme-button-secondary py-3 px-6 rounded-lg font-semibold">View All Penal Codes</button>
                     </div>
                 </div>
-                
+
                 <div class="mb-8 p-6 rounded-xl theme-section-bg theme-tile-border border grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
                     <div class="text-left md:text-right">
                         <label for="totalJailTimeSum" class="theme-title block mb-2 font-bold text-xl">Total Jail Time (Sec):</label>
@@ -449,7 +532,7 @@
 
                     <label class="theme-title block mb-2 font-bold text-lg">Warrant Needed?</label>
                     <div class="radio-container">
-                        <input type="radio" id="warrantNeededNo" name="warrantNeeded" value="NO" class="theme-input" checked> 
+                        <input type="radio" id="warrantNeededNo" name="warrantNeeded" value="NO" class="theme-input" checked>
                         <label for="warrantNeededNo" class="theme-label text-lg">NO (Final Arrest)</label>
                         <input type="radio" id="warrantNeededYes" name="warrantNeeded" value="YES" class="theme-input">
                         <label for="warrantNeededYes" class="theme-label text-lg">YES (Request Warrant)</label>
@@ -468,7 +551,7 @@
                         <input type="number" id="warrantJailTime" name="warrantJailTime" step="1" min="0" value="0" class="theme-input w-full p-3 border rounded-lg">
                     </div>
                 </div>
-                
+
                 <div class="mb-8 p-6 rounded-xl theme-section-bg shadow-inner theme-tile-border border">
                     <h3 class="theme-title font-bold text-xl mb-6 flex items-center">
                         <svg class="w-6 h-6 mr-2 text-[var(--accent-color)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
@@ -484,13 +567,13 @@
                     <div id="mugshotPreview" class="image-preview-container">
                         <p class="theme-label-small theme-label">No image selected</p>
                     </div>
-                    
+
                     <div class="mt-6">
                         <label for="incidentDetails" class="theme-label block mb-2 font-medium">Description of the incident:</label>
                         <textarea id="incidentDetails" name="incidentDetails" placeholder="Provide detailed account of the incident leading to arrest, including mugshot details if applicable." required class="theme-input w-full p-3 border rounded-lg min-h-[120px]"></textarea>
                     </div>
                 </div>
-                
+
                 <div class="flex flex-wrap justify-center gap-4 pt-4">
                     <button type="submit" class="theme-button-primary py-3 px-8 rounded-lg font-semibold text-lg" style="background-color: var(--button-danger-bg);">Submit Arrest Report</button>
                     <button type="reset" class="theme-button-secondary py-3 px-8 rounded-lg font-semibold" id="clearFormBtn">Clear Form</button>
@@ -517,7 +600,7 @@
 
         // Track dynamically added charge input groups
         let chargeGroupCounter = 0;
-        
+
         // --- Header/Sidebar Functionality (Start) ---
         // Function to handle redirection to login page and clear session storage
         function redirectToLogin(message = "Your session has expired. Please log in again.") {
@@ -527,7 +610,7 @@
                 window.location.href = 'index.html';
             });
         }
-        
+
         // --- JWT Decoding (Client-side, for expiration check) ---
         function decodeJwt(token) {
             if (!token) return null;
@@ -548,7 +631,7 @@
             const decodedToken = decodeJwt(token);
 
             if (!token || !decodedToken || decodedToken.exp < (Date.now() / 1000)) {
-                // Simplified: If token is expired/missing, redirect immediately (as refresh logic is complex/not fully provided here)
+                // Simplified: If token is expired/missing, redirect immediately
                 redirectToLogin("Your session has expired. Please log in again.");
                 return null;
             }
@@ -577,13 +660,13 @@
                     const modalTitle = document.getElementById('customModalTitle');
                     const modalMessage = document.getElementById('customModalMessage');
                     const modalOkBtn = document.getElementById('customModalOkBtn');
-                    
+
                     modalTitle.textContent = title || (type === 'error' ? 'Error' : 'Information');
                     modalMessage.innerHTML = message;
-                    
+
                     document.getElementById('customModalCancelBtn').classList.add('hidden');
                     modalOkBtn.textContent = 'OK';
-                    
+
                     const handleOk = () => {
                         modalOverlay.classList.add('hidden');
                         modalOkBtn.removeEventListener('click', handleOk);
@@ -605,7 +688,7 @@
 
                     modalTitle.textContent = title;
                     modalMessage.innerHTML = message;
-                    
+
                     modalCancelBtn.classList.remove('hidden');
                     modalOkBtn.textContent = 'Confirm';
 
@@ -670,9 +753,9 @@
             const loggedInUserString = sessionStorage.getItem('loggedInUser');
             if (loggedInUserString) {
                 const loggedInUser = JSON.parse(loggedInUserString);
-                
+
                 // Set Header Username
-                if (userNameDisplay) {
+                if (userNameDisplay && sidebarUsernameDisplay) {
 					userNameDisplay.textContent = loggedInUser.username || 'Officer';
                     sidebarUsernameDisplay.textContent = loggedInUser.username || 'USERNAME';
 				}
@@ -684,7 +767,7 @@
                 redirectToLogin("User session data not found.");
                 return;
             }
-            
+
             // Setup Logout button
             function handleLogout(event) {
                 event.preventDefault();
@@ -692,14 +775,94 @@
                     if (confirmed) {
                         sessionStorage.removeItem('authToken');
                         sessionStorage.removeItem('loggedInUser');
-                        sessionStorage.removeItem('userStats');       
-                        sessionStorage.removeItem('statsLastUpdated'); 
+                        sessionStorage.removeItem('userStats');
+                        sessionStorage.removeItem('statsLastUpdated');
                         window.location.href = 'index.html';
                     }
                 });
             }
             if (logoutButton) logoutButton.addEventListener('click', handleLogout);
             if (sidebarLogoutButton) sidebarLogoutButton.addEventListener('click', handleLogout);
+
+            // --- Sidebar Collapse Logic (Copied from selection.html) ---
+            const appSidebar = document.getElementById('appSidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const appHeader = document.getElementById('appHeader');
+            const SIDEBAR_COLLAPSED_KEY = 'sidebarCollapsed';
+
+            const isCollapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
+
+            if (isCollapsed) {
+                appSidebar.classList.add('collapsed');
+                appHeader.classList.add('collapsed');
+                if (window.innerWidth <= 1024) { // Only add collapsed to main on mobile if sidebar is collapsed
+                    mainContentArea.classList.add('collapsed');
+                }
+            } else {
+                 if (window.innerWidth <= 1024) { // Add collapsed to main on mobile if sidebar is NOT collapsed (initially visible)
+                    mainContentArea.classList.remove('collapsed');
+                }
+            }
+
+
+            function toggleSidebar() {
+                const isCurrentlyCollapsed = appSidebar.classList.toggle('collapsed');
+                appHeader.classList.toggle('collapsed');
+                if (window.innerWidth <= 1024) { // Toggle main content only on mobile
+                     mainContentArea.classList.toggle('collapsed', isCurrentlyCollapsed);
+                }
+                localStorage.setItem(SIDEBAR_COLLAPSED_KEY, isCurrentlyCollapsed);
+                setTimeout(syncHeaderHeight, 300); // Re-sync header height after transition
+            }
+
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', toggleSidebar);
+            }
+             // --- End Sidebar Collapse Logic ---
+
+             // --- Swipe Gesture Logic ---
+            let touchStartX = 0;
+            let touchEndX = 0;
+            const swipeThreshold = 50; // Minimum pixels for a swipe
+
+            document.body.addEventListener('touchstart', (event) => {
+                // Ignore swipes if touching input elements to allow text selection
+                if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA' || event.target.tagName === 'SELECT') {
+                    touchStartX = null; // Invalidate swipe
+                    return;
+                }
+                 touchStartX = event.changedTouches[0].screenX;
+            }, { passive: true }); // Use passive for performance if possible
+
+            document.body.addEventListener('touchend', (event) => {
+                 if (touchStartX === null) return; // Swipe invalidated
+
+                touchEndX = event.changedTouches[0].screenX;
+                handleSwipeGesture();
+            }, { passive: true });
+
+            function handleSwipeGesture() {
+                if (window.innerWidth >= 1024) return; // Only on mobile view
+
+                const deltaX = touchEndX - touchStartX;
+                const isSidebarCollapsed = appSidebar.classList.contains('collapsed');
+
+                // Swipe Left to Collapse
+                if (deltaX < -swipeThreshold && !isSidebarCollapsed) {
+                    console.log("Swipe Left Detected - Collapsing Sidebar");
+                    toggleSidebar();
+                }
+                // Swipe Right to Expand
+                else if (deltaX > swipeThreshold && isSidebarCollapsed) {
+                     console.log("Swipe Right Detected - Expanding Sidebar");
+                    toggleSidebar();
+                }
+
+                // Reset coordinates
+                touchStartX = 0;
+                touchEndX = 0;
+            }
+             // --- End Swipe Gesture Logic ---
 
 
             // Fetch penal codes for autocomplete
@@ -735,9 +898,9 @@
                 setTimeout(() => window.showCustomConfirm("Are you sure you want to clear the form?", "Confirm Clear").then(confirmed => {
                     if (confirmed) {
                         arrestForm.reset();
-                        resetForm(); 
+                        resetForm();
                     }
-                }), 0); 
+                }), 0);
             });
 
 
@@ -769,7 +932,7 @@
                 yourUsernameInput.value = loggedInUser.username || '';
                 arrestingOfficerBadgeInput.value = loggedInUser.badgeNumber || '';
                 officerDepartmentDisplayInput.value = loggedInUser.department || 'N/A';
-                
+
                 // Reset radio buttons to default 'NO' state
                 document.getElementById('warrantNeededNo').checked = true;
                 document.getElementById('servingWarrantNo').checked = true;
@@ -778,7 +941,7 @@
                 // Recalculate totals
                 updateTotals();
             }
-            
+
             function toggleWarrantJailTimeField() {
                 if (document.getElementById('servingWarrantYes').checked) {
                     warrantJailTimeContainer.classList.remove('hidden');
@@ -787,7 +950,7 @@
                     document.getElementById('warrantJailTime').value = 0;
                 }
             }
-            
+
             function addChargeInputGroup() {
                 chargeGroupCounter++;
                 const newGroup = document.createElement('div');
@@ -828,7 +991,7 @@
                             code.code.toLowerCase().includes(query) ||
                             (code.description && code.description.toLowerCase().includes(query))
                         ).slice(0, 5); // Limit suggestions to 5
-                        
+
                         suggestionsDiv.innerHTML = '';
                         if (filtered.length > 0) {
                             suggestionsDiv.style.display = 'block';
@@ -855,7 +1018,7 @@
                     suggestionsDiv.style.display = 'none';
                     updateTotals();
                 }
-                
+
                 // Handle Enter keypress for autofill
                 if (event.type === 'keydown' && event.key === 'Enter') {
                     event.preventDefault(); // Prevent form submission
@@ -867,7 +1030,7 @@
                         updateTotals();
                     }
                 }
-                
+
                 // Handle Remove button click
                 if (target.classList.contains('button-remove')) {
                     const groupToRemove = target.closest('.charge-group');
@@ -883,7 +1046,7 @@
                     const codeInput = group.querySelector('.charge-code-input');
                     const code = codeInput.value.toUpperCase();
                     const penalCode = penalCodesData.find(p => p.code === code);
-                    
+
                     if (penalCode) {
                         const jailTimeInput = group.querySelector('.jail-time-input');
                         jailTimeInput.value = penalCode.jail_time_seconds || 0;
@@ -939,7 +1102,7 @@
             function handleViewAllPenalCodes() {
                 const modalContent = document.getElementById('penalCodeListModalContent');
                 modalContent.innerHTML = '';
-                
+
                 // Define the categories and their code ranges
                 const categories = {
                     "Crimes Against Civilian": [100, 199],
@@ -952,7 +1115,7 @@
                     "Vehicular Offences": [800, 899],
                     "Control of Deadly Weapons and Equipment": [900, 999]
                 };
-                
+
                 if (penalCodesData.length === 0) {
                     modalContent.innerHTML = '<p class="theme-label">No penal codes available. This could be due to a backend issue or empty database.</p>';
                 } else {
@@ -962,7 +1125,7 @@
                         const numB = parseInt(b.code, 10);
                         return numA - numB;
                     });
-                    
+
                     let allCategorizedCodes = [];
 
                     for (const category in categories) {
@@ -971,7 +1134,7 @@
                             const num = parseInt(code.code, 10);
                             return num >= start && num <= end;
                         });
-                        
+
                         if (categoryPenalCodes.length > 0) {
                             const categoryHeader = document.createElement('h4');
                             categoryHeader.className = 'penal-code-category';
@@ -989,7 +1152,7 @@
                             });
                         }
                     }
-                    
+
                     // Add any codes that don't fit into a defined category
                     const uncategorizedCodes = sortedPenalCodes.filter(code => !allCategorizedCodes.includes(code));
 
@@ -1008,7 +1171,7 @@
                         });
                     }
                 }
-                
+
                 document.getElementById('penalCodeListModalOverlay').classList.remove('hidden');
             }
 
@@ -1066,6 +1229,9 @@
                         body: JSON.stringify(submissionData),
                     });
 
+                    // Check if fetchWithAuth returned null (due to auth failure)
+                    if (!response) return;
+
                     const result = await response.json();
 
                     if (response.ok) {
@@ -1074,7 +1240,7 @@
                             const tempWarrantData = {
                                 userReceivingWarrant: submissionData.suspectName,
                                 jailTime: submissionData.totalJailTime,
-                                notes: submissionData.incidentDetails 
+                                notes: submissionData.incidentDetails
                             };
                             sessionStorage.setItem('tempWarrantData', JSON.stringify(tempWarrantData));
                             // Use a confirm dialog to inform the user before redirecting
@@ -1094,11 +1260,6 @@
                                 resetForm(); // Call custom reset logic
                             });
                         }
-                    } else if (response.status === 401 || response.status === 403) {
-                        window.showCustomAlert("Authentication failed. Please log in again.", 'Error').then(() => {
-                            sessionStorage.clear();
-                            window.location.href = 'index.html';
-                        });
                     } else {
                         // Handle non-200, non-auth errors
                         let errorMsg = result.message || response.statusText;
@@ -1116,42 +1277,33 @@
                     window.showCustomAlert('A network error occurred. Check console for details.', 'Error');
                 }
             }
-            
+
             // Initial call to check warrant fields
             toggleWarrantJailTimeField();
         });
-        
-        // Dynamic Header Height Script (Option 1)
+
+        // --- DYNAMIC HEADER HEIGHT SCRIPT (Copied from selection.html) ---
         (function() {
-            function syncHeaderHeight() {
-              const header = document.querySelector('header.main-header') || document.querySelector('header.theme-section-bg.main-header') || document.querySelector('header.theme-section-bg');
+            window.syncHeaderHeight = function() { // Made global
+              const header = document.getElementById('appHeader');
               const mainContent = document.getElementById('mainContentArea');
               if (!header || !mainContent) return;
-              
-              // measure true height (includes wrapping) + 1rem (16px) for breathing room
+
               const height = header.offsetHeight || 0;
-              const safePadding = height + 16; 
-              
-              // Apply as inline style to the main content area
+              const safePadding = height + 16; // 1rem (16px) for breathing room
+
               mainContent.style.paddingTop = safePadding + 'px';
 
-              // set as CSS variable too (for consistency, though inline style is now primary)
               document.documentElement.style.setProperty('--app-header-height', height + 'px');
             }
 
-            // run on load and resize (and after a short timeout to catch fonts/images)
-            window.addEventListener('DOMContentLoaded', () => {
-              syncHeaderHeight();
-              // a small timeout helps if fonts/images change header height after load
-              setTimeout(syncHeaderHeight, 250);
+            window.addEventListener('DOMContentLoaded', async () => {
+                syncHeaderHeight();
+                setTimeout(syncHeaderHeight, 250); // Re-run after potential font/image load
             });
             window.addEventListener('resize', syncHeaderHeight);
-            
-            // Re-run on theme changes if necessary, assuming theme.js provides an event
-            if (window.matchMedia) {
-                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', syncHeaderHeight);
-            }
         })();
+        // --- END DYNAMIC HEADER HEIGHT SCRIPT ---
     </script>
 </body>
 </html>
