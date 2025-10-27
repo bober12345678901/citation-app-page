@@ -41,10 +41,15 @@
             transition: box-shadow 0.3s;
         }
 
+        /* --- New Sidebar/Header Styles for Unification (Copied from selection.html) --- */
         /* ===== header-safe-spacing (RECOMMENDED) ===== */
         :root {
           --app-header-height: 5rem; /* fallback if JS hasn't run yet */
+          --sidebar-width: 250px; /* Default expanded width */
+          --sidebar-collapsed-width: 65px; /* Collapsed width for icons only */
         }
+
+        /* 1. Sidebar Styles (Updated for Collapse) */
         header.theme-section-bg {
             background-color: var(--box-bg-color) !important;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
@@ -54,29 +59,68 @@
             min-height: 4rem;
             z-index: 50;
             box-sizing: border-box;
+            transition: width 0.3s, left 0.3s; /* Header animation */
         }
         .main-header {
-            width: calc(100% - 250px);
-            left: 250px;
+            width: calc(100% - var(--sidebar-width));
+            left: var(--sidebar-width);
         }
         .main-content-wrapper {
-            margin-left: 250px;
+            margin-left: var(--sidebar-width); /* Stays constant */
             flex-grow: 1;
             box-sizing: border-box;
-            /* Removed padding-top here to rely on JS/inline style */
+            padding-top: 0; /* Padding is set by JS inline */
+            transition: none; /* Keep content fixed */
+
+            position: relative;
+            z-index: 1;
         }
+
+        /* Collapsed State Styles */
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed-width);
+            min-width: var(--sidebar-collapsed-width);
+        }
+        .sidebar.collapsed .sidebar-item {
+            padding: 0.75rem 0; /* Center icon when collapsed */
+            justify-content: center;
+        }
+        .sidebar.collapsed .sidebar-item-text,
+        .sidebar.collapsed .sidebar-user-info,
+        .sidebar.collapsed .sidebar-title,
+        .sidebar.collapsed .sidebar-logout-text {
+            display: none; /* Hide text elements */
+        }
+        .sidebar.collapsed .sidebar-item-icon {
+             margin-left: 0; /* Center icon when text is hidden */
+        }
+        .sidebar.collapsed .sidebar-item.active {
+            border-left-color: transparent; /* Hide border when collapsed for a cleaner look */
+        }
+        .sidebar.collapsed .sidebar-toggle-button {
+            transform: translateY(-50%) rotate(180deg); /* Combine transforms */
+        }
+        .main-header.collapsed {
+            width: calc(100% - var(--sidebar-collapsed-width));
+            left: var(--sidebar-collapsed-width);
+        }
+
         @media (max-width: 1024px) {
-            .sidebar { display: none; }
-            .main-content-wrapper, .main-header {
-                margin-left: 0;
-                width: 100%;
-                left: 0;
-            }
+            .sidebar { display: block; /* Ensure sidebar is block for swipe */ }
+            /* When sidebar is shown on mobile due to swipe or initially */
+            .main-content-wrapper { margin-left: var(--sidebar-width); }
+            .main-header { width: calc(100% - var(--sidebar-width)); left: var(--sidebar-width); }
+
+            /* When sidebar is collapsed on mobile */
+             .sidebar.collapsed { width: 0; min-width: 0; overflow: hidden; box-shadow: none; border-right: none;} /* Completely hide collapsed sidebar */
+             .sidebar.collapsed .sidebar-toggle-button { right: -30px; /* Move toggle button off-screen when hidden */}
+             .main-content-wrapper.collapsed { margin-left: 0; }
+             .main-header.collapsed { width: 100%; left: 0; }
         }
         /* --- Sidebar Styles --- */
         .sidebar {
-            width: 250px;
-            min-width: 250px;
+            width: var(--sidebar-width);
+            min-width: var(--sidebar-width);
             background-color: var(--box-bg-color);
             color: var(--text-color);
             position: fixed;
@@ -89,9 +133,12 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            transition: width 0.3s, min-width 0.3s; /* Added min-width transition */
+             border-right: 1px solid var(--border-color); /* Add border for visual separation */
         }
         .sidebar-item {
-            display: block;
+            display: flex; /* Use flex for icon/text alignment */
+            align-items: center;
             padding: 0.75rem 1.5rem;
             font-size: 1.125rem;
             font-weight: 500;
@@ -106,12 +153,39 @@
             color: var(--accent-color);
             font-weight: 700;
         }
+        .sidebar-item-icon {
+            min-width: 24px; /* Ensure icon has space */
+            text-align: center;
+        }
+        .sidebar-item-text {
+            margin-left: 1rem;
+            transition: opacity 0.3s;
+        }
         .sidebar-user-info {
             padding: 1rem 1.5rem;
             border-top: 1px solid var(--border-color);
             font-size: 0.875rem;
+            transition: opacity 0.3s;
         }
-        /* --- End Sidebar Styles --- */
+        .sidebar-toggle-button {
+            position: absolute;
+            right: -12px;
+            top: 50%; /* Center vertically */
+            transform: translateY(-50%); /* Adjust vertical centering */
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s, background-color 0.3s, right 0.3s; /* Added right transition */
+            z-index: 50;
+        }
+        /* --- End Sidebar/Header Styles --- */
 
 
         /* Specific styles for the table and admin panel */
@@ -246,39 +320,39 @@
             align-items: center;
             justify-content: center;
         }
-        
+
         /* --- NEW STYLES for overlapping dropdown --- */
         .admin-table details {
             position: relative; /* Make details the positioning parent */
         }
         .admin-table details > summary {
             cursor: pointer;
-            display: inline-block; 
+            display: inline-block;
             white-space: nowrap; /* Keep summary on one line */
-            overflow: hidden; 
-            text-overflow: ellipsis; 
+            overflow: hidden;
+            text-overflow: ellipsis;
             max-width: 120px; /* Make the summary part skinny */
             padding-right: 5px; /* Space from the dropdown marker */
         }
-        
+
         /* Class for overlapping dropdown content */
         .admin-table .dropdown-content {
             position: absolute;
             background: var(--box-bg-color); /* Use box background */
             border: 1px solid var(--border-color);
-            border-radius: 4px; 
+            border-radius: 4px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            padding: 10px; 
-            margin-top: 5px; 
+            padding: 10px;
+            margin-top: 5px;
             max-height: 200px; /* Max height before scrolling */
-            overflow-y: auto; 
+            overflow-y: auto;
             word-break: break-word; /* Break long words */
             z-index: 10; /* Make it overlap */
-            
+
             /* "Weirdly skinny" part */
             width: 200px; /* Set a specific skinny width */
-            
-            display: block; 
+
+            display: block;
             left: 0; /* Align with the start of the summary */
         }
 
@@ -286,10 +360,10 @@
         .admin-table details:not([open]) > .dropdown-content {
             display: none;
         }
-        
+
         /* Style for pre-formatted text (like incident details) */
         .admin-table .dropdown-content.preserve-whitespace {
-            white-space: pre-wrap; 
+            white-space: pre-wrap;
             width: 300px; /* Give notes more space */
         }
         /* --- END NEW STYLES --- */
@@ -297,7 +371,7 @@
     </style>
 </head>
 <body class="min-h-screen theme-app-container flex flex-row theme-bg-color">
-    
+
     <div id="customModalOverlay" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
         <div class="custom-modal theme-lookup-box p-6 rounded-xl shadow-xl max-w-sm w-full mx-4 sm:mx-auto">
             <h3 id="customModalTitle" class="custom-modal-header theme-title text-xl font-bold mb-4">Alert</h3>
@@ -308,30 +382,50 @@
             </div>
         </div>
     </div>
-    
-    <div class="sidebar">
-        <div>
-            <div class="text-2xl font-bold px-6 mb-8 text-[var(--accent-color)]">Shadow LE Web</div>
-            
-            <a href="selection.html" class="sidebar-item theme-text-color">Dashboard</a>
-            <a href="citation.html" class="sidebar-item theme-text-color">Submit Citation</a>
-            <a href="arrest.html" class="sidebar-item theme-text-color">Submit Arrest Report</a>
-            <a href="shift_log.html" class="sidebar-item theme-text-color">Submit Shift Log</a>
+
+    <div class="sidebar" id="appSidebar"> <div id="sidebarToggle" class="sidebar-toggle-button">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+            </svg>
         </div>
-        
+        <div>
+            <div class="text-2xl font-bold px-6 mb-8 text-[var(--accent-color)] sidebar-title">Shadow LE Web</div> <a href="selection.html" class="sidebar-item theme-text-color">
+                <span class="sidebar-item-icon">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                </span>
+                <span class="sidebar-item-text">Dashboard</span>
+            </a>
+            <a href="citation.html" class="sidebar-item theme-text-color">
+                <span class="sidebar-item-icon">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                </span>
+                <span class="sidebar-item-text">Submit Citation</span>
+            </a>
+            <a href="arrest.html" class="sidebar-item theme-text-color">
+                <span class="sidebar-item-icon">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                </span>
+                <span class="sidebar-item-text">Submit Arrest Report</span>
+            </a>
+            <a href="shift_log.html" class="sidebar-item theme-text-color">
+                <span class="sidebar-item-icon">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                </span>
+                <span class="sidebar-item-text">Submit Shift Log</span>
+            </a>
+             </div>
+
         <div class="sidebar-user-info theme-subtle-text">
             <p class="font-bold mb-1 theme-text-color" id="sidebarUsernameDisplay">USERNAME</p>
             <p class="block theme-subtle-text">Shadow LE Web© 2025</p>
-            <button id="sidebarLogoutButton" class="block mt-2 font-medium text-red-400 hover:text-red-500 transition-colors">Log out</button>
-        </div>
+            <button id="sidebarLogoutButton" class="block mt-2 font-medium text-red-400 hover:text-red-500 transition-colors sidebar-logout-text">Log out</button> </div>
     </div>
-    <header class="theme-section-bg fixed top-0 w-full z-50 main-header">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-        
+    <header class="theme-section-bg fixed top-0 w-full z-50 main-header" id="appHeader"> <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+
         <div class="flex items-end space-x-4">
             <h1 class="text-3xl font-bold theme-text-color">Admin Panel</h1>
-            
-            <a href="selection.html" 
+
+            <a href="selection.html"
                class="text-sm font-medium theme-subtle-text hover:text-[var(--accent-color)] transition-colors mb-1">
                 (Back to Dashboard)
             </a>
@@ -368,15 +462,13 @@
         </nav>
       </div>
     </header>
-    <main class="main-content-wrapper flex items-start justify-center p-4" id="mainContentArea"> 
-        <div class="container mx-auto max-w-5xl w-full theme-lookup-box p-8 rounded-xl shadow-lg transition-colors duration-300 border border-solid dashboard-form-container">
+    <main class="main-content-wrapper flex items-start justify-center p-4" id="mainContentArea"> <div class="container mx-auto max-w-5xl w-full theme-lookup-box p-8 rounded-xl shadow-lg transition-colors duration-300 border border-solid dashboard-form-container">
             <div class="flex flex-wrap justify-between items-center mb-6">
                 <h2 class="theme-title text-3xl font-bold">Admin Panel</h2>
                 <div class="flex gap-4">
                     <button id="refreshButton" class="theme-button-primary py-2 px-6 rounded-md font-semibold">Refresh Data</button>
                     <button onclick="window.location.href='selection.html'" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">Back to Selection</button>
-                    <button id="logoutButton" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">Logout</button>
-                </div>
+                    <button id="logoutButton" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">Logout</button> </div>
             </div>
 
             <p class="theme-label mb-4" id="adminInfo">
@@ -429,7 +521,7 @@
                     Total Shift Logs Displayed: <span id="shiftLogCount" class="font-bold">0</span>
                 </p>
             </div>
-                
+
             <div class="admin-section">
                 <div class="action-buttons-group">
                     <h3 class="theme-title text-xl font-bold">Manage Users</h3>
@@ -600,12 +692,11 @@
                     <button id="pasteImportCsvBtn" class="theme-button-primary py-2 px-6 rounded-md font-semibold">Import from Pasted Text</button>
                 </div>
             </div>
-                
+
         </div>
     </main>
 
-    <div id="customModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-        <div id="customModal" class="theme-lookup-box p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 sm:mx-auto">
+    <div id="customModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50"> <div id="customModal" class="theme-lookup-box p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 sm:mx-auto">
             <h3 id="customModalTitle" class="theme-title text-xl font-bold mb-4"></h3>
             <p id="customModalMessage" class="theme-label mb-6"></p>
             <div id="customModalButtons" class="flex justify-end space-x-3">
@@ -642,7 +733,7 @@
                     <label for="editPenalCodeJailTime" class="theme-label block mb-2 font-medium">Jail Time (Seconds):</label>
                     <input type="number" id="editPenalCodeJailTime" step="1" min="0" class="theme-input w-full p-2 border rounded-md">
                 </div>
-                
+
                 <div class="flex justify-end space-x-3 mt-4">
                     <button type="button" id="cancelEditPenalCodeBtn" class="theme-button-secondary py-2 px-4 rounded-md font-semibold">Cancel</button>
                     <button type="submit" class="theme-button-primary py-2 px-4 rounded-md font-semibold">Save Changes</button>
@@ -880,10 +971,10 @@
             if (loggedInUserString) {
                 loggedInUser = JSON.parse(loggedInUserString);
             }
-            
+
             // --- Global Auth and Element Setup ---
             const authToken = sessionStorage.getItem('authToken');
-            
+
             // --- Authentication and Authorization Check ---
             if (!authToken || !loggedInUser || loggedInUser.role !== 'admin') {
                 window.showCustomAlert("Access Denied: You must be an administrator to view this page.", "Access Denied").then(() => {
@@ -902,7 +993,8 @@
             const penalCodesTableBody = document.querySelector('#penalCodesTable tbody');
 
             const refreshButton = document.getElementById('refreshButton');
-            const logoutButton = document.getElementById('logoutButton');
+            const logoutButton = document.getElementById('logoutButton'); // Header logout
+            const sidebarLogoutButton = document.getElementById('sidebarLogoutButton'); // Sidebar logout
 
             // Citation specific elements
             const selectAllCitationsCheckbox = document.getElementById('selectAllCitations');
@@ -971,36 +1063,120 @@
             // Sidebar and Header display
             const userNameDisplay = document.getElementById('userNameDisplay');
             const sidebarUsernameDisplay = document.getElementById('sidebarUsernameDisplay');
-            const mainContentArea = document.getElementById('mainContentArea'); 
-            
+            const mainContentArea = document.getElementById('mainContentArea');
+
             // Set Header/Sidebar Username
-            if (userNameDisplay) {
+            if (userNameDisplay && sidebarUsernameDisplay) {
                 userNameDisplay.textContent = loggedInUser.username || 'Admin';
                 sidebarUsernameDisplay.textContent = loggedInUser.username || 'USERNAME';
             }
 
-
             adminInfoDisplay.textContent = `Welcome, Admin ${loggedInUser.username} (Badge: ${loggedInUser.badgeNumber})!`;
 
             // --- Logout Functionality ---
-            logoutButton.addEventListener('click', function() {
+             function handleLogout(event) {
+                event.preventDefault();
                 window.showCustomConfirm("Are you sure you want to log out?", "Confirm Logout").then((confirmed) => {
                     if (confirmed) {
                         sessionStorage.clear();
                         window.location.href = 'index.html';
                     }
                 });
-            });
+            }
+            if (logoutButton) logoutButton.addEventListener('click', handleLogout);
+            if (sidebarLogoutButton) sidebarLogoutButton.addEventListener('click', handleLogout);
 
-            // --- MODIFIED: Fetch & Display Citations Function ---
+
+            // --- Sidebar Collapse Logic (Copied from selection.html) ---
+            const appSidebar = document.getElementById('appSidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const appHeader = document.getElementById('appHeader');
+            const SIDEBAR_COLLAPSED_KEY = 'sidebarCollapsed';
+
+            const isCollapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
+
+            if (isCollapsed) {
+                appSidebar.classList.add('collapsed');
+                appHeader.classList.add('collapsed');
+                if (window.innerWidth <= 1024) { // Only add collapsed to main on mobile if sidebar is collapsed
+                    mainContentArea.classList.add('collapsed');
+                }
+            } else {
+                 if (window.innerWidth <= 1024) { // Remove collapsed from main on mobile if sidebar is NOT collapsed
+                    mainContentArea.classList.remove('collapsed');
+                }
+            }
+
+            function toggleSidebar() {
+                const isCurrentlyCollapsed = appSidebar.classList.toggle('collapsed');
+                appHeader.classList.toggle('collapsed');
+                if (window.innerWidth <= 1024) { // Toggle main content only on mobile
+                     mainContentArea.classList.toggle('collapsed', isCurrentlyCollapsed);
+                }
+                localStorage.setItem(SIDEBAR_COLLAPSED_KEY, isCurrentlyCollapsed);
+                setTimeout(syncHeaderHeight, 300); // Re-sync header height after transition
+            }
+
+
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', toggleSidebar);
+            }
+            // --- End Sidebar Collapse Logic ---
+
+             // --- Swipe Gesture Logic ---
+            let touchStartX = 0;
+            let touchEndX = 0;
+            const swipeThreshold = 50; // Minimum pixels for a swipe
+
+            document.body.addEventListener('touchstart', (event) => {
+                 // Ignore swipes if touching input elements to allow text selection
+                if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA' || event.target.tagName === 'SELECT') {
+                    touchStartX = null; // Invalidate swipe
+                    return;
+                }
+                 touchStartX = event.changedTouches[0].screenX;
+            }, { passive: true }); // Use passive for performance if possible
+
+            document.body.addEventListener('touchend', (event) => {
+                 if (touchStartX === null) return; // Swipe invalidated
+
+                touchEndX = event.changedTouches[0].screenX;
+                handleSwipeGesture();
+            }, { passive: true });
+
+            function handleSwipeGesture() {
+                 if (window.innerWidth >= 1024) return; // Only on mobile view
+
+                const deltaX = touchEndX - touchStartX;
+                const isSidebarCollapsed = appSidebar.classList.contains('collapsed');
+
+                // Swipe Left to Collapse
+                if (deltaX < -swipeThreshold && !isSidebarCollapsed) {
+                    console.log("Swipe Left Detected - Collapsing Sidebar");
+                    toggleSidebar();
+                }
+                // Swipe Right to Expand
+                else if (deltaX > swipeThreshold && isSidebarCollapsed) {
+                     console.log("Swipe Right Detected - Expanding Sidebar");
+                    toggleSidebar();
+                }
+
+                // Reset coordinates
+                touchStartX = 0;
+                touchEndX = 0;
+            }
+             // --- End Swipe Gesture Logic ---
+
+            // --- Fetch & Display Citations Function ---
             async function fetchAndDisplayCitations() {
-                adminInfoDisplay.textContent = 'Loading citations...';
+                // ... (rest of function as before) ...
+                 adminInfoDisplay.textContent = 'Loading citations...';
                 citationsTableBody.innerHTML = '<tr><td colspan="9" class="text-center theme-label">Loading data...</td></tr>';
                 deleteSelectedCitationsBtn.disabled = true;
 
                 let url = 'https://citation-app-worker.pnbober.workers.dev/citations';
                 const params = new URLSearchParams();
-                
+
                 // Add filter parameters for citations
                 if (filterUsernameInput.value.trim()) {
                     params.append('username', filterUsernameInput.value.trim());
@@ -1030,7 +1206,7 @@
 
                     if (response && response.ok) {
                         let citations = await response.json();
-                        
+
                         citationsTableBody.innerHTML = '';
 
                         if (citations.length === 0) {
@@ -1038,7 +1214,7 @@
                         } else {
                             citations.forEach(citation => {
                                 const row = citationsTableBody.insertRow();
-                                
+
                                 // Handle null/undefined text for summaries
                                 const citationType = citation.violationType || 'N/A';
                                 const citationNotes = citation.violationDetails || 'N/A';
@@ -1051,7 +1227,7 @@
                                     <td>${citation.submittedBy || 'N/A'}</td>
                                     <td>${citation.submittedByBadge || 'N/A'}</td>
                                     <td>${citation.violatorName || 'N/A'}</td>
-                                    
+
                                     <td>
                                         <details>
                                             <summary>${citationType}</summary>
@@ -1060,9 +1236,9 @@
                                             </div>
                                         </details>
                                     </td>
-                                    
+
                                     <td>$${parseFloat(citation.totalAmountDue || 0).toFixed(2)}</td>
-                                    
+
                                     <td>
                                         <details>
                                             <summary>${notesSummary}</summary>
@@ -1095,15 +1271,16 @@
                 }
             }
 
-            // --- MODIFIED: Fetch & Display Arrests Function ---
+            // --- Fetch & Display Arrests Function ---
             async function fetchAndDisplayArrests() {
+                // ... (rest of function as before) ...
                 adminInfoDisplay.textContent = 'Loading arrests...';
                 arrestsTableBody.innerHTML = '<tr><td colspan="13" class="text-center theme-label">Loading data...</td></tr>'; // Colspan updated to 13
                 deleteSelectedArrestsBtn.disabled = true;
 
                 let url = 'https://citation-app-worker.pnbober.workers.dev/arrests';
                 const params = new URLSearchParams();
-                
+
                 if (filterUsernameInput.value.trim()) {
                     params.append('username', filterUsernameInput.value.trim());
                 }
@@ -1132,7 +1309,7 @@
 
                     if (response && response.ok) {
                         let arrests = await response.json();
-                        
+
                         arrestsTableBody.innerHTML = '';
 
                         if (arrests.length === 0) {
@@ -1140,13 +1317,13 @@
                         } else {
                             arrests.forEach(arrest => {
                                 const row = arrestsTableBody.insertRow();
-                                
+
                                 // --- Charges Logic ---
                                 const charges = arrest.appliedCharges || [];
                                 let chargesSummary = charges.length > 0 ? charges.map(c => c.code || 'N/A').join(', ') : 'N/A';
-                                
-                                const chargesDetails = charges.length > 0 
-                                    ? charges.map(c => `<strong>${c.code || 'N/A'}:</strong> ${c.description || 'N/A'}`).join('<br>') 
+
+                                const chargesDetails = charges.length > 0
+                                    ? charges.map(c => `<strong>${c.code || 'N/A'}:</strong> ${c.description || 'N/A'}`).join('<br>')
                                     : 'N/A';
 
                                 // --- Incident Details Logic ---
@@ -1162,7 +1339,7 @@
                                     <td>${arrest.submittedByBadge || 'N/A'}</td>
                                     <td>${arrest.department || 'N/A'}</td>
                                     <td>${arrest.suspectName || 'N/A'}</td>
-                                    
+
                                     <td>
                                         <details>
                                             <summary>${chargesSummary}</summary>
@@ -1171,12 +1348,12 @@
                                             </div>
                                         </details>
                                     </td>
-                                    
+
                                     <td>$${parseFloat(arrest.totalFines || 0).toFixed(2)}</td>
                                     <td>${parseFloat(arrest.totalJailTime || 0).toFixed(0)}s</td>
                                     <td>${arrest.warrantNeeded ? 'YES' : 'NO'}</td>
                                     <td>${arrest.servingWarrant ? 'YES' : 'NO'}</td>
-                                    
+
                                     <td>
                                         <details>
                                             <summary>${detailsSummary}</summary>
@@ -1195,7 +1372,7 @@
                         });
                         selectAllArrestsCheckbox.checked = false;
                         toggleDeleteButtonStateArrests();
-                    } else if (response) { 
+                    } else if (response) {
                         const errorData = await response.json();
                         window.showCustomAlert(`Error: ${errorData.message || response.statusText}. Please check Worker logs.`, 'Error');
                         arrestsTableBody.innerHTML = `<tr><td colspan="13" class="text-center theme-label text-red-500">Error loading data.</td></tr>`; // Colspan updated
@@ -1209,9 +1386,10 @@
                 }
             }
 
-            // --- MODIFIED: Fetch & Display Shift Logs Function with Filtering ---
+            // --- Fetch & Display Shift Logs Function ---
             async function fetchAndDisplayShiftLogs() {
-                shiftLogsTableBody.innerHTML = '<tr><td colspan="15" class="text-center theme-label">Loading shift logs...</td></tr>'; 
+                // ... (rest of function as before) ...
+                shiftLogsTableBody.innerHTML = '<tr><td colspan="15" class="text-center theme-label">Loading shift logs...</td></tr>';
                 adminInfoDisplay.textContent = 'Loading shift logs...';
 
                 const username = filterUsernameInput.value.trim();
@@ -1254,11 +1432,11 @@
                         shiftLogsTableBody.innerHTML = '';
 
                         if (shiftLogs.length === 0) {
-                            shiftLogsTableBody.innerHTML = '<tr><td colspan="15" class="text-center theme-label">No shift logs found matching criteria.</td></tr>'; 
+                            shiftLogsTableBody.innerHTML = '<tr><td colspan="15" class="text-center theme-label">No shift logs found matching criteria.</td></tr>';
                         } else {
                             shiftLogs.forEach(log => {
                                 const row = shiftLogsTableBody.insertRow();
-                                
+
                                 // Handle null/undefined text for summaries
                                 const shiftNotes = log.additionalNotes || 'N/A';
                                 const notesSummary = shiftNotes.split('\n')[0]; // Get first line
@@ -1277,7 +1455,7 @@
                                     <td>${log.trafficStops || 0}</td>
                                     <td>${log.citations || 0}</td>
                                     <td>${log.arrests || 0}</td>
-                                    
+
                                     <td>
                                         <details>
                                             <summary>${notesSummary}</summary>
@@ -1286,7 +1464,7 @@
                                             </div>
                                         </details>
                                     </td>
-                                    
+
                                     <td>
                                         ${log.screenshotUrl ? `<img src="${log.screenshotUrl}" alt="Shift Log Screenshot" class="screenshot-thumbnail" style="max-width: 100px; max-height: 100px; cursor: pointer;">` : 'N/A'}
                                     </td>
@@ -1311,12 +1489,12 @@
                     } else if (response) {
                         const errorData = await response.json();
                         window.showCustomAlert(`Error loading shift logs: ${errorData.message || response.statusText}. Please check Worker logs.`, 'Error');
-                        shiftLogsTableBody.innerHTML = `<tr><td colspan="15" class="text-center theme-label text-red-500">Error loading shift logs.</td></tr>`; 
+                        shiftLogsTableBody.innerHTML = `<tr><td colspan="15" class="text-center theme-label text-red-500">Error loading shift logs.</td></tr>`;
                     }
                 } catch (error) {
                     console.error('Error fetching shift logs:', error);
                     window.showCustomAlert('Network error: Could not connect to the Worker to fetch shift logs.', 'Error');
-                    shiftLogsTableBody.innerHTML = `<tr><td colspan="15" class="text-center theme-label text-red-500">Network Error. Check console.</td></tr>`; 
+                    shiftLogsTableBody.innerHTML = `<tr><td colspan="15" class="text-center theme-label text-red-500">Network Error. Check console.</td></tr>`;
                 } finally {
                     adminInfoDisplay.textContent = `Welcome, Admin ${loggedInUser.username} (Badge: ${loggedInUser.badgeNumber})!`;
                 }
@@ -1337,7 +1515,7 @@
                 toggleDeleteButtonStateCitations();
             });
 
-            // --- NEW: Checkbox Selection Logic & Delete Button State for ARRESTS ---
+            // --- Checkbox Selection Logic & Delete Button State for ARRESTS ---
             function toggleDeleteButtonStateArrests() {
                 const checkedCheckboxes = document.querySelectorAll('.arrest-checkbox:checked');
                 deleteSelectedArrestsBtn.disabled = checkedCheckboxes.length === 0;
@@ -1414,7 +1592,7 @@
                 }
             });
 
-            // --- NEW: Batch Deletion Functionality for ARRESTS ---
+            // --- Batch Deletion Functionality for ARRESTS ---
             deleteSelectedArrestsBtn.addEventListener('click', async function() {
                 const selectedIds = [];
                 document.querySelectorAll('.arrest-checkbox:checked').forEach(checkbox => {
@@ -1511,7 +1689,7 @@
                 }
             });
 
-            // --- NEW: Delete ALL R2 Screenshots Functionality ---
+            // --- Delete ALL R2 Screenshots Functionality ---
             deleteAllR2ScreenshotsBtn.addEventListener('click', async function() {
                 const confirmed = await window.showCustomConfirm(
                     `WARNING: This action will permanently delete ALL screenshots from your R2 bucket. This cannot be undone. Are you absolutely sure you want to proceed?`,
@@ -1589,7 +1767,7 @@
 
                     for (let i = 1; i < lines.length; i++) {
                         const row = lines[i].split(',');
-                        
+
                         const code = String(row[codeColIndex] || '').trim();
                         const description = String(row[descriptionColIndex] || '').trim();
                         let amount_due_raw = String(row[amountDueColIndex] || '').trim();
@@ -1686,9 +1864,9 @@
 
             // --- Filter Event Listeners ---
             applyFilterBtn.addEventListener('click', function() {
-                fetchAndDisplayCitations(); 
+                fetchAndDisplayCitations();
                 fetchAndDisplayArrests(); // NEW
-                fetchAndDisplayShiftLogs(); 
+                fetchAndDisplayShiftLogs();
             });
 
             clearFilterBtn.addEventListener('click', function() {
@@ -1698,7 +1876,6 @@
                 filterOfficerBadgeInput.value = '';
                 filterStartDateInput.value = '';
                 filterEndDateInput.value = '';
-                // Clear shift-log specific filters too if they existed (e.g. host, callsign)
                 filterHostInput.value = '';
                 filterCallsignInput.value = '';
 
@@ -1740,16 +1917,16 @@
                 try {
                     const [usersResponse, citationsResponse, shiftLogsResponse, arrestsResponse] = await Promise.all([
                         fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/admin/users'),
-                        fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/citations'), 
+                        fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/citations'),
                         fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/shift-logs'),
                         fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/arrests') // NEW
                     ]);
 
                     if (!usersResponse || !usersResponse.ok) throw new Error('Failed to fetch users.');
-                    
+
                     let allUsers = await usersResponse.json();
-                    
-                    allUsers.sort((a, b) => a.id - b.id); 
+
+                    allUsers.sort((a, b) => a.id - b.id);
 
                     const allCitations = (citationsResponse && citationsResponse.ok) ? await citationsResponse.json() : [];
                     const allShiftLogs = (shiftLogsResponse && shiftLogsResponse.ok) ? await shiftLogsResponse.json() : [];
@@ -1778,7 +1955,7 @@
                                 </td>
                                 <td>${citationCount}</td>
                                 <td>${arrestCount}</td>
-                                <td>${shiftLogCount}</td> 
+                                <td>${shiftLogCount}</td>
                                 <td>
                                     <button class="theme-button-danger py-1 px-3 rounded-md font-semibold delete-user-btn" data-user-id="${user.id}">Delete</button>
                                 </td>
@@ -1822,11 +1999,12 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ role: newRole })
                     });
+                     if (!response) return; // Auth failure handled in fetchWithAuth
                     const result = await response.json();
-                    if (response && response.ok) {
+                    if (response.ok) {
                         window.showCustomAlert(result.message, 'Success');
                         event.target.dataset.previousRole = newRole;
-                    } else if (response) {
+                    } else {
                         window.showCustomAlert('Failed to update role: ' + (result.message || response.statusText), 'Error');
                         event.target.value = previousRole;
                     }
@@ -1846,11 +2024,12 @@
                     const response = await fetchWithAuth(`https://citation-app-worker.pnbober.workers.dev/admin/users/${userId}`, {
                         method: 'DELETE',
                     });
+                     if (!response) return; // Auth failure handled in fetchWithAuth
                     const result = await response.json();
-                    if (response && response.ok) {
+                    if (response.ok) {
                         window.showCustomAlert(result.message, 'Success');
                         await fetchAndDisplayUsers();
-                    } else if (response) {
+                    } else {
                         window.showCustomAlert('Failed to delete user: ' + (result.message || response.statusText), 'Error');
                     }
                 } catch (error) {
@@ -1862,13 +2041,14 @@
             refreshUsersBtn.addEventListener('click', fetchAndDisplayUsers);
 
 
-            // --- NEW: Penal Code Management Functions ---
+            // --- Penal Code Management Functions ---
             async function fetchAndDisplayPenalCodes() {
                 penalCodesTableBody.innerHTML = '<tr><td colspan="6" class="text-center theme-label">Loading penal codes...</td></tr>';
                 try {
                     const response = await fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/penal-codes', { method: 'GET' });
+                     if (!response) return; // Auth failure handled
 
-                    if (response && response.ok) {
+                    if (response.ok) {
                         const penalCodes = await response.json();
                         penalCodesTableBody.innerHTML = '';
                         if (penalCodes.length === 0) {
@@ -1890,7 +2070,7 @@
                             });
                             attachPenalCodeActionListeners();
                         }
-                    } else if (response) {
+                    } else {
                         const errorData = await response.json();
                         window.showCustomAlert(`Error loading penal codes: ${errorData.message || response.statusText}.`, 'Error');
                         penalCodesTableBody.innerHTML = `<tr><td colspan="6" class="text-center theme-label text-red-500">Error loading penal codes.</td></tr>`;
@@ -1913,7 +2093,7 @@
                     button.addEventListener('click', handleDeletePenalCode);
                 });
             }
-            
+
             async function handleEditPenalCode(event) {
                 currentEditPenalCode = event.target.dataset.code;
                 if (!currentEditPenalCode) {
@@ -1963,12 +2143,13 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(updatedData)
                     });
+                    if (!response) return; // Auth failure
                     const result = await response.json();
-                    if (response && response.ok) {
+                    if (response.ok) {
                         window.showCustomAlert(result.message, 'Success');
                         editPenalCodeModalOverlay.classList.add('hidden');
                         await fetchAndDisplayPenalCodes();
-                    } else if (response) {
+                    } else {
                         window.showCustomAlert('Failed to save changes: ' + (result.message || response.statusText), 'Error');
                     }
                 } catch (error) {
@@ -1991,11 +2172,12 @@
                     const response = await fetchWithAuth(`https://citation-app-worker.pnbober.workers.dev/admin/penal-codes/${codeToDelete}`, {
                         method: 'DELETE',
                     });
+                     if (!response) return; // Auth failure
                     const result = await response.json();
-                    if (response && response.ok) {
+                    if (response.ok) {
                         window.showCustomAlert(result.message, 'Success');
                         await fetchAndDisplayPenalCodes();
-                    } else if (response) {
+                    } else {
                         window.showCustomAlert('Failed to delete penal code: ' + (result.message || response.statusText), 'Error');
                     }
                 } catch (error) {
@@ -2006,7 +2188,7 @@
 
 
             refreshPenalCodesBtn.addEventListener('click', fetchAndDisplayPenalCodes);
-            
+
             // --- ADD USER MODAL LOGIC ---
             addUserBtn.addEventListener('click', () => {
                 addUserForm.reset(); // Clear form on open
@@ -2077,38 +2259,29 @@
             fetchAndDisplayUsers();
             fetchAndDisplayPenalCodes();
         });
-        
-        // Dynamic Header Height Script (Option 1)
+
+        // --- DYNAMIC HEADER HEIGHT SCRIPT (Copied from selection.html) ---
         (function() {
-            function syncHeaderHeight() {
-              const header = document.querySelector('header.main-header') || document.querySelector('header.theme-section-bg.main-header') || document.querySelector('header.theme-section-bg');
+            window.syncHeaderHeight = function() { // Made global
+              const header = document.getElementById('appHeader');
               const mainContent = document.getElementById('mainContentArea');
               if (!header || !mainContent) return;
-              
-              // measure true height (includes wrapping) + 1rem (16px) for breathing room
+
               const height = header.offsetHeight || 0;
-              const safePadding = height + 16; 
-              
-              // Apply as inline style to the main content area
+              const safePadding = height + 16; // 1rem (16px) for breathing room
+
               mainContent.style.paddingTop = safePadding + 'px';
 
-              // set as CSS variable too (for consistency, though inline style is now primary)
               document.documentElement.style.setProperty('--app-header-height', height + 'px');
             }
 
-            // run on load and resize (and after a short timeout to catch fonts/images)
-            window.addEventListener('DOMContentLoaded', () => {
-              syncHeaderHeight();
-              // a small timeout helps if fonts/images change header height after load
-              setTimeout(syncHeaderHeight, 250);
+            window.addEventListener('DOMContentLoaded', async () => {
+                syncHeaderHeight();
+                setTimeout(syncHeaderHeight, 250); // Re-run after potential font/image load
             });
             window.addEventListener('resize', syncHeaderHeight);
-            
-            // Re-run on theme changes if necessary, assuming theme.js provides an event
-            if (window.matchMedia) {
-                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', syncHeaderHeight);
-            }
         })();
+        // --- END DYNAMIC HEADER HEIGHT SCRIPT ---
     </script>
 </body>
 </html>

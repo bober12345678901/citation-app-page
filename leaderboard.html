@@ -5,8 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Department Leaderboards</title>
-	<!-- Theme Preloader – must be first in <head> -->
-<script>
+	<script>
 (function() {
   try {
     const saved = localStorage.getItem('theme');
@@ -38,14 +37,19 @@
 
         /* FIX: Ensure the theme dropdown menu (if rendered) has a solid background */
         .theme-dropdown-menu {
-            background-color: var(--box-bg-color); 
-            border: 1px solid var(--border-color); 
+            background-color: var(--box-bg-color);
+            border: 1px solid var(--border-color);
         }
 
+       /* --- New Sidebar/Header Styles for Unification (Copied from selection.html) --- */
         /* ===== header-safe-spacing (RECOMMENDED) ===== */
         :root {
           --app-header-height: 5rem; /* fallback if JS hasn't run yet */
+          --sidebar-width: 250px; /* Default expanded width */
+          --sidebar-collapsed-width: 65px; /* Collapsed width for icons only */
         }
+
+        /* 1. Sidebar Styles (Updated for Collapse) */
         header.theme-section-bg {
             background-color: var(--box-bg-color) !important;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
@@ -55,29 +59,68 @@
             min-height: 4rem;
             z-index: 50;
             box-sizing: border-box;
+            transition: width 0.3s, left 0.3s; /* Header animation */
         }
         .main-header {
-            width: calc(100% - 250px);
-            left: 250px;
+            width: calc(100% - var(--sidebar-width));
+            left: var(--sidebar-width);
         }
         .main-content-wrapper {
-            margin-left: 250px;
+            margin-left: var(--sidebar-width); /* Stays constant */
             flex-grow: 1;
             box-sizing: border-box;
-            /* Padding is set by JS inline */
+            padding-top: 0; /* Padding is set by JS inline */
+            transition: none; /* Keep content fixed */
+
+            position: relative;
+            z-index: 1;
         }
+
+        /* Collapsed State Styles */
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed-width);
+            min-width: var(--sidebar-collapsed-width);
+        }
+        .sidebar.collapsed .sidebar-item {
+            padding: 0.75rem 0; /* Center icon when collapsed */
+            justify-content: center;
+        }
+        .sidebar.collapsed .sidebar-item-text,
+        .sidebar.collapsed .sidebar-user-info,
+        .sidebar.collapsed .sidebar-title,
+        .sidebar.collapsed .sidebar-logout-text {
+            display: none; /* Hide text elements */
+        }
+        .sidebar.collapsed .sidebar-item-icon {
+             margin-left: 0; /* Center icon when text is hidden */
+        }
+        .sidebar.collapsed .sidebar-item.active {
+            border-left-color: transparent; /* Hide border when collapsed for a cleaner look */
+        }
+        .sidebar.collapsed .sidebar-toggle-button {
+            transform: translateY(-50%) rotate(180deg); /* Combine transforms */
+        }
+        .main-header.collapsed {
+            width: calc(100% - var(--sidebar-collapsed-width));
+            left: var(--sidebar-collapsed-width);
+        }
+
         @media (max-width: 1024px) {
-            .sidebar { display: none; }
-            .main-content-wrapper, .main-header {
-                margin-left: 0;
-                width: 100%;
-                left: 0;
-            }
+            .sidebar { display: block; /* Ensure sidebar is block for swipe */ }
+            /* When sidebar is shown on mobile due to swipe or initially */
+            .main-content-wrapper { margin-left: var(--sidebar-width); }
+            .main-header { width: calc(100% - var(--sidebar-width)); left: var(--sidebar-width); }
+
+            /* When sidebar is collapsed on mobile */
+             .sidebar.collapsed { width: 0; min-width: 0; overflow: hidden; box-shadow: none; border-right: none;} /* Completely hide collapsed sidebar */
+             .sidebar.collapsed .sidebar-toggle-button { right: -30px; /* Move toggle button off-screen when hidden */}
+             .main-content-wrapper.collapsed { margin-left: 0; }
+             .main-header.collapsed { width: 100%; left: 0; }
         }
         /* --- Sidebar Styles --- */
         .sidebar {
-            width: 250px;
-            min-width: 250px;
+            width: var(--sidebar-width);
+            min-width: var(--sidebar-width);
             background-color: var(--box-bg-color);
             color: var(--text-color);
             position: fixed;
@@ -90,9 +133,12 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            transition: width 0.3s, min-width 0.3s; /* Added min-width transition */
+             border-right: 1px solid var(--border-color); /* Add border for visual separation */
         }
         .sidebar-item {
-            display: block;
+            display: flex; /* Use flex for icon/text alignment */
+            align-items: center;
             padding: 0.75rem 1.5rem;
             font-size: 1.125rem;
             font-weight: 500;
@@ -107,10 +153,37 @@
             color: var(--accent-color);
             font-weight: 700;
         }
+        .sidebar-item-icon {
+            min-width: 24px; /* Ensure icon has space */
+            text-align: center;
+        }
+        .sidebar-item-text {
+            margin-left: 1rem;
+            transition: opacity 0.3s;
+        }
         .sidebar-user-info {
             padding: 1rem 1.5rem;
             border-top: 1px solid var(--border-color);
             font-size: 0.875rem;
+            transition: opacity 0.3s;
+        }
+        .sidebar-toggle-button {
+            position: absolute;
+            right: -12px;
+            top: 50%; /* Center vertically */
+            transform: translateY(-50%); /* Adjust vertical centering */
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s, background-color 0.3s, right 0.3s; /* Added right transition */
+            z-index: 50;
         }
         /* --- End Sidebar/Header Styles --- */
 
@@ -191,7 +264,7 @@
     </style>
 </head>
 <body class="theme-app-container flex flex-row font-sans">
-    
+
     <div id="customAlertOverlay" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
         <div id="customAlert" class="theme-lookup-box theme-lookup-box p-6 rounded-xl shadow-2xl w-11/12 max-w-sm">
             <h4 id="customAlertTitle" class="text-xl font-bold mb-3 theme-label">Alert</h4>
@@ -200,35 +273,72 @@
         </div>
     </div>
 
-    <div class="sidebar">
-        <div>
-            <div class="text-2xl font-bold px-6 mb-8 text-[var(--accent-color)]">Shadow LE Web</div>
-            
-            <a href="selection.html" class="sidebar-item theme-text-color">Dashboard</a>
-            <a href="citation.html" class="sidebar-item theme-text-color">Submit Citation</a>
-            <a href="arrest.html" class="sidebar-item theme-text-color">Submit Arrest Report</a>
-            <a href="shift_log.html" class="sidebar-item theme-text-color">Submit Shift Log</a>
+    <div class="sidebar" id="appSidebar"> <div id="sidebarToggle" class="sidebar-toggle-button">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+            </svg>
         </div>
-        
+        <div>
+            <div class="text-2xl font-bold px-6 mb-8 text-[var(--accent-color)] sidebar-title">Shadow LE Web</div> <a href="selection.html" class="sidebar-item theme-text-color">
+                 <span class="sidebar-item-icon">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                </span>
+                <span class="sidebar-item-text">Dashboard</span>
+            </a>
+            <a href="citation.html" class="sidebar-item theme-text-color">
+                 <span class="sidebar-item-icon">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                </span>
+                <span class="sidebar-item-text">Submit Citation</span>
+            </a>
+            <a href="arrest.html" class="sidebar-item theme-text-color">
+                 <span class="sidebar-item-icon">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                </span>
+                <span class="sidebar-item-text">Submit Arrest Report</span>
+            </a>
+            <a href="shift_log.html" class="sidebar-item theme-text-color">
+                 <span class="sidebar-item-icon">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                </span>
+                <span class="sidebar-item-text">Submit Shift Log</span>
+            </a>
+            </div>
+
         <div class="sidebar-user-info theme-subtle-text">
             <p class="font-bold mb-1 theme-text-color" id="sidebarUsernameDisplay">USERNAME</p>
             <p class="block theme-subtle-text">Shadow LE Web© 2025</p>
-            <button id="sidebarLogoutButton" class="block mt-2 font-medium text-red-400 hover:text-red-500 transition-colors">Log out</button>
-        </div>
+            <button id="sidebarLogoutButton" class="block mt-2 font-medium text-red-400 hover:text-red-500 transition-colors sidebar-logout-text">Log out</button> </div>
     </div>
-    <header class="theme-section-bg shadow-lg fixed top-0 w-full z-50 main-header">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+    <header class="theme-section-bg shadow-lg fixed top-0 w-full z-50 main-header" id="appHeader"> <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
             <h1 class="text-3xl font-bold theme-text-color">Department Leaderboards</h1>
             <nav class="space-x-4 flex items-center">
                 <a href="selection.html" class="theme-button-secondary py-2 px-6 rounded-lg font-semibold">Dashboard</a>
                 <button id="refreshButton" class="theme-button-primary py-2 px-6 rounded-lg font-semibold">Refresh</button>
                 <button id="logoutButton" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">Log Out</button>
+                 <div class="relative inline-block text-left">
+                    <button id="themeToggle" type="button"
+                      class="p-2 rounded-full theme-text-color hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-colors flex items-center justify-center space-x-1"
+                      aria-expanded="false" aria-haspopup="true">
+                      <span id="currentThemeIcon" class="w-6 h-6 flex items-center justify-center"></span>
+                      <svg id="dropdownArrow" class="w-4 h-4 transition-transform duration-200"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M19 9l-7 7-7-7"></path>
+                      </svg>
+                    </button>
+                    <div id="themeDropdownMenu"
+                      class="absolute right-0 mt-2 w-48 rounded-lg shadow-2xl ring-1 ring-black ring-opacity-10 origin-top-right hidden theme-dropdown-menu">
+                      <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="themeToggle"
+                        id="themeOptions"></div>
+                    </div>
+                </div>
             </nav>
         </div>
     </header>
-    <main class="main-content-wrapper max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full" id="mainContentArea">
-        <div class="container mx-auto max-w-4xl w-full theme-lookup-box p-8 sm:p-10 rounded-2xl dashboard-form-container border theme-tile-border transition-colors duration-300">
-            
+    <main class="main-content-wrapper max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full" id="mainContentArea"> <div class="container mx-auto max-w-4xl w-full theme-lookup-box p-8 sm:p-10 rounded-2xl dashboard-form-container border theme-tile-border transition-colors duration-300">
+
             <div id="userInfoDisplay" class="theme-section-bg p-4 rounded-lg shadow-inner mb-6 border theme-tile-border">
                 <h2 class="theme-label text-xl font-bold mb-2">Current Officer Stats:</h2>
                 <p class="theme-label font-semibold">Username: <span id="userUsername" class="font-normal"></span></p>
@@ -270,9 +380,9 @@
                 };
             });
         };
-        
+
         let apiBaseUrl = 'https://citation-app-worker.pnbober.workers.dev';
-        
+
         // --- JWT Decoding (Client-side) ---
         function decodeJwt(token) {
             if (!token) return null;
@@ -286,7 +396,7 @@
                 return null;
             }
         }
-        
+
         // --- Token Refresh Mechanism (Mock/Placeholder) ---
         async function refreshAuthToken() {
             console.log("Attempting to refresh token...");
@@ -310,7 +420,7 @@
                     return { ok: false, status: 401 };
                 }
             }
-            
+
             headers['Authorization'] = `Bearer ${token}`;
             options.headers = headers;
 
@@ -330,7 +440,7 @@
                 return { ok: false, status: 500 };
             }
         }
-        
+
         function redirectToLogin(message = "Your session has expired. Please log in again.") {
             console.warn("Redirecting to login:", message);
             window.showCustomAlert(message, "Session Expired").then(() => {
@@ -352,44 +462,140 @@
             // Set user info display
             document.getElementById('userUsername').textContent = loggedInUser.username || 'N/A';
             document.getElementById('userBadge').textContent = loggedInUser.badgeNumber || 'N/A';
+            if(document.getElementById('sidebarUsernameDisplay')) {
+                 document.getElementById('sidebarUsernameDisplay').textContent = loggedInUser.username || 'USERNAME';
+            }
+
 
             const citationLeaderboardContainer = document.getElementById('citationLeaderboardContainer');
             const shiftLogLeaderboardContainer = document.getElementById('shiftLogLeaderboardContainer');
             const refreshButton = document.getElementById('refreshButton');
-            
-            // Sidebar Logout setup
+            const logoutButton = document.getElementById('logoutButton');
             const sidebarLogoutButton = document.getElementById('sidebarLogoutButton');
-            if (sidebarLogoutButton) {
-                sidebarLogoutButton.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    if (window.showCustomConfirm) {
-                        window.showCustomConfirm("Are you sure you want to log out?", "Confirm Logout").then((confirmed) => {
-                            if (confirmed) {
-                                sessionStorage.clear();
-                                window.location.href = 'index.html';
-                            }
-                        });
-                    }
-                });
+
+             // --- Sidebar Collapse Logic (Copied from selection.html) ---
+            const appSidebar = document.getElementById('appSidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const mainContentArea = document.getElementById('mainContentArea');
+            const appHeader = document.getElementById('appHeader');
+            const SIDEBAR_COLLAPSED_KEY = 'sidebarCollapsed';
+
+            const isCollapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
+
+            if (isCollapsed) {
+                appSidebar.classList.add('collapsed');
+                appHeader.classList.add('collapsed');
+                if (window.innerWidth <= 1024) { // Only add collapsed to main on mobile if sidebar is collapsed
+                    mainContentArea.classList.add('collapsed');
+                }
+            } else {
+                 if (window.innerWidth <= 1024) { // Remove collapsed from main on mobile if sidebar is NOT collapsed
+                    mainContentArea.classList.remove('collapsed');
+                }
             }
+
+            function toggleSidebar() {
+                const isCurrentlyCollapsed = appSidebar.classList.toggle('collapsed');
+                appHeader.classList.toggle('collapsed');
+                if (window.innerWidth <= 1024) { // Toggle main content only on mobile
+                     mainContentArea.classList.toggle('collapsed', isCurrentlyCollapsed);
+                }
+                localStorage.setItem(SIDEBAR_COLLAPSED_KEY, isCurrentlyCollapsed);
+                setTimeout(syncHeaderHeight, 300); // Re-sync header height after transition
+            }
+
+
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', toggleSidebar);
+            }
+            // --- End Sidebar Collapse Logic ---
+
+             // --- Swipe Gesture Logic ---
+            let touchStartX = 0;
+            let touchEndX = 0;
+            const swipeThreshold = 50; // Minimum pixels for a swipe
+
+            document.body.addEventListener('touchstart', (event) => {
+                // Ignore swipes if touching input elements to allow text selection
+                if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA' || event.target.tagName === 'SELECT') {
+                    touchStartX = null; // Invalidate swipe
+                    return;
+                }
+                 touchStartX = event.changedTouches[0].screenX;
+            }, { passive: true }); // Use passive for performance if possible
+
+            document.body.addEventListener('touchend', (event) => {
+                 if (touchStartX === null) return; // Swipe invalidated
+
+                touchEndX = event.changedTouches[0].screenX;
+                handleSwipeGesture();
+            }, { passive: true });
+
+            function handleSwipeGesture() {
+                if (window.innerWidth >= 1024) return; // Only on mobile view
+
+                const deltaX = touchEndX - touchStartX;
+                const isSidebarCollapsed = appSidebar.classList.contains('collapsed');
+
+                // Swipe Left to Collapse
+                if (deltaX < -swipeThreshold && !isSidebarCollapsed) {
+                    console.log("Swipe Left Detected - Collapsing Sidebar");
+                    toggleSidebar();
+                }
+                // Swipe Right to Expand
+                else if (deltaX > swipeThreshold && isSidebarCollapsed) {
+                     console.log("Swipe Right Detected - Expanding Sidebar");
+                    toggleSidebar();
+                }
+
+                // Reset coordinates
+                touchStartX = 0;
+                touchEndX = 0;
+            }
+             // --- End Swipe Gesture Logic ---
+
+
+            // Setup Logout button
+            function handleLogout(event) {
+                event.preventDefault();
+                if (window.showCustomConfirm) { // Use custom confirm if available (from theme.js)
+                    window.showCustomConfirm("Are you sure you want to log out?", "Confirm Logout").then((confirmed) => {
+                        if (confirmed) {
+                            sessionStorage.clear();
+                            window.location.href = 'index.html';
+                        }
+                    });
+                } else { // Fallback to browser confirm
+                    if (confirm("Are you sure you want to log out?")) {
+                        sessionStorage.clear();
+                        window.location.href = 'index.html';
+                    }
+                }
+            }
+            if (logoutButton) logoutButton.addEventListener('click', handleLogout);
+            if (sidebarLogoutButton) sidebarLogoutButton.addEventListener('click', handleLogout);
 
 
             function processLeaderboardData(data) {
                 const stats = {};
                 data.forEach(item => {
-                    // Use a common identifier (Badge Number is robust for this app)
-                    const officerBadge = item.submittedByBadge || (item.submittedByUsername && loggedInUser.badgeNumber); 
-                    const officerUsername = item.submittedByUsername || item.submittedBy || 'Unknown Officer'; 
-                    
-                    if (officerBadge) {
-                        if (!stats[officerBadge]) {
-                            stats[officerBadge] = { username: officerUsername, count: 0 };
-                        }
-                        stats[officerBadge].count++;
+                    // Use Badge Number as the primary key
+                    const officerBadge = item.submittedByBadge || 'UnknownBadge';
+                    // Fallback to username if badge is missing, but prioritize badge
+                    const officerUsername = item.submittedByUsername || item.submittedBy || `Officer ${officerBadge}`;
+
+                    if (!stats[officerBadge]) {
+                        stats[officerBadge] = { username: officerUsername, count: 0 };
                     }
+                    stats[officerBadge].count++;
                 });
-                return Object.values(stats).sort((a, b) => b.count - a.count);
+
+                // Convert stats object to array and sort
+                return Object.entries(stats)
+                    .map(([badge, data]) => ({ badge: badge, ...data })) // Include badge in the object
+                    .sort((a, b) => b.count - a.count);
             }
+
 
             function renderLeaderboard(container, stats, type) {
                 container.innerHTML = '';
@@ -418,7 +624,7 @@
 
                     itemDiv.innerHTML = `
                         <span class="rank-number">${rankContent}</span>
-                        <span class="username-display">${stat.username}</span>
+                        <span class="username-display">${stat.username} (Badge: ${stat.badge})</span>
                         <span class="count-display">${stat.count} ${type}(s)</span>
                     `;
                     container.appendChild(itemDiv);
@@ -441,19 +647,21 @@
                         citationData = await citationResponse.json();
                         renderLeaderboard(citationLeaderboardContainer, processLeaderboardData(citationData), 'citation');
                     } else {
-                        citationLeaderboardContainer.innerHTML = `<div class="text-center theme-label text-red-500 p-4">Failed to load citations.</div>`;
+                        citationLeaderboardContainer.innerHTML = `<div class="text-center theme-label text-red-500 p-4">Failed to load citations. Status: ${citationResponse.status}</div>`;
                     }
-                    
+
                     let shiftLogData = [];
                     if (shiftLogResponse.ok) {
                         shiftLogData = await shiftLogResponse.json();
                         renderLeaderboard(shiftLogLeaderboardContainer, processLeaderboardData(shiftLogData), 'shift log');
                     } else {
-                        shiftLogLeaderboardContainer.innerHTML = `<div class="text-center theme-label text-red-500 p-4">Failed to load shift logs.</div>`;
+                        shiftLogLeaderboardContainer.innerHTML = `<div class="text-center theme-label text-red-500 p-4">Failed to load shift logs. Status: ${shiftLogResponse.status}</div>`;
                     }
                 } catch (error) {
                     console.error('Error fetching leaderboard data:', error);
                     window.showCustomAlert('An error occurred while loading leaderboards.', 'Error');
+                    citationLeaderboardContainer.innerHTML = `<div class="text-center theme-label text-red-500 p-4">Network error loading citations.</div>`;
+                    shiftLogLeaderboardContainer.innerHTML = `<div class="text-center theme-label text-red-500 p-4">Network error loading shift logs.</div>`;
                 }
             }
 
@@ -464,17 +672,17 @@
 
             fetchAndDisplayLeaderboards();
         });
-        
-        // --- DYNAMIC HEADER HEIGHT SCRIPT (The fix that works!) ---
+
+        // --- DYNAMIC HEADER HEIGHT SCRIPT (Copied from selection.html) ---
         (function() {
-            function syncHeaderHeight() {
-              const header = document.querySelector('header.main-header') || document.querySelector('header.theme-section-bg.main-header') || document.querySelector('header.theme-section-bg');
+            window.syncHeaderHeight = function() { // Made global
+              const header = document.getElementById('appHeader');
               const mainContent = document.getElementById('mainContentArea');
               if (!header || !mainContent) return;
-              
+
               const height = header.offsetHeight || 0;
               const safePadding = height + 16; // 1rem (16px) for breathing room
-              
+
               mainContent.style.paddingTop = safePadding + 'px';
 
               document.documentElement.style.setProperty('--app-header-height', height + 'px');

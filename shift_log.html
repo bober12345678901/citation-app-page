@@ -41,10 +41,15 @@
             transition: box-shadow 0.3s;
         }
 
+       /* --- New Sidebar/Header Styles for Unification (Copied from selection.html) --- */
         /* ===== header-safe-spacing (RECOMMENDED) ===== */
         :root {
           --app-header-height: 5rem; /* fallback if JS hasn't run yet */
+          --sidebar-width: 250px; /* Default expanded width */
+          --sidebar-collapsed-width: 65px; /* Collapsed width for icons only */
         }
+
+        /* 1. Sidebar Styles (Updated for Collapse) */
         header.theme-section-bg {
             background-color: var(--box-bg-color) !important;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
@@ -54,28 +59,68 @@
             min-height: 4rem;
             z-index: 50;
             box-sizing: border-box;
+            transition: width 0.3s, left 0.3s; /* Header animation */
         }
         .main-header {
-            width: calc(100% - 250px);
-            left: 250px;
+            width: calc(100% - var(--sidebar-width));
+            left: var(--sidebar-width);
         }
         .main-content-wrapper {
-            margin-left: 250px;
+            margin-left: var(--sidebar-width); /* Stays constant */
             flex-grow: 1;
             box-sizing: border-box;
+            padding-top: 0; /* Padding is set by JS inline */
+            transition: none; /* Keep content fixed */
+
+            position: relative;
+            z-index: 1;
         }
+
+        /* Collapsed State Styles */
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed-width);
+            min-width: var(--sidebar-collapsed-width);
+        }
+        .sidebar.collapsed .sidebar-item {
+            padding: 0.75rem 0; /* Center icon when collapsed */
+            justify-content: center;
+        }
+        .sidebar.collapsed .sidebar-item-text,
+        .sidebar.collapsed .sidebar-user-info,
+        .sidebar.collapsed .sidebar-title,
+        .sidebar.collapsed .sidebar-logout-text {
+            display: none; /* Hide text elements */
+        }
+        .sidebar.collapsed .sidebar-item-icon {
+             margin-left: 0; /* Center icon when text is hidden */
+        }
+        .sidebar.collapsed .sidebar-item.active {
+            border-left-color: transparent; /* Hide border when collapsed for a cleaner look */
+        }
+        .sidebar.collapsed .sidebar-toggle-button {
+            transform: translateY(-50%) rotate(180deg); /* Combine transforms */
+        }
+        .main-header.collapsed {
+            width: calc(100% - var(--sidebar-collapsed-width));
+            left: var(--sidebar-collapsed-width);
+        }
+
         @media (max-width: 1024px) {
-            .sidebar { display: none; }
-            .main-content-wrapper, .main-header {
-                margin-left: 0;
-                width: 100%;
-                left: 0;
-            }
+            .sidebar { display: block; /* Ensure sidebar is block for swipe */ }
+            /* When sidebar is shown on mobile due to swipe or initially */
+            .main-content-wrapper { margin-left: var(--sidebar-width); }
+            .main-header { width: calc(100% - var(--sidebar-width)); left: var(--sidebar-width); }
+
+            /* When sidebar is collapsed on mobile */
+             .sidebar.collapsed { width: 0; min-width: 0; overflow: hidden; box-shadow: none; border-right: none;} /* Completely hide collapsed sidebar */
+             .sidebar.collapsed .sidebar-toggle-button { right: -30px; /* Move toggle button off-screen when hidden */}
+             .main-content-wrapper.collapsed { margin-left: 0; }
+             .main-header.collapsed { width: 100%; left: 0; }
         }
         /* --- Sidebar Styles --- */
         .sidebar {
-            width: 250px;
-            min-width: 250px;
+            width: var(--sidebar-width);
+            min-width: var(--sidebar-width);
             background-color: var(--box-bg-color);
             color: var(--text-color);
             position: fixed;
@@ -88,9 +133,12 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            transition: width 0.3s, min-width 0.3s; /* Added min-width transition */
+             border-right: 1px solid var(--border-color); /* Add border for visual separation */
         }
         .sidebar-item {
-            display: block;
+            display: flex; /* Use flex for icon/text alignment */
+            align-items: center;
             padding: 0.75rem 1.5rem;
             font-size: 1.125rem;
             font-weight: 500;
@@ -105,12 +153,39 @@
             color: var(--accent-color);
             font-weight: 700;
         }
+        .sidebar-item-icon {
+            min-width: 24px; /* Ensure icon has space */
+            text-align: center;
+        }
+        .sidebar-item-text {
+            margin-left: 1rem;
+            transition: opacity 0.3s;
+        }
         .sidebar-user-info {
             padding: 1rem 1.5rem;
             border-top: 1px solid var(--border-color);
             font-size: 0.875rem;
+            transition: opacity 0.3s;
         }
-        /* --- End Sidebar Styles --- */
+        .sidebar-toggle-button {
+            position: absolute;
+            right: -12px;
+            top: 50%; /* Center vertically */
+            transform: translateY(-50%); /* Adjust vertical centering */
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s, background-color 0.3s, right 0.3s; /* Added right transition */
+            z-index: 50;
+        }
+        /* --- End Sidebar/Header Styles --- */
 
         /* General form styles matching dashboard theme */
         .theme-input {
@@ -123,10 +198,41 @@
             border-radius: 0.75rem; /* Rounded sections */
         }
         .image-preview-container {
+             margin-top: 1rem;
+            border: 1px dashed var(--border-color);
+            padding: 1rem;
+            text-align: center;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: color-mix(in srgb, var(--input-bg-color) 95%, var(--border-color));
             border-radius: 0.5rem;
         }
-        #pasteTarget {
+         .image-preview-container img {
+            max-width: 100%;
+            max-height: 200px; /* Limit preview height */
+            object-fit: contain;
             border-radius: 0.5rem;
+        }
+        .image-preview-container p {
+            color: var(--text-color);
+        }
+        #pasteTarget {
+            border: 1px dashed var(--border-color);
+            min-height: 50px;
+            padding: 10px;
+            text-align: center;
+            line-height: 30px;
+            cursor: pointer;
+            color: var(--text-color);
+            background-color: color-mix(in srgb, var(--input-bg-color) 90%, var(--border-color));
+            border-radius: 0.5rem;
+            margin-top: 0.5rem;
+        }
+         #pasteTarget:focus {
+            outline: 2px solid var(--accent-color);
+            border-color: var(--accent-color);
         }
         #rateLimitMessage {
             color: var(--text-color);
@@ -148,30 +254,50 @@
             </div>
         </div>
     </div>
-    
-    <div class="sidebar">
-        <div>
-            <div class="text-2xl font-bold px-6 mb-8 text-[var(--accent-color)]">Shadow LE Web</div>
-            
-            <a href="selection.html" class="sidebar-item theme-text-color">Dashboard</a>
-            <a href="citation.html" class="sidebar-item theme-text-color">Submit Citation</a>
-            <a href="arrest.html" class="sidebar-item theme-text-color">Submit Arrest Report</a>
-            <a href="shift_log.html" class="sidebar-item active">Submit Shift Log</a>
+
+    <div class="sidebar" id="appSidebar"> <div id="sidebarToggle" class="sidebar-toggle-button">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+            </svg>
         </div>
-        
+
+        <div>
+            <div class="text-2xl font-bold px-6 mb-8 text-[var(--accent-color)] sidebar-title">Shadow LE Web</div> <a href="selection.html" class="sidebar-item theme-text-color">
+                <span class="sidebar-item-icon">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                </span>
+                <span class="sidebar-item-text">Dashboard</span>
+            </a>
+            <a href="citation.html" class="sidebar-item theme-text-color">
+                <span class="sidebar-item-icon">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                </span>
+                <span class="sidebar-item-text">Submit Citation</span>
+            </a>
+            <a href="arrest.html" class="sidebar-item theme-text-color">
+                <span class="sidebar-item-icon">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                </span>
+                <span class="sidebar-item-text">Submit Arrest Report</span>
+            </a>
+            <a href="shift_log.html" class="sidebar-item active"> <span class="sidebar-item-icon">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                </span>
+                <span class="sidebar-item-text">Submit Shift Log</span>
+            </a>
+        </div>
+
         <div class="sidebar-user-info theme-subtle-text">
             <p class="font-bold mb-1 theme-text-color" id="sidebarUsernameDisplay">USERNAME</p>
             <p class="block theme-subtle-text">Shadow LE Web© 2025</p>
-            <button id="sidebarLogoutButton" class="block mt-2 font-medium text-red-400 hover:text-red-500 transition-colors">Log out</button>
-        </div>
+            <button id="sidebarLogoutButton" class="block mt-2 font-medium text-red-400 hover:text-red-500 transition-colors sidebar-logout-text">Log out</button> </div>
     </div>
-    <header class="theme-section-bg fixed top-0 w-full z-50 main-header">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-        
+    <header class="theme-section-bg fixed top-0 w-full z-50 main-header" id="appHeader"> <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+
         <div class="flex items-end space-x-4">
             <h1 class="text-3xl font-bold theme-text-color">Submit Shift Log</h1>
-            
-            <a href="selection.html" 
+
+            <a href="selection.html"
                class="text-sm font-medium theme-subtle-text hover:text-[var(--accent-color)] transition-colors mb-1">
                 (Back to Dashboard)
             </a>
@@ -208,8 +334,7 @@
         </nav>
       </div>
     </header>
-    <main class="main-content-wrapper flex items-start justify-center p-4" id="mainContentArea">
-        <div class="container mx-auto max-w-4xl w-full theme-lookup-box p-8 sm:p-10 rounded-2xl dashboard-form-container border theme-tile-border transition-colors duration-300">
+    <main class="main-content-wrapper flex items-start justify-center p-4" id="mainContentArea"> <div class="container mx-auto max-w-4xl w-full theme-lookup-box p-8 sm:p-10 rounded-2xl dashboard-form-container border theme-tile-border transition-colors duration-300">
             <h2 class="theme-title text-3xl font-bold text-center mb-8">Shift Details</h2>
             <form id="shiftLogForm">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 mb-8 p-6 rounded-xl theme-section-bg shadow-inner theme-tile-border border">
@@ -217,7 +342,7 @@
                         <svg class="w-6 h-6 mr-2 text-[var(--accent-color)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         Session & Time Details
                     </h3>
-                    
+
                     <div>
                         <label for="usernameBadge" class="theme-label block mb-2 font-medium">Username & Badge Number:</label>
                         <input type="text" id="usernameBadge" name="usernameBadge" class="theme-input w-full p-3 border rounded-lg" readonly>
@@ -262,7 +387,7 @@
                         <input type="number" id="arrests" name="arrests" min="0" value="0" required class="theme-input w-full p-3 border rounded-lg">
                     </div>
                 </div>
-                
+
                 <div class="mb-8 p-6 rounded-xl theme-section-bg shadow-inner theme-tile-border border">
                     <h3 class="theme-title font-bold text-xl mb-6 flex items-center">
                         <svg class="w-6 h-6 mr-2 text-[var(--accent-color)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
@@ -284,7 +409,7 @@
                         <textarea id="additionalNotes" name="additionalNotes" placeholder="Any additional comments about your shift" class="theme-input w-full p-3 border rounded-lg min-h-[100px]"></textarea>
                     </div>
                 </div>
-                
+
                 <div class="flex flex-wrap justify-center gap-4 pt-4">
                     <button type="submit" id="submitShiftLogBtn" class="theme-button-primary py-3 px-8 rounded-lg font-semibold text-lg">Submit Shift Log</button>
                     <button type="reset" class="theme-button-secondary py-3 px-8 rounded-lg font-semibold">Clear Form</button>
@@ -476,7 +601,7 @@
             const imagePreviewDiv = document.getElementById('imagePreview');
             const submitShiftLogBtn = document.getElementById('submitShiftLogBtn');
             const rateLimitMessage = document.getElementById('rateLimitMessage');
-            
+
             const userNameDisplay = document.getElementById('userNameDisplay');
             const sidebarUsernameDisplay = document.getElementById('sidebarUsernameDisplay');
             const logoutButton = document.getElementById('logoutButton');
@@ -495,13 +620,13 @@
                 loggedInUser = JSON.parse(loggedInUserString);
 
                 // Set Header/Sidebar Username
-                if (userNameDisplay) {
+                if (userNameDisplay && sidebarUsernameDisplay) {
 					userNameDisplay.textContent = loggedInUser.username || 'Officer';
                     sidebarUsernameDisplay.textContent = loggedInUser.username || 'USERNAME';
 				}
 
                 usernameBadgeInput.value = `${loggedInUser.username || 'N/A'} (Badge: ${loggedInUser.badgeNumber || 'N/A'})`;
-                
+
                 if (loggedInUser.department) {
                     userDepartment = loggedInUser.department;
                     departmentDisplayInput.value = userDepartment;
@@ -512,7 +637,7 @@
                 redirectToLogin("User session data not found.");
                 return;
             }
-            
+
             // Setup Logout button
             function handleLogout(event) {
                 event.preventDefault();
@@ -520,14 +645,94 @@
                     if (confirmed) {
                         sessionStorage.removeItem('authToken');
                         sessionStorage.removeItem('loggedInUser');
-                        sessionStorage.removeItem('userStats');       
-                        sessionStorage.removeItem('statsLastUpdated'); 
+                        sessionStorage.removeItem('userStats');
+                        sessionStorage.removeItem('statsLastUpdated');
                         window.location.href = 'index.html';
                     }
                 });
             }
             if (logoutButton) logoutButton.addEventListener('click', handleLogout);
             if (sidebarLogoutButton) sidebarLogoutButton.addEventListener('click', handleLogout);
+
+             // --- Sidebar Collapse Logic (Copied from selection.html) ---
+            const appSidebar = document.getElementById('appSidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const appHeader = document.getElementById('appHeader');
+            const SIDEBAR_COLLAPSED_KEY = 'sidebarCollapsed';
+
+            const isCollapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
+
+            if (isCollapsed) {
+                appSidebar.classList.add('collapsed');
+                appHeader.classList.add('collapsed');
+                 if (window.innerWidth <= 1024) { // Only add collapsed to main on mobile if sidebar is collapsed
+                    mainContentArea.classList.add('collapsed');
+                }
+            } else {
+                 if (window.innerWidth <= 1024) { // Remove collapsed from main on mobile if sidebar is NOT collapsed
+                    mainContentArea.classList.remove('collapsed');
+                }
+            }
+
+            function toggleSidebar() {
+                const isCurrentlyCollapsed = appSidebar.classList.toggle('collapsed');
+                appHeader.classList.toggle('collapsed');
+                 if (window.innerWidth <= 1024) { // Toggle main content only on mobile
+                     mainContentArea.classList.toggle('collapsed', isCurrentlyCollapsed);
+                }
+                localStorage.setItem(SIDEBAR_COLLAPSED_KEY, isCurrentlyCollapsed);
+                setTimeout(syncHeaderHeight, 300); // Re-sync header height after transition
+            }
+
+
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', toggleSidebar);
+            }
+             // --- End Sidebar Collapse Logic ---
+
+             // --- Swipe Gesture Logic ---
+            let touchStartX = 0;
+            let touchEndX = 0;
+            const swipeThreshold = 50; // Minimum pixels for a swipe
+
+            document.body.addEventListener('touchstart', (event) => {
+                 // Ignore swipes if touching input elements to allow text selection
+                if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA' || event.target.tagName === 'SELECT') {
+                    touchStartX = null; // Invalidate swipe
+                    return;
+                }
+                 touchStartX = event.changedTouches[0].screenX;
+            }, { passive: true }); // Use passive for performance if possible
+
+            document.body.addEventListener('touchend', (event) => {
+                 if (touchStartX === null) return; // Swipe invalidated
+
+                touchEndX = event.changedTouches[0].screenX;
+                handleSwipeGesture();
+            }, { passive: true });
+
+            function handleSwipeGesture() {
+                 if (window.innerWidth >= 1024) return; // Only on mobile view
+
+                const deltaX = touchEndX - touchStartX;
+                const isSidebarCollapsed = appSidebar.classList.contains('collapsed');
+
+                // Swipe Left to Collapse
+                if (deltaX < -swipeThreshold && !isSidebarCollapsed) {
+                    console.log("Swipe Left Detected - Collapsing Sidebar");
+                    toggleSidebar();
+                }
+                // Swipe Right to Expand
+                else if (deltaX > swipeThreshold && isSidebarCollapsed) {
+                     console.log("Swipe Right Detected - Expanding Sidebar");
+                    toggleSidebar();
+                }
+
+                // Reset coordinates
+                touchStartX = 0;
+                touchEndX = 0;
+            }
+             // --- End Swipe Gesture Logic ---
 
 
             // Function to handle image processing and preview display
@@ -544,7 +749,7 @@
                 reader.onload = function(e) {
                     screenshotBase64 = e.target.result;
                     imagePreviewDiv.innerHTML = `<img src="${screenshotBase64}" alt="Screenshot Preview">`;
-                    screenshotUploadInput.value = ''; 
+                    screenshotUploadInput.value = '';
                 };
                 reader.readAsDataURL(file);
             }
@@ -655,6 +860,9 @@
                         body: JSON.stringify(shiftLogData),
                     });
 
+                    // Check if fetchWithAuth returned null (auth failure)
+                    if (!response) return;
+
                     const result = await response.json();
 
                     if (response && response.ok) {
@@ -674,7 +882,7 @@
                     window.showCustomAlert('An error occurred. Check console for details.', 'Error');
                 }
             });
-            
+
             // Clear form button functionality
             document.querySelector('button[type="reset"]').addEventListener('click', function(event) {
                 setTimeout(() => {
@@ -687,38 +895,29 @@
                 }, 0);
             });
         });
-        
-        // Dynamic Header Height Script (Option 1)
+
+        // --- DYNAMIC HEADER HEIGHT SCRIPT (Copied from selection.html) ---
         (function() {
-            function syncHeaderHeight() {
-              const header = document.querySelector('header.main-header') || document.querySelector('header.theme-section-bg.main-header') || document.querySelector('header.theme-section-bg');
+            window.syncHeaderHeight = function() { // Made global
+              const header = document.getElementById('appHeader');
               const mainContent = document.getElementById('mainContentArea');
               if (!header || !mainContent) return;
-              
-              // measure true height (includes wrapping) + 1rem (16px) for breathing room
+
               const height = header.offsetHeight || 0;
-              const safePadding = height + 16; 
-              
-              // Apply as inline style to the main content area
+              const safePadding = height + 16; // 1rem (16px) for breathing room
+
               mainContent.style.paddingTop = safePadding + 'px';
 
-              // set as CSS variable too (for consistency, though inline style is now primary)
               document.documentElement.style.setProperty('--app-header-height', height + 'px');
             }
 
-            // run on load and resize (and after a short timeout to catch fonts/images)
-            window.addEventListener('DOMContentLoaded', () => {
-              syncHeaderHeight();
-              // a small timeout helps if fonts/images change header height after load
-              setTimeout(syncHeaderHeight, 250);
+            window.addEventListener('DOMContentLoaded', async () => {
+                syncHeaderHeight();
+                setTimeout(syncHeaderHeight, 250); // Re-run after potential font/image load
             });
             window.addEventListener('resize', syncHeaderHeight);
-            
-            // Re-run on theme changes if necessary, assuming theme.js provides an event
-            if (window.matchMedia) {
-                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', syncHeaderHeight);
-            }
         })();
+        // --- END DYNAMIC HEADER HEIGHT SCRIPT ---
     </script>
 </body>
 </html>
