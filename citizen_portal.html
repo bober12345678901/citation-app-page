@@ -52,6 +52,39 @@
         .theme-input { border-radius: 0.5rem; padding: 0.75rem; border-color: var(--border-color); box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06); }
         .info-label { font-weight: 600; color: var(--subtle-text-color); min-width: 130px; display: inline-block; }
         .info-value { color: var(--text-color); }
+
+        /* Styles copied from my_garage.html */
+        .column-card {
+            border: 1px solid var(--border-color);
+            background-color: var(--card-bg-color);
+            border-radius: 0.75rem; /* rounded-xl */
+            padding: 1.5rem; /* p-6 */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+        }
+        .column-content { flex-grow: 1; overflow-y: auto; }
+        .vehicle-card, .trailer-card {
+             border: 1px solid var(--border-color);
+             background-color: var(--input-bg-color);
+             border-radius: 0.5rem;
+             padding: 1rem;
+             margin-bottom: 1rem;
+        }
+        .record-card {
+             border: 1px solid var(--border-color);
+             background-color: var(--input-bg-color);
+             border-radius: 0.5rem;
+             padding: 1rem;
+             margin-bottom: 1rem;
+        }
+        .ban-level-0 { color: #22c55e; } .ban-level-1 { color: #facc15; } .ban-level-2 { color: #f97316; } .ban-level-3 { color: #ef4444; } .ban-level-unknown { color: var(--subtle-text-color); }
+        .registration-form { border: 1px solid var(--border-color); background-color: var(--input-bg-color); border-radius: 0.75rem; padding: 1.5rem; margin-top: 1rem; }
+        .add-button {
+             color: #22c55e; font-size: 1.5rem; font-weight: bold; transition: color 0.2s;
+        }
+        .add-button:hover { color: #16a34a; }
     </style>
 </head>
 <body class="min-h-screen theme-app-container flex flex-row theme-bg-color">
@@ -73,12 +106,11 @@
         </div>
         <div>
             <div class="text-2xl font-bold px-6 mb-8 text-[var(--accent-color)] sidebar-title">Citizen Portal</div>
-            
             <a href="citizen_portal.html" class="sidebar-item active">
                 <span class="sidebar-item-icon"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg></span>
                 <span class="sidebar-item-text">My Portal</span>
             </a>
-            </div>
+        </div>
         <div class="sidebar-user-info theme-subtle-text">
             <p class="font-bold mb-1 theme-text-color" id="sidebarCitizenUsernameDisplay">Citizen</p>
             <p class="block theme-subtle-text">Shadow LE Web© 2025</p>
@@ -89,7 +121,7 @@
     <header class="theme-section-bg fixed top-0 w-full z-50 main-header" id="appHeader">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
             <div class="flex items-end space-x-4">
-                <h1 class="text-3xl font-bold theme-text-color">Citizen Portal</h1> 
+                <h1 id="welcomeMessage" class="text-3xl font-bold theme-text-color">Loading Portal...</h1> 
             </div>
             <nav class="space-x-4 flex items-center">
                  <p class="theme-text-color font-medium hidden sm:block">Welcome, <span id="citizenUserNameDisplay">Citizen</span></p>
@@ -108,21 +140,102 @@
 
     <main class="main-content-wrapper p-4 sm:p-6 lg:p-8" id="mainContentArea">
         <div class="container mx-auto max-w-7xl w-full">
-            <div class="mb-8 p-6 rounded-xl theme-section-bg border theme-tile-border shadow-lg max-w-2xl mx-auto">
-                
-                <h2 id="welcomeMessage" class="theme-title text-2xl font-bold mb-6">Loading user info...</h2>
-                
-                <div id="userInfo" class="space-y-2">
-                    <p class="text-lg"><span class="info-label">Discord ID:</span> <span id="citizenDiscordId" class="info-value font-mono">...</span></p>
-                    <p class="text-lg"><span class="info-label">Username:</span> <span id="citizenUsername" class="info-value">...</span></p>
+            
+            <div id="contentColumns" class="flex flex-col lg:flex-row gap-6">
+
+                <div id="vehiclesSection" class="column-card flex-1">
+                     <div class="flex justify-between items-center mb-4 pb-2 border-b border-[var(--border-color)]">
+                         <h2 class="theme-title text-xl font-bold flex items-center">My Vehicles</h2>
+                         <button id="showAddVehicleFormBtn" class="add-button" title="Add New Vehicle">+</button>
+                     </div>
+                     <div class="column-content">
+                        <form id="addVehicleForm" class="registration-form hidden mb-6">
+                            <h3 class="theme-title font-semibold text-xl mb-4">Register New Vehicle</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="vehicleBrand" class="theme-label block mb-1 text-sm font-medium">Brand:</label>
+                                    <input type="text" id="vehicleBrand" name="brand" required class="theme-input w-full p-2 border rounded-lg text-sm">
+                                </div>
+                                <div>
+                                    <label for="vehicleModel" class="theme-label block mb-1 text-sm font-medium">Model:</label>
+                                    <input type="text" id="vehicleModel" name="model" required class="theme-input w-full p-2 border rounded-lg text-sm">
+                                </div>
+                                <div>
+                                    <label for="vehicleYear" class="theme-label block mb-1 text-sm font-medium">Year:</label>
+                                    <input type="number" id="vehicleYear" name="year" required class="theme-input w-full p-2 border rounded-lg text-sm" min="1900" max="2100">
+                                </div>
+                                <div>
+                                    <label for="vehicleColor" class="theme-label block mb-1 text-sm font-medium">Color:</label>
+                                    <input type="text" id="vehicleColor" name="color" required class="theme-input w-full p-2 border rounded-lg text-sm">
+                                </div>
+                                <div>
+                                    <label for="vehiclePlate" class="theme-label block mb-1 text-sm font-medium">Plate Text:</label>
+                                    <input type="text" id="vehiclePlate" name="plateText" required class="theme-input w-full p-2 border rounded-lg text-sm uppercase" maxlength="10">
+                                </div>
+                                <div>
+                                    <label for="vehicleBanLvl" class="theme-label block mb-1 text-sm font-medium">Vehicle Ban Lvl:</label>
+                                    <input type="number" id="vehicleBanLvl" name="vehicleBanLvl" required class="theme-input w-full p-2 border rounded-lg text-sm" min="0" max="3" value="0">
+                                </div>
+                            </div>
+                            <div class="mt-4 flex justify-end space-x-2">
+                                <button type="button" id="cancelAddVehicleBtn" class="theme-button-secondary py-2 px-4 rounded-lg font-semibold text-sm">Cancel</button>
+                                <button type="submit" class="theme-button-primary py-2 px-4 rounded-lg font-semibold text-sm">Register Vehicle</button>
+                            </div>
+                        </form>	
+                        <div id="vehicleList">
+                            <p id="noVehiclesMessage" class="theme-subtle-text text-center mt-4">No vehicles found.</p>
+                        </div>
+                    </div>
                 </div>
 
+                <div id="recordSection" class="column-card flex-1">
+                    <div class="flex justify-between items-center mb-4 pb-2 border-b border-[var(--border-color)]">
+                        <h2 class="theme-title text-xl font-bold flex items-center">My Record</h2>
+                    </div>
+                    <div class="column-content">
+                        <div id="recordUserInfo" class="mb-4">
+                             <p class="text-sm"><span class="info-label">Discord ID:</span> <span id="recordDiscordId" class="info-value font-mono">--</span></p>
+                             </div>
+                        <h3 class="theme-title font-semibold mb-2">Citations & Arrests:</h3>
+                        <div id="recordList">
+                            <p id="noRecordsMessage" class="theme-subtle-text text-center mt-4">You have a clean record!</p>
+                        </div>
+                    </div>
                 </div>
+
+                <div id="trailersSection" class="column-card flex-1">
+                    <div class="flex justify-between items-center mb-4 pb-2 border-b border-[var(--border-color)]">
+                        <h2 class="theme-title text-xl font-bold flex items-center">My Trailers</h2>
+                        <button id="showAddTrailerFormBtn" class="add-button" title="Add New Trailer">+</button>
+                    </div>
+                    <div class="column-content">
+                         <form id="addTrailerForm" class="registration-form hidden mb-6">
+                              <h3 class="theme-title font-semibold text-lg mb-4">Register New Trailer</h3>
+                              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div><label for="trailerModel" class="theme-label block mb-1 text-sm font-medium">Trailer Model:</label><input type="text" id="trailerModel" required class="theme-input w-full p-2 border rounded-lg text-sm"></div>
+                                  <div><label for="trailerColor" class="theme-label block mb-1 text-sm font-medium">Trailer Color:</label><input type="text" id="trailerColor" required class="theme-input w-full p-2 border rounded-lg text-sm"></div>
+                                  <div class="md:col-span-2"><label for="trailerPlate" class="theme-label block mb-1 text-sm font-medium">Plate Text:</label><input type="text" id="trailerPlate" required class="theme-input w-full p-2 border rounded-lg text-sm uppercase" maxlength="10"></div>
+                              </div>
+                              <div class="mt-4 flex justify-end space-x-2">
+                                  <button type="button" id="cancelAddTrailerBtn" class="theme-button-secondary py-2 px-4 rounded-lg font-semibold text-sm">Cancel</button>
+                                  <button type="submit" class="theme-button-primary py-2 px-4 rounded-lg font-semibold text-sm">Register Trailer</button>
+                              </div>
+                         </form>
+                        <div id="trailerList">
+                            <p id="noTrailersMessage" class="theme-subtle-text text-center mt-4">No trailers found.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </div>
     </main>
-
     <script>
-        // --- UTILITY FUNCTIONS (Copied from my_garage.html) ---
+        // --- !!! IMPORTANT: SET YOUR WORKER URL HERE !!! ---
+        const API_BASE_URL = 'https://YOUR-WORKER-URL.workers.dev';
+        // --------------------------------------------------
+
+        // --- UTILITY FUNCTIONS ---
         if (typeof window.showCustomAlert === 'undefined') { window.showCustomAlert = (msg, type) => { alert(msg); return Promise.resolve(); }; }
         if (typeof window.showCustomConfirm === 'undefined') { window.showCustomConfirm = (msg) => Promise.resolve(confirm(msg)); }
         
@@ -131,141 +244,318 @@
             catch (e) { return null; } 
         }
 
-        // --- CITIZEN PORTAL LOGIN SCRIPT (Using localStorage) ---
+        // Centralized API fetch function
+        async function fetchWithAuth(url, options = {}) {
+            const token = localStorage.getItem('citizenAuthToken');
+            if (!token) {
+                redirectToLogin("No session found. Please log in.");
+                return null; // Stop execution
+            }
+
+            options.headers = {
+                ...options.headers,
+                'Authorization': `Bearer ${token}`
+            };
+
+            if (options.body) {
+                options.headers['Content-Type'] = 'application/json';
+            }
+
+            try {
+                const response = await fetch(API_BASE_URL + url, options);
+                
+                if (response.status === 401 || response.status === 403) {
+                    redirectToLogin("Session expired or invalid. Please log in again.");
+                    return null; // Stop execution
+                }
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.message || `Error ${response.status}`);
+                }
+                
+                // Handle 201/204 No Content responses
+                if (response.status === 201 || response.status === 204) {
+                    return { success: true, message: "Operation successful." };
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error("API Fetch Error:", error.message);
+                await window.showCustomAlert(`API Error: ${error.message}`, "Error");
+                return null;
+            }
+        }
+
+        function redirectToLogin(message) {
+             console.warn(message);
+             localStorage.removeItem('citizenAuthToken');
+             document.getElementById('welcomeMessage').textContent = message;
+             setTimeout(() => {
+                window.location.href = 'citizen_login.html';
+             }, 2000);
+        }
+
+        // --- DOMContentLoaded (Main Entry Point) ---
         document.addEventListener('DOMContentLoaded', () => {
+            // Get all DOM elements
             const citizenUserNameDisplay = document.getElementById('citizenUserNameDisplay');
             const sidebarCitizenUsernameDisplay = document.getElementById('sidebarCitizenUsernameDisplay');
             const citizenLogoutBtn = document.getElementById('citizenLogoutBtn');
+            const welcomeMessage = document.getElementById('welcomeMessage');
+            const recordDiscordIdSpan = document.getElementById('recordDiscordId');
+            
+            // Vehicle elements
+            const vehicleListDiv = document.getElementById('vehicleList');
+            const noVehiclesMessage = document.getElementById('noVehiclesMessage');
+            const showAddVehicleFormBtn = document.getElementById('showAddVehicleFormBtn');
+            const addVehicleForm = document.getElementById('addVehicleForm');
+            const cancelAddVehicleBtn = document.getElementById('cancelAddVehicleBtn');
 
+            // Trailer elements
+            const trailerListDiv = document.getElementById('trailerList');
+            const noTrailersMessage = document.getElementById('noTrailersMessage');
+            const showAddTrailerFormBtn = document.getElementById('showAddTrailerFormBtn');
+            const addTrailerForm = document.getElementById('addTrailerForm');
+            const cancelAddTrailerBtn = document.getElementById('cancelAddTrailerBtn');
+
+            // Record elements
+            const recordListDiv = document.getElementById('recordList');
+            const noRecordsMessage = document.getElementById('noRecordsMessage');
+
+            // --- 1. LOGIN & AUTHENTICATION ---
             const params = new URLSearchParams(window.location.search);
             const token = params.get('token');
 
             function loadCitizenInfo(token) {
                 const payload = decodeJwt(token);
-                // Check if token is valid and not expired
                 if (payload && payload.role === 'citizen' && payload.exp * 1000 > Date.now()) {
-                    // Update main content
-                    document.getElementById('welcomeMessage').textContent = `Welcome, ${payload.username}!`;
-                    document.getElementById('citizenDiscordId').textContent = payload.discordId;
-                    document.getElementById('citizenUsername').textContent = payload.username;
-
-                    // Update header and sidebar
+                    // Set welcome messages
+                    welcomeMessage.textContent = `Welcome, ${payload.username}!`;
                     if (citizenUserNameDisplay) citizenUserNameDisplay.textContent = payload.username;
                     if (sidebarCitizenUsernameDisplay) sidebarCitizenUsernameDisplay.textContent = payload.username;
+                    if (recordDiscordIdSpan) recordDiscordIdSpan.textContent = payload.discordId;
+
+                    // --- 2. FETCH GARAGE DATA ---
+                    // Now that we are logged in, fetch the garage data
+                    fetchMyGarageData();
+
                 } else {
-                    // Token is invalid, expired, or not a citizen token
-                    localStorage.removeItem('citizenAuthToken');
-                    redirectToLogin('Session expired or invalid. Please log in again.');
+                    redirectToLogin("Session expired or invalid. Please log in again.");
                 }
             }
             
-            function redirectToLogin(message) {
-                 document.getElementById('welcomeMessage').textContent = message;
-                 setTimeout(() => {
-                    window.location.href = 'citizen_login.html';
-                 }, 2000);
-            }
-
             if (token) {
-                // 1. New token found in URL
                 localStorage.setItem('citizenAuthToken', token);
-                // 2. Clean the token from the URL
                 window.history.replaceState({}, document.title, window.location.pathname);
-                // 3. Load info
                 loadCitizenInfo(token);
             } else {
-                // 4. Check if a token is already in storage
                 const existingToken = localStorage.getItem('citizenAuthToken');
                 if (existingToken) {
                     loadCitizenInfo(existingToken);
                 } else {
-                    // 5. No token at all, redirect to login
                     redirectToLogin('You are not logged in. Redirecting...');
                 }
             }
             
-            // --- Logout Button ---
             if (citizenLogoutBtn) {
                 citizenLogoutBtn.addEventListener('click', () => {
-                    localStorage.removeItem('citizenAuthToken');
                     redirectToLogin('Logging out...');
                 });
             }
-        });
 
-        // --- SIDEBAR/HEADER SCRIPT (Copied from my_garage.html) ---
-        (function() {
-            const appSidebar = document.getElementById('appSidebar');
-            const sidebarToggle = document.getElementById('sidebarToggle');
-            const appHeader = document.getElementById('appHeader');
-            const mainContentArea = document.getElementById('mainContentArea');
-            const SIDEBAR_COLLAPSED_KEY = 'sidebarCollapsed';
+            // --- 3. DATA FETCHING & RENDERING ---
+            
+            async function fetchMyGarageData() {
+                const data = await fetchWithAuth('/api/citizen/my-garage', { method: 'GET' });
+                
+                if (!data) return; // Error was already handled by fetchWithAuth
 
-            if (!appSidebar || !sidebarToggle || !appHeader || !mainContentArea) {
-                console.warn("Sidebar/Header script: Missing one or more required elements.");
-                return;
+                loadVehicleData(data.vehicles || []);
+                loadTrailerData(data.trailers || []);
+                loadRecordData(data.citations || [], data.arrests || []);
             }
 
-            const isCollapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
-            if (isCollapsed) {
-                appSidebar.classList.add('collapsed');
-                appHeader.classList.add('collapsed');
-                if (window.innerWidth <= 1024) mainContentArea.classList.add('collapsed');
-            } else {
-                if (window.innerWidth <= 1024) mainContentArea.classList.remove('collapsed');
-            }
-
-            function toggleSidebar() {
-                const isCurrentlyCollapsed = appSidebar.classList.toggle('collapsed');
-                appHeader.classList.toggle('collapsed');
-                if (window.innerWidth <= 1024) mainContentArea.classList.toggle('collapsed', isCurrentlyCollapsed);
-                localStorage.setItem(SIDEBAR_COLLAPSED_KEY, isCurrentlyCollapsed);
-                setTimeout(syncHeaderHeight, 300);
-            }
-
-            if (sidebarToggle) sidebarToggle.addEventListener('click', toggleSidebar);
-
-            let touchStartX = 0, touchEndX = 0;
-            const swipeThreshold = 50; 
-            document.body.addEventListener('touchstart', (e) => {
-                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
-                    touchStartX = null; return;
+            // --- Vehicle Functions ---
+            function loadVehicleData(vehicles) {
+                vehicleListDiv.innerHTML = '';
+                if (vehicles.length > 0) {
+                    noVehiclesMessage.classList.add('hidden');
+                    vehicles.forEach(v => vehicleListDiv.appendChild(createVehicleCard(v)));
+                } else {
+                    noVehiclesMessage.classList.remove('hidden');
                 }
-                touchStartX = e.changedTouches[0].screenX;
-            }, { passive: true });
-            document.body.addEventListener('touchend', (e) => {
-                if (touchStartX === null) return;
-                touchEndX = e.changedTouches[Ch[0].screenX;
-                handleSwipeGesture();
-            }, { passive: true });
-
-            function handleSwipeGesture() {
-                if (window.innerWidth >= 1024) return;
-                const deltaX = touchEndX - touchStartX;
-                const isSidebarCollapsed = appSidebar.classList.contains('collapsed');
-                if (deltaX < -swipeThreshold && !isSidebarCollapsed) {
-                    toggleSidebar();
-                } else if (deltaX > swipeThreshold && isSidebarCollapsed) {
-                    toggleSidebar();
-                }
-                touchStartX = 0; touchEndX = 0;
             }
 
-            window.syncHeaderHeight = function() {
-                const header = document.getElementById('appHeader');
-                const mainContent = document.getElementById('mainContentArea');
-                if (!header || !mainContent) return;
-                const height = header.offsetHeight || 0;
-                const safePadding = height + 16;
-                mainContent.style.paddingTop = safePadding + 'px';
-                document.documentElement.style.setProperty('--app-header-height', height + 'px');
-            };
-            window.addEventListener('DOMContentLoaded', async () => {
-                syncHeaderHeight();
-                setTimeout(syncHeaderHeight, 250);
+            function getBanLevelTextAndClass(level) {
+                level = parseInt(level, 10); 
+                switch (level) { 
+                    case 0: return { text: '0 (None)', className: 'ban-level-0' }; 
+                    case 1: return { text: '1 (Warning)', className: 'ban-level-1' }; 
+                    case 2: return { text: '2 (Suspended)', className: 'ban-level-2' }; 
+                    case 3: return { text: '3 (Impound/Ban)', className: 'ban-level-3' }; 
+                    default: return { text: `${level || 'N/A'} (Unknown)`, className: 'ban-level-unknown' }; 
+                } 
+            }
+
+            function createVehicleCard(vehicle) {
+                const div = document.createElement('div');
+                div.className = 'vehicle-card';
+                // Renamed DB columns to match (e.g., ban_lvl, plate)
+                const banInfo = getBanLevelTextAndClass(vehicle.ban_lvl);
+                const isBanned = vehicle.ban_lvl > 0;
+                div.innerHTML = `
+                    <h3 class="theme-title font-semibold text-lg mb-3">Plate: <span class="font-mono theme-text-color">${vehicle.plate || 'N/A'}</span></h3>
+                    <div class="space-y-1 text-sm sm:text-base">
+                        <p><span class="info-label">Brand:</span> <span class="info-value">${vehicle.brand || '--'}</span></p>
+                        <p><span class="info-label">Model:</span> <span class="info-value">${vehicle.model || '--'}</span></p>
+                        <p><span class="info-label">Year:</span> <span class="info-value">${vehicle.year || '--'}</span></p>
+                        <p><span class="info-label">Color:</span> <span class="info-value">${vehicle.color || '--'}</span></p>
+                        <p><span class="info-label">Vehicle Ban Lvl:</span> <span class="info-value font-bold ${banInfo.className}">${banInfo.text}</span></p>
+                    </div>
+                    <div class="mt-4 flex space-x-2">
+                        <button class="theme-button-secondary text-xs py-1 px-2 rounded" ${isBanned ? 'disabled' : ''}>Edit Info</button>
+                        <button class="theme-button-secondary text-xs py-1 px-2 rounded text-red-500 hover:bg-red-500/10" ${isBanned ? 'disabled' : ''}>Report Stolen</button>
+                    </div>`;
+                return div;
+            }
+
+            // --- Trailer Functions ---
+            function loadTrailerData(trailers) {
+                trailerListDiv.innerHTML = '';
+                if (trailers.length > 0) {
+                    noTrailersMessage.classList.add('hidden');
+                    trailers.forEach(t => trailerListDiv.appendChild(createTrailerCard(t)));
+                } else {
+                    noTrailersMessage.classList.remove('hidden');
+                }
+            }
+
+            function createTrailerCard(trailer) {
+                const div = document.createElement('div');
+                div.className = 'trailer-card';
+                div.innerHTML = `
+                    <h3 class="theme-title font-semibold text-lg mb-3">Plate: <span class="font-mono theme-text-color">${trailer.plate || 'N/A'}</span></h3>
+                    <div class="space-y-1 text-sm sm:text-base">
+                        <p><span class="info-label">Trailer Model:</span> <span class="info-value">${trailer.model || '--'}</span></p>
+                        <p><span class="info-label">Trailer Color:</span> <span class="info-value">${trailer.color || '--'}</span></p>
+                    </div>
+                    <div class="mt-4 flex space-x-2">
+                        <button class="theme-button-secondary text-xs py-1 px-2 rounded">Edit Info</button>
+                        <button class="theme-button-secondary text-xs py-1 px-2 rounded text-red-500 hover:bg-red-500/10">Report Stolen</button>
+                    </div>`;
+                return div;
+            }
+
+            // --- Record Functions ---
+            function loadRecordData(citations, arrests) {
+                recordListDiv.innerHTML = '';
+                let totalRecords = 0;
+
+                if (citations && citations.length > 0) {
+                    citations.forEach(c => {
+                        recordListDiv.appendChild(createRecordCard(c, 'Citation'));
+                        totalRecords++;
+                    });
+                }
+                if (arrests && arrests.length > 0) {
+                    arrests.forEach(a => {
+                        recordListDiv.appendChild(createRecordCard(a, 'Arrest'));
+                        totalRecords++;
+                    });
+                }
+
+                noRecordsMessage.classList.toggle('hidden', totalRecords > 0);
+            }
+
+            function createRecordCard(record, type) {
+                const div = document.createElement('div');
+                div.className = 'record-card';
+                const date = new Date(record.timestamp).toLocaleDateString();
+                let title, details, amount;
+
+                if (type === 'Citation') {
+                    title = `Citation (#${record.id.slice(-6)})`;
+                    details = (record.appliedPenalCodes || []).map(pc => pc.description || pc.code).join(', ');
+                    amount = `Due: $${parseFloat(record.totalAmountDue || 0).toFixed(2)}`;
+                } else { // Arrest
+                    title = `Arrest (#${record.id.slice(-6)})`;
+                    details = (record.appliedCharges || []).map(c => c.description || c.code).join(', ');
+                    amount = `Fines: $${parseFloat(record.totalFines || 0).toFixed(2)} | Jail: ${record.totalJailTime || 0}s`;
+                }
+
+                div.innerHTML = `
+                    <h3 class="theme-title font-semibold text-lg mb-2 ${type === 'Arrest' ? 'text-red-500' : ''}">${title}</h3>
+                    <p class="text-sm"><span class="info-label">Date:</span> <span class="info-value">${date}</span></p>
+                    <p class="text-sm"><span class="info-label">Details:</span> <span class="info-value">${details || 'N/A'}</span></p>
+                    <p class="text-sm"><span class="info-label">Total:</span> <span class="info-value">${amount}</span></p>
+                `;
+                return div;
+            }
+
+            // --- 4. FORM HANDLING ---
+
+            // Vehicle form
+            showAddVehicleFormBtn.addEventListener('click', () => { addVehicleForm.classList.remove('hidden'); showAddVehicleFormBtn.classList.add('hidden'); });
+            cancelAddVehicleBtn.addEventListener('click', () => { addVehicleForm.classList.add('hidden'); showAddVehicleFormBtn.classList.remove('hidden'); addVehicleForm.reset(); });
+
+            addVehicleForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(addVehicleForm);
+                const vehicleData = {
+                    brand: formData.get('brand'),
+                    model: formData.get('model'),
+                    year: parseInt(formData.get('year')),
+                    color: formData.get('color'),
+                    plateText: formData.get('plateText'),
+                    vehicleBanLvl: parseInt(formData.get('vehicleBanLvl') || 0)
+                };
+
+                const result = await fetchWithAuth('/api/citizen/vehicles', {
+                    method: 'POST',
+                    body: JSON.stringify(vehicleData)
+                });
+
+                if (result) {
+                    await window.showCustomAlert("Vehicle registered successfully!", "Success");
+                    addVehicleForm.reset();
+                    addVehicleForm.classList.add('hidden');
+                    showAddVehicleFormBtn.classList.remove('hidden');
+                    fetchMyGarageData(); // Refresh the garage list
+                }
             });
-            window.addEventListener('resize', syncHeaderHeight);
-        })();
+
+            // Trailer form
+            showAddTrailerFormBtn.addEventListener('click', () => { addTrailerForm.classList.remove('hidden'); showAddTrailerFormBtn.classList.add('hidden'); });
+            cancelAddTrailerBtn.addEventListener('click', () => { addTrailerForm.classList.add('hidden'); showAddTrailerFormBtn.classList.remove('hidden'); addTrailerForm.reset(); });
+
+            addTrailerForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(addTrailerForm);
+                const trailerData = {
+                    trailerModel: formData.get('trailerModel'),
+                    trailerColor: formData.get('trailerColor'),
+                    plateText: formData.get('plateText')
+                };
+
+                const result = await fetchWithAuth('/api/citizen/trailers', {
+                    method: 'POST',
+                    body: JSON.stringify(trailerData)
+                });
+
+                if (result) {
+                    await window.showCustomAlert("Trailer registered successfully!", "Success");
+                    addTrailerForm.reset();
+                    addTrailerForm.classList.add('hidden');
+                    showAddTrailerFormBtn.classList.remove('hidden');
+                    fetchMyGarageData(); // Refresh the garage list
+                }
+            });
+
+            // --- Sidebar/Header setup ---
+            // (Copied from my_garage.html, unchanged)
+            const appSidebar = document.getElementById('appSidebar'); const sidebarToggle = document.getElementById('sidebarToggle'); const appHeader = document.getElementById('appHeader'); const mainContentArea = document.getElementById('mainContentArea'); const SIDEBAR_COLLAPSED_KEY = 'sidebarCollapsed'; const isCollapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true'; if (isCollapsed) { appSidebar.classList.add('collapsed'); appHeader.classList.add('collapsed'); if (window.innerWidth <= 1024) mainContentArea.classList.add('collapsed'); } else { if (window.innerWidth <= 1024) mainContentArea.classList.remove('collapsed'); } function toggleSidebar() { const isCurrentlyCollapsed = appSidebar.classList.toggle('collapsed'); appHeader.classList.toggle('collapsed'); if (window.innerWidth <= 1024) mainContentArea.classList.toggle('collapsed', isCurrentlyCollapsed); localStorage.setItem(SIDEBAR_COLLAPSED_KEY, isCurrentlyCollapsed); setTimeout(syncHeaderHeight, 300); } if (sidebarToggle) sidebarToggle.addEventListener('click', toggleSidebar); let touchStartX = 0, touchEndX = 0; const swipeThreshold = 50; document.body.addEventListener('touchstart', (e) => { if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.g.tagName === 'SELECT') { touchStartX = null; return; } touchStartX = e.changedTouches[0].screenX; }, { passive: true }); document.body.addEventListener('touchend', (e) => { if (touchStartX === null) return; touchEndX = e.changedTouches[0].screenX; handleSwipeGesture(); }, { passive: true }); function handleSwipeGesture() { if (window.innerWidth >= 1024) return; const deltaX = touchEndX - touchStartX; const isSidebarCollapsed = appSidebar.classList.contains('collapsed'); if (deltaX < -swipeThreshold && !isSidebarCollapsed) toggleSidebar(); else if (deltaX > swipeThreshold && isSidebarCollapsed) toggleSidebar(); touchStartX = 0; touchEndX = 0; } (function() { window.syncHeaderHeight = function() { const header = document.getElementById('appHeader'); const mainContent = document.getElementById('mainContentArea'); if (!header || !mainContent) return; const height = header.offsetHeight || 0; const safePadding = height + 16; mainContent.style.paddingTop = safePadding + 'px'; document.documentElement.style.setProperty('--app-header-height', height + 'px'); }; window.addEventListener('DOMContentLoaded', async () => { syncHeaderHeight(); setTimeout(syncHeaderHeight, 250); }); window.addEventListener('resize', syncHeaderHeight); })();
+
+        });
     </script>
 </body>
 </html>
