@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Citizen Portal Login</title>
 	<script>
-      // prevent light-mode flash (Copied from my_garage.html)
+      // prevent light-mode flash
       (function() {
         try {
           const savedTheme = localStorage.getItem('theme');
@@ -23,6 +23,7 @@
     <link rel="stylesheet" href="styles.css">
     <script src="theme.js"></script>
     <style>
+        /* Styles copied from my_garage.html to ensure theme variables are loaded */
         .dashboard-form-container { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); transition: box-shadow 0.3s; }
         :root { --app-header-height: 5rem; --sidebar-width: 250px; --sidebar-collapsed-width: 65px; }
         header.theme-section-bg { background-color: var(--box-bg-color) !important; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); position: fixed; top: 0; height: auto; min-height: 4rem; z-index: 50; box-sizing: border-box; transition: width 0.3s, left 0.3s; }
@@ -70,10 +71,17 @@
         <h1 class="theme-title text-3xl font-bold text-center mb-6">Citizen Portal</h1>
         <p class="theme-label text-center mb-6">Log in with your Discord account to view your record and garage.</p>
         
-        <a href="https://citation-app-worker.pnbober.workers.dev/auth/discord/login" 
+        <button id="discordLoginBtn" 
            class="theme-button-primary w-full text-center py-3 px-6 rounded-lg font-semibold text-lg block">
             Login with Discord
-        </a>
+        </button>
+
+        <div class="flex items-center justify-center mt-4">
+            <input id="rememberMeCheckbox" type="checkbox" class="h-4 w-4 rounded theme-input" />
+            <label for="rememberMeCheckbox" class="ml-2 block text-sm theme-label">
+                Remember me
+            </label>
+        </div>
 
         <div class="text-center mt-6">
             <a href="index.html" class="theme-subtle-text text-sm hover:underline">Are you Law Enforcement?</a>
@@ -82,9 +90,19 @@
 
     <script>
         // --- UTILITY FUNCTIONS (Placeholders) ---
-        // Added for the modal, just in case.
         if (typeof window.showCustomAlert === 'undefined') { window.showCustomAlert = (msg, type) => { alert(msg); return Promise.resolve(); }; }
         if (typeof window.showCustomConfirm === 'undefined') { window.showCustomConfirm = (msg) => Promise.resolve(confirm(msg)); }
+
+        document.getElementById('discordLoginBtn').addEventListener('click', () => {
+            const remember = document.getElementById('rememberMeCheckbox').checked;
+            
+            // !!! IMPORTANT: REPLACE THIS URL !!!
+            const workerLoginUrl = 'https://citation-app-worker.pnbober.workers.dev/auth/discord/login';
+            
+            const finalUrl = workerLoginUrl + (remember ? '?remember=true' : '');
+            
+            window.location.href = finalUrl;
+        });
     </script>
 </body>
 </html>
