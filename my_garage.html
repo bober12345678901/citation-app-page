@@ -4,21 +4,15 @@
     <link rel="icon" href="favicon.png" type="image/png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Garage - Vehicle & Trailer Registry</title>
+    <title>My Garage & Record</title>
 	<script>
-  // prevent light-mode flash before theme.js runs
+  // prevent light-mode flash
   (function() {
     try {
       const savedTheme = localStorage.getItem('theme');
-      if (savedTheme) {
-        document.documentElement.classList.add(savedTheme);
-        document.documentElement.setAttribute('data-theme', savedTheme);
-      } else {
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const theme = prefersDark ? 'dark' : 'light';
-        document.documentElement.classList.add(theme);
-        document.documentElement.setAttribute('data-theme', theme);
-      }
+      const theme = savedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.classList.add(theme);
+      document.documentElement.setAttribute('data-theme', theme);
     } catch(e) { console.warn('Theme preloader failed:', e); }
     document.documentElement.style.visibility = 'hidden';
     window.addEventListener('DOMContentLoaded', () => { document.documentElement.style.visibility = ''; });
@@ -30,17 +24,10 @@
     <script src="theme.js"></script>
     <style>
         /* Container styling */
-        .dashboard-form-container {
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            transition: box-shadow 0.3s;
-        }
+        .dashboard-form-container { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); transition: box-shadow 0.3s; }
 
-       /* --- Sidebar/Header Styles (Copied from previous examples) --- */
-        :root {
-          --app-header-height: 5rem;
-          --sidebar-width: 250px;
-          --sidebar-collapsed-width: 65px;
-        }
+       /* --- Sidebar/Header Styles --- */
+        :root { --app-header-height: 5rem; --sidebar-width: 250px; --sidebar-collapsed-width: 65px; }
         header.theme-section-bg { background-color: var(--box-bg-color) !important; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); position: fixed; top: 0; height: auto; min-height: 4rem; z-index: 50; box-sizing: border-box; transition: width 0.3s, left 0.3s; }
         .main-header { width: calc(100% - var(--sidebar-width)); left: var(--sidebar-width); }
         .main-content-wrapper { margin-left: var(--sidebar-width); flex-grow: 1; box-sizing: border-box; padding-top: 0; transition: none; position: relative; z-index: 1; }
@@ -52,13 +39,9 @@
         .sidebar.collapsed .sidebar-toggle-button { transform: translateY(-50%) rotate(180deg); }
         .main-header.collapsed { width: calc(100% - var(--sidebar-collapsed-width)); left: var(--sidebar-collapsed-width); }
         @media (max-width: 1024px) {
-            .sidebar { display: block; }
-            .main-content-wrapper { margin-left: var(--sidebar-width); }
-            .main-header { width: calc(100% - var(--sidebar-width)); left: var(--sidebar-width); }
-             .sidebar.collapsed { width: 0; min-width: 0; overflow: hidden; box-shadow: none; border-right: none;}
-             .sidebar.collapsed .sidebar-toggle-button { right: -30px; }
-             .main-content-wrapper.collapsed { margin-left: 0; }
-             .main-header.collapsed { width: 100%; left: 0; }
+            .sidebar { display: block; } .main-content-wrapper { margin-left: var(--sidebar-width); } .main-header { width: calc(100% - var(--sidebar-width)); left: var(--sidebar-width); }
+             .sidebar.collapsed { width: 0; min-width: 0; overflow: hidden; box-shadow: none; border-right: none;} .sidebar.collapsed .sidebar-toggle-button { right: -30px; }
+             .main-content-wrapper.collapsed { margin-left: 0; } .main-header.collapsed { width: 100%; left: 0; }
         }
         .sidebar { width: var(--sidebar-width); min-width: var(--sidebar-width); background-color: var(--box-bg-color); color: var(--text-color); position: fixed; top: 0; left: 0; height: 100vh; padding-top: 2rem; box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2); z-index: 40; display: flex; flex-direction: column; justify-content: space-between; transition: width 0.3s, min-width 0.3s; border-right: 1px solid var(--border-color); }
         .sidebar-item { display: flex; align-items: center; padding: 0.75rem 1.5rem; font-size: 1.125rem; font-weight: 500; border-left: 5px solid transparent; transition: background-color 0.2s, border-left-color 0.2s; }
@@ -70,38 +53,71 @@
         .sidebar-toggle-button { position: absolute; right: -12px; top: 50%; transform: translateY(-50%); width: 24px; height: 24px; border-radius: 50%; background-color: var(--accent-color); color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); transition: transform 0.3s, background-color 0.3s, right 0.3s; z-index: 50; }
         /* --- End Sidebar/Header Styles --- */
 
-        .info-label {
-            font-weight: 600; /* semibold */
-            color: var(--subtle-text-color);
-            min-width: 130px; /* Adjust as needed for alignment */
-            display: inline-block;
+        .theme-input { border-radius: 0.5rem; padding: 0.75rem; border-color: var(--border-color); box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06); }
+        .info-label { font-weight: 600; color: var(--subtle-text-color); min-width: 130px; display: inline-block; }
+        .info-value { color: var(--text-color); }
+        /* Column Card Styling */
+        .column-card {
+            border: 1px solid var(--border-color);
+            background-color: var(--card-bg-color);
+            border-radius: 0.75rem; /* rounded-xl */
+            padding: 1.5rem; /* p-6 */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            min-height: 300px; /* Example min height */
+            display: flex; /* Allow header/content stacking */
+            flex-direction: column;
         }
-        .info-value {
-             color: var(--text-color);
+        .column-content {
+            flex-grow: 1; /* Make content area fill space */
+            overflow-y: auto; /* Add scroll if content overflows */
         }
+         /* Individual Vehicle/Trailer cards inside columns */
         .vehicle-card, .trailer-card {
              border: 1px solid var(--border-color);
-             background-color: var(--card-bg-color); /* Use card background */
-             border-radius: 0.75rem; /* rounded-xl */
-             padding: 1.5rem; /* p-6 */
-             margin-bottom: 1.5rem; /* mb-6 */
-             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-lg equivalent */
+             background-color: var(--input-bg-color); /* Slightly different bg */
+             border-radius: 0.5rem; /* rounded-lg */
+             padding: 1rem; /* p-4 */
+             margin-bottom: 1rem; /* mb-4 */
         }
-        .ban-level-0 { color: #22c55e; /* text-green-500 */ }
-        .ban-level-1 { color: #facc15; /* text-yellow-400 */ }
-        .ban-level-2 { color: #f97316; /* text-orange-500 */ }
-        .ban-level-3 { color: #ef4444; /* text-red-500 */ }
-        .ban-level-unknown { color: var(--subtle-text-color); }
+        .ban-level-0 { color: #22c55e; } .ban-level-1 { color: #facc15; } .ban-level-2 { color: #f97316; } .ban-level-3 { color: #ef4444; } .ban-level-unknown { color: var(--subtle-text-color); }
+        /* Form sections */
+        .registration-form { border: 1px solid var(--border-color); background-color: var(--input-bg-color); border-radius: 0.75rem; padding: 1.5rem; margin-top: 1rem; }
+         /* Add button styling */
+        .add-button {
+             color: #22c55e; /* text-green-500 */
+             font-size: 1.5rem; /* text-2xl */
+             font-weight: bold;
+             transition: color 0.2s;
+        }
+        .add-button:hover {
+            color: #16a34a; /* text-green-600 */
+        }
+        /* Styling for citation list */
+        #citationList li {
+            padding: 0.25rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        #citationList li:last-child {
+            border-bottom: none;
+        }
 
     </style>
 </head>
 <body class="min-h-screen theme-app-container flex flex-row theme-bg-color">
 
     <div id="customModalOverlay" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+         <div class="custom-modal theme-lookup-box p-6 rounded-xl shadow-xl max-w-sm w-full mx-4 sm:mx-auto">
+            <h3 id="customModalTitle" class="custom-modal-header theme-title text-xl font-bold mb-4">Alert</h3>
+            <p id="customModalMessage" class="custom-modal-body theme-label mb-6"></p>
+            <div id="customModalButtons" class="custom-modal-footer flex justify-end space-x-3">
+                <button id="customModalCancelBtn" class="theme-button-secondary py-2 px-4 rounded-lg font-semibold hidden">Cancel</button>
+                <button id="customModalOkBtn" class="theme-button-primary py-2 px-4 rounded-lg font-semibold">OK</button>
+            </div>
         </div>
+    </div>
 
     <div class="sidebar" id="appSidebar">
-        <div id="sidebarToggle" class="sidebar-toggle-button">
+         <div id="sidebarToggle" class="sidebar-toggle-button">
              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path></svg>
         </div>
         <div>
@@ -110,22 +126,21 @@
                 <span class="sidebar-item-icon"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg></span>
                 <span class="sidebar-item-text">LE Dashboard</span>
             </a>
-             <a href="my_garage.html" class="sidebar-item active"> <span class="sidebar-item-icon">
-                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16l2.879-2.879a3 3 0 014.242 0L18 16m-6-8v7m-4-4h.01M16 12h.01M4 16l2.879-2.879a3 3 0 014.242 0L13 15m5-1v6m0-6V9a2 2 0 00-2-2h-3.172a2 2 0 00-1.414.586l-4.828 4.828a2 2 0 000 2.828l3.172 3.172a2 2 0 002.828 0L18 16m-6-8h.01"></path></svg>
-                 </span>
+            <a href="my_garage.html" class="sidebar-item active">
+                 <span class="sidebar-item-icon"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16l2.879-2.879a3 3 0 014.242 0L18 16m-6-8v7m-4-4h.01M16 12h.01M4 16l2.879-2.879a3 3 0 014.242 0L13 15m5-1v6m0-6V9a2 2 0 00-2-2h-3.172a2 2 0 00-1.414.586l-4.828 4.828a2 2 0 000 2.828l3.172 3.172a2 2 0 002.828 0L18 16m-6-8h.01"></path></svg></span>
                 <span class="sidebar-item-text">My Garage</span>
             </a>
-            </div>
+        </div>
         <div class="sidebar-user-info theme-subtle-text">
-            <p class="font-bold mb-1 theme-text-color" id="sidebarUsernameDisplay">Citizen Username</p> <p class="block theme-subtle-text">Shadow LE Web© 2025</p>
-            <button id="sidebarLogoutButton" class="block mt-2 font-medium text-red-400 hover:text-red-500 transition-colors sidebar-logout-text">Log out</button>
+            <p class="font-bold mb-1 theme-text-color" id="sidebarUsernameDisplay">Citizen Portal</p>
+            <p class="block theme-subtle-text">Shadow LE Web© 2025</p>
         </div>
     </div>
 
     <header class="theme-section-bg fixed top-0 w-full z-50 main-header" id="appHeader">
-         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
             <div class="flex items-end space-x-4">
-                <h1 class="text-3xl font-bold theme-text-color">My Garage</h1> </div>
+                <h1 class="text-3xl font-bold theme-text-color">My Garage & Record</h1> </div>
             <nav class="space-x-4 flex items-center">
                  <p class="theme-text-color font-medium hidden sm:block">Welcome, <span id="userNameDisplay">Citizen</span></p>
                 <div class="relative inline-block text-left">
@@ -137,316 +152,367 @@
                         <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="themeToggle" id="themeOptions"></div>
                     </div>
                 </div>
-                <button id="logoutButton" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">Log Out</button>
-            </nav>
+                 </nav>
         </div>
     </header>
 
     <main class="main-content-wrapper p-4 sm:p-6 lg:p-8" id="mainContentArea">
-        <div class="container mx-auto max-w-5xl w-full">
-
-            <div class="mb-8 p-6 rounded-xl theme-section-bg border theme-tile-border shadow-lg">
-                <h2 class="theme-title text-2xl font-bold mb-4">Account Information</h2>
-                <div class="space-y-2 text-sm sm:text-base">
-                    <p><span class="info-label">Discord User ID:</span> <span id="discordUserId" class="info-value font-mono">123456789012345678</span></p>
-                    <p><span class="info-label">Roblox Username:</span> <span id="robloxUsername" class="info-value">CitizenRoblox123</span></p>
-                     </div>
+        <div class="container mx-auto max-w-7xl w-full"> <div class="mb-8 p-6 rounded-xl theme-section-bg border theme-tile-border shadow-lg max-w-xl mx-auto">
+                 <h2 class="theme-title text-2xl font-bold mb-4 text-center">Search Garage & Record</h2>
+                 <form id="userSearchForm" class="mb-4">
+                     <label for="userIdInput" class="theme-label block mb-2 font-medium text-center">Enter Discord or Roblox ID (Try "TEMPUSER123"):</label>
+                    <div class="flex items-center space-x-3 max-w-md mx-auto">
+                        <input type="text" id="userIdInput" name="userId" required
+                               class="theme-input flex-grow p-3 border rounded-lg text-center"
+                               placeholder="e.g., TEMPUSER123">
+                        <button type="submit" id="searchButton" class="theme-button-primary py-3 px-6 rounded-lg font-semibold">
+                            Search
+                        </button>
+                    </div>
+                 </form>
+                 <p id="searchErrorMessage" class="text-red-500 text-sm hidden text-center"></p>
+                 <div id="searchLoadingIndicator" class="text-center theme-subtle-text mt-2 hidden">
+                     <svg class="animate-spin h-5 w-5 theme-text-color inline-block mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                     Searching...
+                 </div>
             </div>
 
-            <div class="mb-8">
-                <h2 class="theme-title text-2xl font-bold mb-4 flex items-center">
-                     <svg class="w-6 h-6 mr-2 text-[var(--accent-color)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16l2.879-2.879a3 3 0 014.242 0L18 16m-6-8v7m-4-4h.01M16 12h.01M4 16l2.879-2.879a3 3 0 014.242 0L13 15m5-1v6m0-6V9a2 2 0 00-2-2h-3.172a2 2 0 00-1.414.586l-4.828 4.828a2 2 0 000 2.828l3.172 3.172a2 2 0 002.828 0L18 16m-6-8h.01"></path></svg>
-                    My Vehicles
-                 </h2>
-                <div id="vehicleList">
-                    <div class="vehicle-card">
-                        <h3 class="theme-title font-semibold text-lg mb-3">Plate: <span class="font-mono theme-text-color">FASTCAR</span></h3>
-                        <div class="space-y-1 text-sm sm:text-base">
-                            <p><span class="info-label">Brand:</span> <span class="info-value">Cheval</span></p>
-                            <p><span class="info-label">Model:</span> <span class="info-value">Fugitive</span></p>
-                            <p><span class="info-label">Year:</span> <span class="info-value">2024</span></p>
-                            <p><span class="info-label">Color:</span> <span class="info-value">Metallic Black</span></p>
-                            <p><span class="info-label">Vehicle Ban Lvl:</span> <span class="info-value font-bold ban-level-0">0 (None)</span></p>
-                            <p><span class="info-label">Discord User ID:</span> <span class="info-value font-mono">123456789012345678</span></p>
-                            <p><span class="info-label">Roblox Username:</span> <span class="info-value">CitizenRoblox123</span></p>
-                        </div>
-                        <div class="mt-4 flex space-x-2">
-                             <button class="theme-button-secondary text-xs py-1 px-2 rounded">Edit Info</button>
-                             <button class="theme-button-secondary text-xs py-1 px-2 rounded text-red-500 hover:bg-red-500/10">Report Stolen</button>
-                        </div>
-                    </div>
+            <div id="contentColumns" class="hidden flex flex-col lg:flex-row gap-6">
 
-                    <div class="vehicle-card">
-                        <h3 class="theme-title font-semibold text-lg mb-3">Plate: <span class="font-mono theme-text-color">BANNED1</span></h3>
-                        <div class="space-y-1 text-sm sm:text-base">
-                            <p><span class="info-label">Brand:</span> <span class="info-value">Vapid</span></p>
-                            <p><span class="info-label">Model:</span> <span class="info-value">Stanier</span></p>
-                            <p><span class="info-label">Year:</span> <span class="info-value">2018</span></p>
-                            <p><span class="info-label">Color:</span> <span class="info-value">White</span></p>
-                            <p><span class="info-label">Vehicle Ban Lvl:</span> <span class="info-value font-bold ban-level-3">3 (Impound on Sight)</span></p>
-                            <p><span class="info-label">Discord User ID:</span> <span class="info-value font-mono">123456789012345678</span></p>
-                            <p><span class="info-label">Roblox Username:</span> <span class="info-value">CitizenRoblox123</span></p>
-                        </div>
-                         <div class="mt-4 flex space-x-2">
-                             <button class="theme-button-secondary text-xs py-1 px-2 rounded" disabled>Edit Info</button>
-                             <button class="theme-button-secondary text-xs py-1 px-2 rounded" disabled>Report Stolen</button>
-                        </div>
-                    </div>
+                <div id="vehiclesSection" class="column-card flex-1">
+                     <div class="flex justify-between items-center mb-4 pb-2 border-b border-[var(--border-color)]">
+                         <h2 class="theme-title text-xl font-bold flex items-center">My Vehicles</h2>
+                         <button id="showAddVehicleFormBtn" class="add-button" title="Add New Vehicle">+</button>
                      </div>
-            </div>
+                     <div class="column-content">
+				<form id="addVehicleForm" class="registration-form hidden mb-6">
+                      <h3 class="theme-title font-semibold text-xl mb-4">Register New Vehicle</h3>
+                      <input type="hidden" id="vehicleFormDiscordId" name="discordUserId">
+                      <input type="hidden" id="vehicleFormRobloxUsername" name="robloxUsername">
 
-             <div>
-                 <h2 class="theme-title text-2xl font-bold mb-4 flex items-center">
-                    <svg class="w-6 h-6 mr-2 text-[var(--accent-color)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1M13 16l-3-3m3 3l3-3m-3 3v6m3-6v6m1-11V6a1 1 0 00-1-1h-1m2 11h-1"></path></svg>
-                     My Trailers
-                </h2>
-                <div id="trailerList">
-                    <div class="trailer-card">
-                        <h3 class="theme-title font-semibold text-lg mb-3">Plate: <span class="font-mono theme-text-color">HAUL1</span></h3>
-                        <div class="space-y-1 text-sm sm:text-base">
-                            <p><span class="info-label">Trailer Model:</span> <span class="info-value">Standard Box Trailer</span></p>
-                            <p><span class="info-label">Trailer Color:</span> <span class="info-value">Grey</span></p>
-                             <p><span class="info-label">Discord User ID:</span> <span class="info-value font-mono">123456789012345678</span></p>
-                             <p><span class="info-label">Roblox Username:</span> <span class="info-value">CitizenRoblox123</span></p>
-                        </div>
-                         <div class="mt-4 flex space-x-2">
-                             <button class="theme-button-secondary text-xs py-1 px-2 rounded">Edit Info</button>
-                             <button class="theme-button-secondary text-xs py-1 px-2 rounded text-red-500 hover:bg-red-500/10">Report Stolen</button>
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                              <label for="vehicleBrand" class="theme-label block mb-1 text-sm font-medium">Brand:</label>
+                              <input type="text" id="vehicleBrand" name="brand" required class="theme-input w-full p-2 border rounded-lg text-sm">
+                          </div>
+                          <div>
+                              <label for="vehicleModel" class="theme-label block mb-1 text-sm font-medium">Model:</label>
+                              <input type="text" id="vehicleModel" name="model" required class="theme-input w-full p-2 border rounded-lg text-sm">
+                          </div>
+                          <div>
+                              <label for="vehicleYear" class="theme-label block mb-1 text-sm font-medium">Year:</label>
+                              <input type="number" id="vehicleYear" name="year" required class="theme-input w-full p-2 border rounded-lg text-sm" min="1900" max="2100">
+                          </div>
+                          <div>
+                              <label for="vehicleColor" class="theme-label block mb-1 text-sm font-medium">Color:</label>
+                              <input type="text" id="vehicleColor" name="color" required class="theme-input w-full p-2 border rounded-lg text-sm">
+                          </div>
+                           <div>
+                              <label for="vehiclePlate" class="theme-label block mb-1 text-sm font-medium">Plate Text:</label>
+                              <input type="text" id="vehiclePlate" name="plateText" required class="theme-input w-full p-2 border rounded-lg text-sm uppercase" maxlength="10">
+                          </div>
+                           <div>
+                              <label for="vehicleBanLvl" class="theme-label block mb-1 text-sm font-medium">Vehicle Ban Lvl:</label>
+                               <input type="number" id="vehicleBanLvl" name="vehicleBanLvl" required class="theme-input w-full p-2 border rounded-lg text-sm" min="0" max="3" value="0">
+                          </div>
+                      </div>
+                      <div class="mt-4 flex justify-end space-x-2">
+                          <button type="button" id="cancelAddVehicleBtn" class="theme-button-secondary py-2 px-4 rounded-lg font-semibold text-sm">Cancel</button>
+                          <button type="submit" class="theme-button-primary py-2 px-4 rounded-lg font-semibold text-sm">Register Vehicle</button>
+                      </div>
+                 </form>	
+                        <div id="vehicleList">
+                            <p id="noVehiclesMessage" class="theme-subtle-text text-center mt-4">No vehicles found.</p>
                         </div>
                     </div>
-                     <p id="noTrailersMessage" class="theme-subtle-text hidden">You have no registered trailers.</p>
                 </div>
-            </div>
 
-        </div>
+                <div id="recordSection" class="column-card flex-1">
+                    <div class="flex justify-between items-center mb-4 pb-2 border-b border-[var(--border-color)]">
+                        <h2 class="theme-title text-xl font-bold flex items-center">My Record</h2>
+                        </div>
+                    <div class="column-content">
+                        <div id="recordUserInfo" class="mb-4">
+                             <p class="text-sm"><span class="info-label">Discord ID:</span> <span id="recordDiscordId" class="info-value font-mono">--</span></p>
+                             <p class="text-sm"><span class="info-label">Roblox User:</span> <span id="recordRobloxUser" class="info-value">--</span></p>
+                        </div>
+                        <h3 class="theme-title font-semibold mb-2">Paid Off Citations:</h3>
+                        <ul id="citationList" class="theme-subtle-text text-sm space-y-1">
+                            </ul>
+                         <p id="noCitationsMessage" class="theme-subtle-text text-center mt-4">Hmm... Nothing to see here, you have a clean record!</p>
+                    </div>
+                </div>
+
+                <div id="trailersSection" class="column-card flex-1">
+                    <div class="flex justify-between items-center mb-4 pb-2 border-b border-[var(--border-color)]">
+                        <h2 class="theme-title text-xl font-bold flex items-center">My Trailers</h2>
+                        <button id="showAddTrailerFormBtn" class="add-button" title="Add New Trailer">+</button>
+                    </div>
+                    <div class="column-content">
+                         <form id="addTrailerForm" class="registration-form hidden mb-6">
+                              <h3 class="theme-title font-semibold text-lg mb-4">Register New Trailer</h3>
+                              <input type="hidden" id="trailerFormDiscordId">
+                              <input type="hidden" id="trailerFormRobloxUsername">
+                              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div><label for="trailerModel" class="theme-label block mb-1 text-sm font-medium">Trailer Model:</label><input type="text" id="trailerModel" required class="theme-input w-full p-2 border rounded-lg text-sm"></div>
+                                  <div><label for="trailerColor" class="theme-label block mb-1 text-sm font-medium">Trailer Color:</label><input type="text" id="trailerColor" required class="theme-input w-full p-2 border rounded-lg text-sm"></div>
+                                  <div class="md:col-span-2"><label for="trailerPlate" class="theme-label block mb-1 text-sm font-medium">Plate Text:</label><input type="text" id="trailerPlate" required class="theme-input w-full p-2 border rounded-lg text-sm uppercase" maxlength="10"></div>
+                              </div>
+                              <div class="mt-4 flex justify-end space-x-2">
+                                  <button type="button" id="cancelAddTrailerBtn" class="theme-button-secondary py-2 px-4 rounded-lg font-semibold text-sm">Cancel</button>
+                                  <button type="submit" class="theme-button-primary py-2 px-4 rounded-lg font-semibold text-sm">Register Trailer</button>
+                              </div>
+                         </form>
+                        <div id="trailerList">
+                            <p id="noTrailersMessage" class="theme-subtle-text text-center mt-4">No trailers found.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div> </div>
     </main>
 
     <script>
         // --- UTILITY FUNCTIONS (Placeholders) ---
-        if (typeof window.showCustomAlert === 'undefined') { window.showCustomAlert = (msg) => alert(msg); }
+        if (typeof window.showCustomAlert === 'undefined') { window.showCustomAlert = (msg, type) => alert(msg); }
         if (typeof window.showCustomConfirm === 'undefined') { window.showCustomConfirm = (msg) => confirm(msg); }
-        function redirectToLogin(message = "Session expired.") { console.warn("Redirecting:", message); window.showCustomAlert(message).then(() => { sessionStorage.clear(); window.location.href = 'index.html'; }); }
-        // Basic stubs for JWT/Auth refresh - replace with your actual functions
+        function redirectToLogin(message = "Session error.") { console.warn("Redirecting:", message); window.showCustomAlert(message).then(() => { sessionStorage.clear(); window.location.href = 'index.html'; }); }
         function decodeJwt(token) { try { return JSON.parse(atob(token.split('.')[1])); } catch (e) { return null; } }
         async function refreshAuthToken() { return false; }
         async function fetchWithAuth(url, options = {}) {
-             let token = sessionStorage.getItem('authToken');
-             if (!token) { redirectToLogin(); return null; }
-            options.headers = { ...options.headers, 'Authorization': `Bearer ${token}` };
-            try { const response = await fetch(url, options); if (response.status === 401 || response.status === 403) { redirectToLogin(); return null; } return response; } catch (error) { console.error("Fetch error:", error); window.showCustomAlert('Network error.'); return null; }
+            let token = sessionStorage.getItem('authToken'); // Needed for POST/PUT
+            options.headers = { ...options.headers };
+             if (options.method === 'POST' || options.method === 'PUT') {
+                 // You might need admin/specific role check here even without login
+                 // if (!token) { window.showCustomAlert("Action requires authentication.", "Error"); return null; }
+                 // options.headers['Authorization'] = `Bearer ${token}`;
+                 console.warn("API call needs auth logic for POST/PUT"); // Placeholder warning
+             }
+            // For GET (search), assume public access for now
+            try { const response = await fetch(url, options); if (response.status === 401 || response.status === 403) { window.showCustomAlert("Unauthorized action.", "Error"); return null; } return response; } catch (error) { console.error("Fetch error:", error); window.showCustomAlert('Network error.'); return null; }
         }
         // --- END UTILITY FUNCTIONS ---
 
         document.addEventListener('DOMContentLoaded', function() {
-            // --- Basic Auth Check ---
-             const token = sessionStorage.getItem('authToken');
-             // !! IMPORTANT: You'll need a way to distinguish citizen vs LE logins.
-             // This might involve checking a role in the JWT or having separate login pages.
-             // For this mock-up, we assume a valid citizen session exists.
-            if (!token) {
-                 redirectToLogin("You must be logged in to view your garage.");
-                return;
-            }
-
             // --- Get DOM Elements ---
-            const discordUserIdSpan = document.getElementById('discordUserId');
-            const robloxUsernameSpan = document.getElementById('robloxUsername');
+            const userSearchForm = document.getElementById('userSearchForm');
+            const userIdInput = document.getElementById('userIdInput');
+            const searchButton = document.getElementById('searchButton');
+            const searchErrorMessage = document.getElementById('searchErrorMessage');
+            const searchLoadingIndicator = document.getElementById('searchLoadingIndicator');
+            const contentColumns = document.getElementById('contentColumns'); // Main content area
+
+            // User Info (now hidden section, not separate)
+            const recordDiscordIdSpan = document.getElementById('recordDiscordId');
+            const recordRobloxUserSpan = document.getElementById('recordRobloxUser');
+
+
+            const vehiclesSection = document.getElementById('vehiclesSection');
             const vehicleListDiv = document.getElementById('vehicleList');
+            const noVehiclesMessage = document.getElementById('noVehiclesMessage');
+            const showAddVehicleFormBtn = document.getElementById('showAddVehicleFormBtn');
+            const addVehicleForm = document.getElementById('addVehicleForm');
+            const cancelAddVehicleBtn = document.getElementById('cancelAddVehicleBtn');
+             const vehicleFormDiscordId = document.getElementById('vehicleFormDiscordId');
+             const vehicleFormRobloxUsername = document.getElementById('vehicleFormRobloxUsername');
+             const vehicleBrandInput = document.getElementById('vehicleBrand');
+             const vehicleModelInput = document.getElementById('vehicleModel');
+             const vehicleYearInput = document.getElementById('vehicleYear');
+             const vehicleColorInput = document.getElementById('vehicleColor');
+             const vehiclePlateInput = document.getElementById('vehiclePlate');
+
+            // Record Section
+             const recordSection = document.getElementById('recordSection');
+             const citationList = document.getElementById('citationList');
+             const noCitationsMessage = document.getElementById('noCitationsMessage');
+
+
+            const trailersSection = document.getElementById('trailersSection');
             const trailerListDiv = document.getElementById('trailerList');
             const noTrailersMessage = document.getElementById('noTrailersMessage');
-            // Header/Sidebar elements
+            const showAddTrailerFormBtn = document.getElementById('showAddTrailerFormBtn');
+            const addTrailerForm = document.getElementById('addTrailerForm');
+            const cancelAddTrailerBtn = document.getElementById('cancelAddTrailerBtn');
+            const trailerFormDiscordId = document.getElementById('trailerFormDiscordId');
+            const trailerFormRobloxUsername = document.getElementById('trailerFormRobloxUsername');
+            const trailerModelInput = document.getElementById('trailerModel');
+            const trailerColorInput = document.getElementById('trailerColor');
+            const trailerPlateInput = document.getElementById('trailerPlate');
+
+            // Header/Sidebar (mostly static in this version)
             const userNameDisplay = document.getElementById('userNameDisplay');
             const sidebarUsernameDisplay = document.getElementById('sidebarUsernameDisplay');
-            const logoutButton = document.getElementById('logoutButton');
-            const sidebarLogoutButton = document.getElementById('sidebarLogoutButton');
             const mainContentArea = document.getElementById('mainContentArea');
 
+            let currentSearchedUserInfo = null;
 
-            // --- Load User Info ---
-            // !! Replace with actual data loading logic
-            const loggedInUserString = sessionStorage.getItem('loggedInUser'); // Or however you store citizen info
-            let citizenInfo = { discordId: '123456789012345678', robloxName: 'CitizenRoblox123' }; // Mock data
-
-            if (loggedInUserString) {
-                // Assuming loggedInUser structure has citizen info or can be adapted
-                const userData = JSON.parse(loggedInUserString);
-                citizenInfo.robloxName = userData.username || 'Citizen Unknown';
-                // You'll need to store/retrieve Discord ID during login/auth
-                citizenInfo.discordId = userData.discordId || 'N/A'; // Example property
-            }
-
-            // Display User Info
-             discordUserIdSpan.textContent = citizenInfo.discordId;
-             robloxUsernameSpan.textContent = citizenInfo.robloxName;
-             if (userNameDisplay) userNameDisplay.textContent = citizenInfo.robloxName;
-             if (sidebarUsernameDisplay) sidebarUsernameDisplay.textContent = citizenInfo.robloxName;
+            // --- Mock Data ---
+            const tempUserData = { discordId: 'TEMP_DISCORD_ID', robloxName: 'TEMPUSER123' };
+            const tempVehicles = [ /* ... same as before ... */
+                { discordUserId: tempUserData.discordId, robloxUsername: tempUserData.robloxName, vehicleBanLvl: 0, brand: 'TempMake', model: 'TempModel', year: 2025, color: 'Silver', plateText: 'TEMP1' },
+                { discordUserId: tempUserData.discordId, robloxUsername: tempUserData.robloxName, vehicleBanLvl: 1, brand: 'AnotherMake', model: 'AnotherModel', year: 2024, color: 'Red', plateText: 'TEMP2' }
+            ];
+            const tempTrailers = [ /* ... same as before ... */
+                 { discordUserId: tempUserData.discordId, robloxUsername: tempUserData.robloxName, trailerModel: 'Temporary Trailer', trailerColor: 'White', plateText: 'TEMPTRL' }
+            ];
+            const tempCitations = [ // Mock paid citations
+                 { id: 101, offense: 'Speeding', paid: true, date: '2025-10-20' },
+                 { id: 105, offense: 'Illegal Parking', paid: true, date: '2025-09-15' }
+            ];
+            // --- End Mock Data ---
 
 
-            // --- Load Vehicle/Trailer Data (MOCKUP) ---
-            // In a real app, you would fetch this data based on the logged-in user's ID
-            function loadGarageData() {
-                // Clear existing lists (optional, good practice if re-loading)
-                vehicleListDiv.innerHTML = '';
-                trailerListDiv.innerHTML = '';
+            // --- User Search Logic ---
+             userSearchForm.addEventListener('submit', async (e) => {
+                 e.preventDefault();
+                 const searchId = userIdInput.value.trim();
+                 if (!searchId) return;
 
-                // --- MOCK API CALLS ---
-                // Replace these arrays with data fetched from your Cloudflare Worker endpoints
-                const mockVehicles = [
-                     { discordUserId: citizenInfo.discordId, robloxUsername: citizenInfo.robloxName, vehicleBanLvl: 0, brand: 'Cheval', model: 'Fugitive', year: 2024, color: 'Metallic Black', plateText: 'FASTCAR' },
-                     { discordUserId: citizenInfo.discordId, robloxUsername: citizenInfo.robloxName, vehicleBanLvl: 3, brand: 'Vapid', model: 'Stanier', year: 2018, color: 'White', plateText: 'BANNED1' },
-                     { discordUserId: citizenInfo.discordId, robloxUsername: citizenInfo.robloxName, vehicleBanLvl: 1, brand: 'Declasse', model: 'Granger', year: 2022, color: 'Dark Blue', plateText: 'WORKTRK' }
-                ];
-                const mockTrailers = [
-                    { discordUserId: citizenInfo.discordId, robloxUsername: citizenInfo.robloxName, trailerModel: 'Standard Box Trailer', trailerColor: 'Grey', plateText: 'HAUL1' }
-                ];
-                // --- End Mock Data ---
+                 searchErrorMessage.classList.add('hidden');
+                 searchLoadingIndicator.classList.remove('hidden');
+                 searchButton.disabled = true;
+                 contentColumns.classList.add('hidden'); // Hide main content
+                 currentSearchedUserInfo = null;
+
+                 let foundUser = null;
+                 let userVehicles = [];
+                 let userTrailers = [];
+                 let userCitations = []; // Add citations array
+
+                 // Check for Temporary User ID
+                 if (searchId.toUpperCase() === 'TEMPUSER123') {
+                     console.log("Loading Temporary User Data...");
+                     foundUser = tempUserData;
+                     userVehicles = tempVehicles;
+                     userTrailers = tempTrailers;
+                     userCitations = tempCitations; // Load mock citations
+                     await new Promise(resolve => setTimeout(resolve, 100));
+                 } else {
+                     // --- MOCK API CALL Simulation ---
+                     console.log(`Simulating API search for ID: ${searchId}`);
+                     await new Promise(resolve => setTimeout(resolve, 500));
+                     if (searchId === 'CitizenRoblox123' || searchId === '123456789012345678') {
+                         foundUser = { discordId: '123456789012345678', robloxName: 'CitizenRoblox123' };
+                         userVehicles = [ /* ... vehicles for CitizenRoblox123 ... */
+                            { discordUserId: foundUser.discordId, robloxUsername: foundUser.robloxName, vehicleBanLvl: 0, brand: 'Cheval', model: 'Fugitive', year: 2024, color: 'Metallic Black', plateText: 'FASTCAR' },
+                            { discordUserId: foundUser.discordId, robloxUsername: foundUser.robloxName, vehicleBanLvl: 3, brand: 'Vapid', model: 'Stanier', year: 2018, color: 'White', plateText: 'BANNED1' },
+                         ];
+                         userTrailers = [ /* ... trailers for CitizenRoblox123 ... */
+                            { discordUserId: foundUser.discordId, robloxUsername: foundUser.robloxName, trailerModel: 'Standard Box Trailer', trailerColor: 'Grey', plateText: 'HAUL1' }
+                         ];
+                         userCitations = []; // Example: Clean record for this user
+                     } else if (searchId === 'AnotherUser' || searchId === '987654321098765432') {
+                          foundUser = { discordId: '987654321098765432', robloxName: 'AnotherUser' };
+                          userVehicles = [ /* ... vehicles for AnotherUser ... */
+                             { discordUserId: foundUser.discordId, robloxUsername: foundUser.robloxName, vehicleBanLvl: 1, brand: 'Declasse', model: 'Granger', year: 2022, color: 'Dark Blue', plateText: 'WORKTRK' }
+                          ];
+                          // No trailers for this user
+                          userCitations = [ // Example: Has one paid citation
+                              { id: 210, offense: 'Running Red Light', paid: true, date: '2025-10-01' }
+                          ];
+                     }
+                     // --- End Mock API ---
+                 }
 
 
-                // --- Render Vehicles ---
-                if (mockVehicles.length > 0) {
-                    mockVehicles.forEach(v => {
-                        const card = createVehicleCard(v);
-                        vehicleListDiv.appendChild(card);
-                    });
+                 searchLoadingIndicator.classList.add('hidden');
+                 searchButton.disabled = false;
+
+                 if (foundUser) {
+                     currentSearchedUserInfo = foundUser; // Store the found user
+                     // Populate user info in the record section too
+                     recordDiscordIdSpan.textContent = foundUser.discordId;
+                     recordRobloxUserSpan.textContent = foundUser.robloxName;
+
+                     // Pre-fill hidden fields in forms
+                     vehicleFormDiscordId.value = foundUser.discordId; vehicleFormRobloxUsername.value = foundUser.robloxName;
+                     trailerFormDiscordId.value = foundUser.discordId; trailerFormRobloxUsername.value = foundUser.robloxName;
+
+                     // Load data into columns
+                     loadGarageData(userVehicles, userTrailers);
+                     loadRecordData(userCitations); // Load citation data
+
+                     contentColumns.classList.remove('hidden'); // Show main content columns
+                 } else {
+                     searchErrorMessage.textContent = 'User ID not found.';
+                     searchErrorMessage.classList.remove('hidden');
+                 }
+            });
+
+
+            // --- Load Vehicle/Trailer Data (Takes data arrays as args) ---
+             function loadGarageData(vehiclesToShow, trailersToShow) {
+                 vehicleListDiv.innerHTML = ''; trailerListDiv.innerHTML = '';
+
+                 // Render Vehicles
+                if (vehiclesToShow && vehiclesToShow.length > 0) {
+                     noVehiclesMessage.classList.add('hidden');
+                     vehiclesToShow.forEach(v => vehicleListDiv.appendChild(createVehicleCard(v)));
                 } else {
-                     vehicleListDiv.innerHTML = '<p class="theme-subtle-text">You have no registered vehicles.</p>';
+                     noVehiclesMessage.classList.remove('hidden');
+                     vehicleListDiv.appendChild(noVehiclesMessage);
                 }
 
-                // --- Render Trailers ---
-                 if (mockTrailers.length > 0) {
+                // Render Trailers
+                 if (trailersToShow && trailersToShow.length > 0) {
                      noTrailersMessage.classList.add('hidden');
-                     mockTrailers.forEach(t => {
-                        const card = createTrailerCard(t);
-                        trailerListDiv.appendChild(card);
-                    });
+                     trailersToShow.forEach(t => trailerListDiv.appendChild(createTrailerCard(t)));
                 } else {
                      noTrailersMessage.classList.remove('hidden');
+                     trailerListDiv.appendChild(noTrailersMessage);
                 }
             }
 
-            // --- Helper Functions to Create Cards ---
-            function getBanLevelTextAndClass(level) {
-                level = parseInt(level, 10);
-                switch (level) {
-                    case 0: return { text: '0 (None)', className: 'ban-level-0' };
-                    case 1: return { text: '1 (Warning)', className: 'ban-level-1' };
-                    case 2: return { text: '2 (Suspended)', className: 'ban-level-2' };
-                    case 3: return { text: '3 (Impound/Ban)', className: 'ban-level-3' };
-                    default: return { text: `${level || 'N/A'} (Unknown)`, className: 'ban-level-unknown' };
+            // --- NEW: Load Record Data ---
+            function loadRecordData(citationsToShow) {
+                citationList.innerHTML = ''; // Clear previous list
+
+                if (citationsToShow && citationsToShow.length > 0) {
+                    noCitationsMessage.classList.add('hidden');
+                    citationsToShow.forEach(c => {
+                        const li = document.createElement('li');
+                        // Example display: "ID 101: Speeding (Paid on 2025-10-20)"
+                        li.textContent = `ID ${c.id}: ${c.offense} (Paid on ${c.date || 'N/A'})`;
+                        citationList.appendChild(li);
+                    });
+                } else {
+                    noCitationsMessage.classList.remove('hidden');
                 }
             }
 
-            function createVehicleCard(vehicle) {
-                const div = document.createElement('div');
-                div.className = 'vehicle-card';
 
-                const banInfo = getBanLevelTextAndClass(vehicle.vehicleBanLvl);
-                const isBanned = vehicle.vehicleBanLvl > 0; // Example condition
+            // --- Helper Functions to Create Cards (Identical) ---
+            function getBanLevelTextAndClass(level) { /* ... */ level = parseInt(level, 10); switch (level) { case 0: return { text: '0 (None)', className: 'ban-level-0' }; case 1: return { text: '1 (Warning)', className: 'ban-level-1' }; case 2: return { text: '2 (Suspended)', className: 'ban-level-2' }; case 3: return { text: '3 (Impound/Ban)', className: 'ban-level-3' }; default: return { text: `${level || 'N/A'} (Unknown)`, className: 'ban-level-unknown' }; } }
+            function createVehicleCard(vehicle) { /* ... */ const div = document.createElement('div'); div.className = 'vehicle-card'; const banInfo = getBanLevelTextAndClass(vehicle.vehicleBanLvl); const isBanned = vehicle.vehicleBanLvl > 0; div.innerHTML = `<h3 class="theme-title font-semibold text-lg mb-3">Plate: <span class="font-mono theme-text-color">${vehicle.plateText||'N/A'}</span></h3><div class="space-y-1 text-sm sm:text-base"><p><span class="info-label">Brand:</span> <span class="info-value">${vehicle.brand||'--'}</span></p><p><span class="info-label">Model:</span> <span class="info-value">${vehicle.model||'--'}</span></p><p><span class="info-label">Year:</span> <span class="info-value">${vehicle.year||'--'}</span></p><p><span class="info-label">Color:</span> <span class="info-value">${vehicle.color||'--'}</span></p><p><span class="info-label">Vehicle Ban Lvl:</span> <span class="info-value font-bold ${banInfo.className}">${banInfo.text}</span></p><p class="hidden"><span class="info-label">Discord User ID:</span> <span class="info-value font-mono">${vehicle.discordUserId||'--'}</span></p><p class="hidden"><span class="info-label">Roblox Username:</span> <span class="info-value">${vehicle.robloxUsername||'--'}</span></p></div><div class="mt-4 flex space-x-2"><button class="theme-button-secondary text-xs py-1 px-2 rounded" ${isBanned?'disabled':''}>Edit Info</button><button class="theme-button-secondary text-xs py-1 px-2 rounded text-red-500 hover:bg-red-500/10" ${isBanned?'disabled':''}>Report Stolen</button></div>`; return div; }
+             function createTrailerCard(trailer) { /* ... */ const div = document.createElement('div'); div.className = 'trailer-card'; div.innerHTML = `<h3 class="theme-title font-semibold text-lg mb-3">Plate: <span class="font-mono theme-text-color">${trailer.plateText||'N/A'}</span></h3><div class="space-y-1 text-sm sm:text-base"><p><span class="info-label">Trailer Model:</span> <span class="info-value">${trailer.trailerModel||'--'}</span></p><p><span class="info-label">Trailer Color:</span> <span class="info-value">${trailer.trailerColor||'--'}</span></p><p class="hidden"><span class="info-label">Discord User ID:</span> <span class="info-value font-mono">${trailer.discordUserId||'--'}</span></p><p class="hidden"><span class="info-label">Roblox Username:</span> <span class="info-value">${trailer.robloxUsername||'--'}</span></p></div><div class="mt-4 flex space-x-2"><button class="theme-button-secondary text-xs py-1 px-2 rounded">Edit Info</button><button class="theme-button-secondary text-xs py-1 px-2 rounded text-red-500 hover:bg-red-500/10">Report Stolen</button></div>`; return div; }
 
-                div.innerHTML = `
-                    <h3 class="theme-title font-semibold text-lg mb-3">Plate: <span class="font-mono theme-text-color">${vehicle.plateText || 'N/A'}</span></h3>
-                    <div class="space-y-1 text-sm sm:text-base">
-                        <p><span class="info-label">Brand:</span> <span class="info-value">${vehicle.brand || '--'}</span></p>
-                        <p><span class="info-label">Model:</span> <span class="info-value">${vehicle.model || '--'}</span></p>
-                        <p><span class="info-label">Year:</span> <span class="info-value">${vehicle.year || '--'}</span></p>
-                        <p><span class="info-label">Color:</span> <span class="info-value">${vehicle.color || '--'}</span></p>
-                        <p><span class="info-label">Vehicle Ban Lvl:</span> <span class="info-value font-bold ${banInfo.className}">${banInfo.text}</span></p>
-                        <p><span class="info-label">Discord User ID:</span> <span class="info-value font-mono">${vehicle.discordUserId || '--'}</span></p>
-                        <p><span class="info-label">Roblox Username:</span> <span class="info-value">${vehicle.robloxUsername || '--'}</span></p>
-                    </div>
-                    <div class="mt-4 flex space-x-2">
-                         <button class="theme-button-secondary text-xs py-1 px-2 rounded" ${isBanned ? 'disabled' : ''}>Edit Info</button>
-                         <button class="theme-button-secondary text-xs py-1 px-2 rounded text-red-500 hover:bg-red-500/10" ${isBanned ? 'disabled' : ''}>Report Stolen</button>
-                    </div>
-                `;
-                // Add event listeners to buttons if needed (e.g., for edit/report functionality)
-                return div;
-            }
+            // --- Form Toggle Logic ---
+            showAddVehicleFormBtn.addEventListener('click', () => { addVehicleForm.classList.remove('hidden'); showAddVehicleFormBtn.classList.add('hidden'); });
+            cancelAddVehicleBtn.addEventListener('click', () => { addVehicleForm.classList.add('hidden'); showAddVehicleFormBtn.classList.remove('hidden'); addVehicleForm.reset(); });
+            showAddTrailerFormBtn.addEventListener('click', () => { addTrailerForm.classList.remove('hidden'); showAddTrailerFormBtn.classList.add('hidden'); });
+            cancelAddTrailerBtn.addEventListener('click', () => { addTrailerForm.classList.add('hidden'); showAddTrailerFormBtn.classList.remove('hidden'); addTrailerForm.reset(); });
 
-             function createTrailerCard(trailer) {
-                const div = document.createElement('div');
-                div.className = 'trailer-card';
-                div.innerHTML = `
-                    <h3 class="theme-title font-semibold text-lg mb-3">Plate: <span class="font-mono theme-text-color">${trailer.plateText || 'N/A'}</span></h3>
-                    <div class="space-y-1 text-sm sm:text-base">
-                        <p><span class="info-label">Trailer Model:</span> <span class="info-value">${trailer.trailerModel || '--'}</span></p>
-                        <p><span class="info-label">Trailer Color:</span> <span class="info-value">${trailer.trailerColor || '--'}</span></p>
-                        <p><span class="info-label">Discord User ID:</span> <span class="info-value font-mono">${trailer.discordUserId || '--'}</span></p>
-                        <p><span class="info-label">Roblox Username:</span> <span class="info-value">${trailer.robloxUsername || '--'}</span></p>
-                    </div>
-                     <div class="mt-4 flex space-x-2">
-                         <button class="theme-button-secondary text-xs py-1 px-2 rounded">Edit Info</button>
-                         <button class="theme-button-secondary text-xs py-1 px-2 rounded text-red-500 hover:bg-red-500/10">Report Stolen</button>
-                    </div>
-                `;
-                 // Add event listeners if needed
-                return div;
-            }
+             // --- Mock Form Submission Logic ---
+             addVehicleForm.addEventListener('submit', (e) => {
+                 e.preventDefault(); if (!currentSearchedUserInfo) { window.showCustomAlert("Please search for a user first.", "Error"); return; }
+                 const vehicleData = { discordUserId: vehicleFormDiscordId.value, robloxUsername: vehicleFormRobloxUsername.value, vehicleBanLvl: 0, brand: vehicleBrandInput.value, model: vehicleModelInput.value, year: vehicleYearInput.value, color: vehicleColorInput.value, plateText: vehiclePlateInput.value.toUpperCase() };
+                 console.log("Submitting New Vehicle:", vehicleData);
+                 // --- Replace with actual API call ---
+                 window.showCustomAlert(`Vehicle ${vehicleData.plateText} registered (mock).`, "Success").then(() => { addVehicleForm.reset(); addVehicleForm.classList.add('hidden'); showAddVehicleFormBtn.classList.remove('hidden'); loadGarageData(tempVehicles.concat(vehicleData), tempTrailers); }); // Update mock display
+             });
+             addTrailerForm.addEventListener('submit', (e) => {
+                 e.preventDefault(); if (!currentSearchedUserInfo) { window.showCustomAlert("Please search for a user first.", "Error"); return; }
+                 const trailerData = { discordUserId: trailerFormDiscordId.value, robloxUsername: trailerFormRobloxUsername.value, trailerModel: trailerModelInput.value, trailerColor: trailerColorInput.value, plateText: trailerPlateInput.value.toUpperCase() };
+                 console.log("Submitting New Trailer:", trailerData);
+                 // --- Replace with actual API call ---
+                  window.showCustomAlert(`Trailer ${trailerData.plateText} registered (mock).`, "Success").then(() => { addTrailerForm.reset(); addTrailerForm.classList.add('hidden'); showAddTrailerFormBtn.classList.remove('hidden'); loadGarageData(tempVehicles, tempTrailers.concat(trailerData)); }); // Update mock display
+             });
 
-
-            // --- Initial Load ---
-            loadGarageData();
-
-
-            // Setup Logout button
-             function handleLogout(event) {
-                event.preventDefault();
-                window.showCustomConfirm("Are you sure you want to log out?", "Confirm Logout").then((confirmed) => {
-                    if (confirmed) {
-                        sessionStorage.clear(); // Clear all session data
-                        window.location.href = 'index.html';
-                    }
-                });
-            }
-            if (logoutButton) logoutButton.addEventListener('click', handleLogout);
-            if (sidebarLogoutButton) sidebarLogoutButton.addEventListener('click', handleLogout);
-
-             // --- Sidebar Collapse Logic ---
-             // (Identical to previous example - include it here)
-             const appSidebar = document.getElementById('appSidebar');
-            const sidebarToggle = document.getElementById('sidebarToggle');
-            const appHeader = document.getElementById('appHeader');
-            const SIDEBAR_COLLAPSED_KEY = 'sidebarCollapsed';
-            const isCollapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
-
-            if (isCollapsed) {
-                appSidebar.classList.add('collapsed'); appHeader.classList.add('collapsed');
-                 if (window.innerWidth <= 1024) mainContentArea.classList.add('collapsed');
-            } else {
-                 if (window.innerWidth <= 1024) mainContentArea.classList.remove('collapsed');
-            }
-            function toggleSidebar() {
-                const isCurrentlyCollapsed = appSidebar.classList.toggle('collapsed');
-                appHeader.classList.toggle('collapsed');
-                 if (window.innerWidth <= 1024) mainContentArea.classList.toggle('collapsed', isCurrentlyCollapsed);
-                localStorage.setItem(SIDEBAR_COLLAPSED_KEY, isCurrentlyCollapsed);
-                setTimeout(syncHeaderHeight, 300);
-            }
-            if (sidebarToggle) sidebarToggle.addEventListener('click', toggleSidebar);
-
-             // --- Swipe Gesture Logic ---
-             // (Identical to previous example - include it here)
-             let touchStartX = 0, touchEndX = 0; const swipeThreshold = 50;
-             document.body.addEventListener('touchstart', (e) => { if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') { touchStartX = null; return; } touchStartX = e.changedTouches[0].screenX; }, { passive: true });
-             document.body.addEventListener('touchend', (e) => { if (touchStartX === null) return; touchEndX = e.changedTouches[0].screenX; handleSwipeGesture(); }, { passive: true });
-             function handleSwipeGesture() { if (window.innerWidth >= 1024) return; const deltaX = touchEndX - touchStartX; const isSidebarCollapsed = appSidebar.classList.contains('collapsed'); if (deltaX < -swipeThreshold && !isSidebarCollapsed) toggleSidebar(); else if (deltaX > swipeThreshold && isSidebarCollapsed) toggleSidebar(); touchStartX = 0; touchEndX = 0; }
+            // Sidebar/Header setup (mostly static)
+            // ... (keep sidebar/swipe/header height logic as before) ...
+            const appSidebar = document.getElementById('appSidebar'); const sidebarToggle = document.getElementById('sidebarToggle'); const appHeader = document.getElementById('appHeader'); const SIDEBAR_COLLAPSED_KEY = 'sidebarCollapsed'; const isCollapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true'; if (isCollapsed) { appSidebar.classList.add('collapsed'); appHeader.classList.add('collapsed'); if (window.innerWidth <= 1024) mainContentArea.classList.add('collapsed'); } else { if (window.innerWidth <= 1024) mainContentArea.classList.remove('collapsed'); } function toggleSidebar() { const isCurrentlyCollapsed = appSidebar.classList.toggle('collapsed'); appHeader.classList.toggle('collapsed'); if (window.innerWidth <= 1024) mainContentArea.classList.toggle('collapsed', isCurrentlyCollapsed); localStorage.setItem(SIDEBAR_COLLAPSED_KEY, isCurrentlyCollapsed); setTimeout(syncHeaderHeight, 300); } if (sidebarToggle) sidebarToggle.addEventListener('click', toggleSidebar); let touchStartX = 0, touchEndX = 0; const swipeThreshold = 50; document.body.addEventListener('touchstart', (e) => { if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') { touchStartX = null; return; } touchStartX = e.changedTouches[0].screenX; }, { passive: true }); document.body.addEventListener('touchend', (e) => { if (touchStartX === null) return; touchEndX = e.changedTouches[0].screenX; handleSwipeGesture(); }, { passive: true }); function handleSwipeGesture() { if (window.innerWidth >= 1024) return; const deltaX = touchEndX - touchStartX; const isSidebarCollapsed = appSidebar.classList.contains('collapsed'); if (deltaX < -swipeThreshold && !isSidebarCollapsed) toggleSidebar(); else if (deltaX > swipeThreshold && isSidebarCollapsed) toggleSidebar(); touchStartX = 0; touchEndX = 0; } (function() { window.syncHeaderHeight = function() { const header = document.getElementById('appHeader'); const mainContent = document.getElementById('mainContentArea'); if (!header || !mainContent) return; const height = header.offsetHeight || 0; const safePadding = height + 16; mainContent.style.paddingTop = safePadding + 'px'; document.documentElement.style.setProperty('--app-header-height', height + 'px'); }; window.addEventListener('DOMContentLoaded', async () => { syncHeaderHeight(); setTimeout(syncHeaderHeight, 250); }); window.addEventListener('resize', syncHeaderHeight); })();
 
         });
-
-        // --- DYNAMIC HEADER HEIGHT SCRIPT ---
-        (function() {
-            window.syncHeaderHeight = function() { // Made global
-              const header = document.getElementById('appHeader');
-              const mainContent = document.getElementById('mainContentArea');
-              if (!header || !mainContent) return;
-              const height = header.offsetHeight || 0; const safePadding = height + 16;
-              mainContent.style.paddingTop = safePadding + 'px';
-              document.documentElement.style.setProperty('--app-header-height', height + 'px');
-            }
-            window.addEventListener('DOMContentLoaded', async () => { syncHeaderHeight(); setTimeout(syncHeaderHeight, 250); });
-            window.addEventListener('resize', syncHeaderHeight);
-        })();
-        // --- END DYNAMIC HEADER HEIGHT SCRIPT ---
     </script>
 </body>
 </html>

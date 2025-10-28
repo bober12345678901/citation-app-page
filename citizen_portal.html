@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" href="favicon.png" type="image/png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Citizen Portal</title> 
+	<script>
+      // prevent light-mode flash (Copied from my_garage.html)
+      (function() {
+        try {
+          const savedTheme = localStorage.getItem('theme');
+          const theme = savedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+          document.documentElement.classList.add(theme);
+          document.documentElement.setAttribute('data-theme', theme);
+        } catch(e) { console.warn('Theme preloader failed:', e); }
+        document.documentElement.style.visibility = 'hidden';
+        window.addEventListener('DOMContentLoaded', () => { document.documentElement.style.visibility = ''; });
+      })();
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+    <script src="theme.js"></script>
+    <style>
+        .dashboard-form-container { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); transition: box-shadow 0.3s; }
+        :root { --app-header-height: 5rem; --sidebar-width: 250px; --sidebar-collapsed-width: 65px; }
+        header.theme-section-bg { background-color: var(--box-bg-color) !important; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); position: fixed; top: 0; height: auto; min-height: 4rem; z-index: 50; box-sizing: border-box; transition: width 0.3s, left 0.3s; }
+        .main-header { width: calc(100% - var(--sidebar-width)); left: var(--sidebar-width); }
+        .main-content-wrapper { margin-left: var(--sidebar-width); flex-grow: 1; box-sizing: border-box; padding-top: 0; transition: none; position: relative; z-index: 1; }
+        .sidebar.collapsed { width: var(--sidebar-collapsed-width); min-width: var(--sidebar-collapsed-width); }
+        .sidebar.collapsed .sidebar-item { padding: 0.75rem 0; justify-content: center; }
+        .sidebar.collapsed .sidebar-item-text, .sidebar.collapsed .sidebar-user-info, .sidebar.collapsed .sidebar-title, .sidebar.collapsed .sidebar-logout-text { display: none; }
+        .sidebar.collapsed .sidebar-item-icon { margin-left: 0; }
+        .sidebar.collapsed .sidebar-item.active { border-left-color: transparent; }
+        .sidebar.collapsed .sidebar-toggle-button { transform: translateY(-50%) rotate(180deg); }
+        .main-header.collapsed { width: calc(100% - var(--sidebar-collapsed-width)); left: var(--sidebar-collapsed-width); }
+        @media (max-width: 1024px) {
+            .sidebar { display: block; } .main-content-wrapper { margin-left: var(--sidebar-width); } .main-header { width: calc(100% - var(--sidebar-width)); left: var(--sidebar-width); }
+             .sidebar.collapsed { width: 0; min-width: 0; overflow: hidden; box-shadow: none; border-right: none;} .sidebar.collapsed .sidebar-toggle-button { right: -30px; }
+             .main-content-wrapper.collapsed { margin-left: 0; } .main-header.collapsed { width: 100%; left: 0; }
+        }
+        .sidebar { width: var(--sidebar-width); min-width: var(--sidebar-width); background-color: var(--box-bg-color); color: var(--text-color); position: fixed; top: 0; left: 0; height: 100vh; padding-top: 2rem; box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2); z-index: 40; display: flex; flex-direction: column; justify-content: space-between; transition: width 0.3s, min-width 0.3s; border-right: 1px solid var(--border-color); }
+        .sidebar-item { display: flex; align-items: center; padding: 0.75rem 1.5rem; font-size: 1.125rem; font-weight: 500; border-left: 5px solid transparent; transition: background-color 0.2s, border-left-color 0.2s; }
+        .sidebar-item:hover, .sidebar-item.active { background-color: var(--input-bg-color); }
+        .sidebar-item.active { border-left-color: var(--accent-color); color: var(--accent-color); font-weight: 700; }
+        .sidebar-item-icon { min-width: 24px; text-align: center; }
+        .sidebar-item-text { margin-left: 1rem; transition: opacity 0.3s; }
+        .sidebar-user-info { padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); font-size: 0.875rem; transition: opacity 0.3s; }
+        .sidebar-toggle-button { position: absolute; right: -12px; top: 50%; transform: translateY(-50%); width: 24px; height: 24px; border-radius: 50%; background-color: var(--accent-color); color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); transition: transform 0.3s, background-color 0.3s, right 0.3s; z-index: 50; }
+        .theme-input { border-radius: 0.5rem; padding: 0.75rem; border-color: var(--border-color); box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06); }
+        .info-label { font-weight: 600; color: var(--subtle-text-color); min-width: 130px; display: inline-block; }
+        .info-value { color: var(--text-color); }
+    </style>
+</head>
+<body class="min-h-screen theme-app-container flex flex-row theme-bg-color">
+
+    <div id="customModalOverlay" class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+         <div class="custom-modal theme-lookup-box p-6 rounded-xl shadow-xl max-w-sm w-full mx-4 sm:mx-auto">
+            <h3 id="customModalTitle" class="custom-modal-header theme-title text-xl font-bold mb-4">Alert</h3>
+            <p id="customModalMessage" class="custom-modal-body theme-label mb-6"></p>
+            <div id="customModalButtons" class="custom-modal-footer flex justify-end space-x-3">
+                <button id="customModalCancelBtn" class="theme-button-secondary py-2 px-4 rounded-lg font-semibold hidden">Cancel</button>
+                <button id="customModalOkBtn" class="theme-button-primary py-2 px-4 rounded-lg font-semibold">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar" id="appSidebar">
+         <div id="sidebarToggle" class="sidebar-toggle-button">
+             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path></svg>
+        </div>
+        <div>
+            <div class="text-2xl font-bold px-6 mb-8 text-[var(--accent-color)] sidebar-title">Citizen Portal</div>
+            
+            <a href="citizen_portal.html" class="sidebar-item active">
+                <span class="sidebar-item-icon"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg></span>
+                <span class="sidebar-item-text">My Portal</span>
+            </a>
+            </div>
+        <div class="sidebar-user-info theme-subtle-text">
+            <p class="font-bold mb-1 theme-text-color" id="sidebarCitizenUsernameDisplay">Citizen</p>
+            <p class="block theme-subtle-text">Shadow LE Web© 2025</p>
+        </div>
+    </div>
+
+    <header class="theme-section-bg fixed top-0 w-full z-50 main-header" id="appHeader">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div class="flex items-end space-x-4">
+                <h1 class="text-3xl font-bold theme-text-color">Citizen Portal</h1> 
+            </div>
+            <nav class="space-x-4 flex items-center">
+                 <p class="theme-text-color font-medium hidden sm:block">Welcome, <span id="citizenUserNameDisplay">Citizen</span></p>
+                <div class="relative inline-block text-left">
+                    <button id="themeToggle" type="button" class="p-2 rounded-full theme-text-color hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-colors flex items-center justify-center space-x-1" aria-expanded="false" aria-haspopup="true">
+                        <span id="currentThemeIcon" class="w-6 h-6 flex items-center justify-center"></span>
+                        <svg id="dropdownArrow" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div id="themeDropdownMenu" class="absolute right-0 mt-2 w-48 rounded-lg shadow-2xl ring-1 ring-black ring-opacity-10 origin-top-right hidden theme-dropdown-menu">
+                        <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="themeToggle" id="themeOptions"></div>
+                    </div>
+                </div>
+                 </nav>
+        </div>
+    </header>
+
+    <main class="main-content-wrapper p-4 sm:p-6 lg:p-8" id="mainContentArea">
+        <div class="container mx-auto max-w-7xl w-full">
+            <div class="mb-8 p-6 rounded-xl theme-section-bg border theme-tile-border shadow-lg max-w-2xl mx-auto">
+                
+                <h2 id="welcomeMessage" class="theme-title text-2xl font-bold mb-6">Loading user info...</h2>
+                
+                <div id="userInfo" class="space-y-2">
+                    <p class="text-lg"><span class="info-label">Discord ID:</span> <span id="citizenDiscordId" class="info-value font-mono">...</span></p>
+                    <p class="text-lg"><span class="info-label">Username:</span> <span id="citizenUsername" class="info-value">...</span></p>
+                </div>
+
+                </div>
+        </div>
+    </main>
+
+    <script>
+        // --- UTILITY FUNCTIONS (Copied from my_garage.html) ---
+        // (Using basic alert/confirm as placeholders)
+        if (typeof window.showCustomAlert === 'undefined') { window.showCustomAlert = (msg, type) => { alert(msg); return Promise.resolve(); }; }
+        if (typeof window.showCustomConfirm === 'undefined') { window.showCustomConfirm = (msg) => Promise.resolve(confirm(msg)); }
+        
+        function decodeJwt(token) { 
+            try { return JSON.parse(atob(token.split('.')[1])); } 
+            catch (e) { return null; } 
+        }
+
+        // --- CITIZEN PORTAL LOGIN SCRIPT (Modified) ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get elements for updating username
+            const citizenUserNameDisplay = document.getElementById('citizenUserNameDisplay');
+            const sidebarCitizenUsernameDisplay = document.getElementById('sidebarCitizenUsernameDisplay');
+
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token');
+
+            function loadCitizenInfo(token) {
+                const payload = decodeJwt(token);
+                if (payload && payload.role === 'citizen') {
+                    // Update main content
+                    document.getElementById('welcomeMessage').textContent = `Welcome, ${payload.username}!`;
+                    document.getElementById('citizenDiscordId').textContent = payload.discordId;
+                    document.getElementById('citizenUsername').textContent = payload.username;
+
+                    // Update header and sidebar
+                    if (citizenUserNameDisplay) citizenUserNameDisplay.textContent = payload.username;
+                    if (sidebarCitizenUsernameDisplay) sidebarCitizenUsernameDisplay.textContent = payload.username;
+                    
+                    // You would now fetch this citizen's specific data
+                    // e.g., fetchCitizenGarage(payload.discordId);
+                } else {
+                    // Bad token
+                    document.getElementById('welcomeMessage').textContent = 'Error: Invalid or unauthorized token.';
+                    sessionStorage.removeItem('citizenAuthToken');
+                    // Optional: redirect to login
+                }
+            }
+
+            if (token) {
+                // 1. New token found in URL
+                sessionStorage.setItem('citizenAuthToken', token);
+                // 2. Clean the token from the URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+                // 3. Load info
+                loadCitizenInfo(token);
+            } else {
+                // 4. Check if a token is already in storage
+                const existingToken = sessionStorage.getItem('citizenAuthToken');
+                if (existingToken) {
+                    loadCitizenInfo(existingToken);
+                } else {
+                    // 5. No token at all, redirect to login
+                    document.getElementById('welcomeMessage').textContent = 'You are not logged in. Redirecting...';
+                    setTimeout(() => {
+                        window.location.href = 'citizen_login.html'; // Redirect to your new login page
+                    }, 2000);
+                }
+            }
+        });
+
+        // --- SIDEBAR/HEADER SCRIPT (Copied from my_garage.html) ---
+        (function() {
+            const appSidebar = document.getElementById('appSidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const appHeader = document.getElementById('appHeader');
+            const mainContentArea = document.getElementById('mainContentArea');
+            const SIDEBAR_COLLAPSED_KEY = 'sidebarCollapsed';
+
+            if (!appSidebar || !sidebarToggle || !appHeader || !mainContentArea) {
+                console.warn("Sidebar/Header script: Missing one or more required elements.");
+                return;
+            }
+
+            const isCollapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
+            if (isCollapsed) {
+                appSidebar.classList.add('collapsed');
+                appHeader.classList.add('collapsed');
+                if (window.innerWidth <= 1024) mainContentArea.classList.add('collapsed');
+            } else {
+                if (window.innerWidth <= 1024) mainContentArea.classList.remove('collapsed');
+            }
+
+            function toggleSidebar() {
+                const isCurrentlyCollapsed = appSidebar.classList.toggle('collapsed');
+                appHeader.classList.toggle('collapsed');
+                if (window.innerWidth <= 1024) mainContentArea.classList.toggle('collapsed', isCurrentlyCollapsed);
+                localStorage.setItem(SIDEBAR_COLLAPSED_KEY, isCurrentlyCollapsed);
+                setTimeout(syncHeaderHeight, 300); // Allow animation to start
+            }
+
+            if (sidebarToggle) sidebarToggle.addEventListener('click', toggleSidebar);
+
+            // Swipe gestures for mobile
+            let touchStartX = 0, touchEndX = 0;
+            const swipeThreshold = 50; 
+            document.body.addEventListener('touchstart', (e) => {
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+                    touchStartX = null; return;
+                }
+                touchStartX = e.changedTouches[0].screenX;
+            }, { passive: true });
+            document.body.addEventListener('touchend', (e) => {
+                if (touchStartX === null) return;
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipeGesture();
+            }, { passive: true });
+
+            function handleSwipeGesture() {
+                if (window.innerWidth >= 1024) return; // Only on mobile
+                const deltaX = touchEndX - touchStartX;
+                const isSidebarCollapsed = appSidebar.classList.contains('collapsed');
+                if (deltaX < -swipeThreshold && !isSidebarCollapsed) { // Swipe Left
+                    toggleSidebar();
+                } else if (deltaX > swipeThreshold && isSidebarCollapsed) { // Swipe Right
+                    toggleSidebar();
+                }
+                touchStartX = 0; touchEndX = 0;
+            }
+
+            // Header height sync
+            window.syncHeaderHeight = function() {
+                const header = document.getElementById('appHeader');
+                const mainContent = document.getElementById('mainContentArea');
+                if (!header || !mainContent) return;
+                const height = header.offsetHeight || 0;
+                const safePadding = height + 16; // 16px for base p-4
+                mainContent.style.paddingTop = safePadding + 'px';
+                document.documentElement.style.setProperty('--app-header-height', height + 'px');
+            };
+            window.addEventListener('DOMContentLoaded', async () => {
+                syncHeaderHeight();
+                setTimeout(syncHeaderHeight, 250); // Run again after potential layout shifts
+            });
+            window.addEventListener('resize', syncHeaderHeight);
+        })();
+    </script>
+</body>
+</html>
