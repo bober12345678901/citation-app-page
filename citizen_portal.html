@@ -140,8 +140,8 @@
             <div class="flex items-end space-x-4">
                 <h1 class="text-3xl font-bold theme-text-color">Welcome, <span id="welcomeMessageDisplay">Loading Portal</span></h1>
             </div>
-            <nav class="space-x-4 flex items-center">
-                 <p class="theme-text-color font-medium hidden sm:block">Welcome, <span id="citizenUserNameDisplay">Citizen</span></p>
+            <nav class="space-x-4 flex items-center min-w-0"> <!-- ADDED: min-w-0 for nav container to shrink -->
+                 <p class="theme-text-color font-medium hidden sm:block min-w-0 flex-shrink">Welcome, <span id="citizenUserNameDisplay">Citizen</span></p> <!-- ADDED: min-w-0 flex-shrink to username display -->
                 <div class="relative inline-block text-left">
                     <button id="themeToggle" type="button" class="p-2 rounded-full theme-text-color hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-colors flex items-center justify-center space-x-1" aria-expanded="false" aria-haspopup="true">
                         <span id="currentThemeIcon" class="w-6 h-6 flex items-center justify-center"></span>
@@ -378,15 +378,25 @@
                     const displayUsername = payload.nickname || payload.username || 'Citizen';
                     const discordUsername = payload.username || 'N/A';
                     
-                    const displayHtml = `
-                        ${displayUsername} 
-                        <span class="text-sm theme-subtle-text font-normal">
-                            [${discordUsername}]
-                        </span>`;
+                    const namePart = payload.nickname || payload.username;
+                    const discordTagPart = payload.nickname ? payload.username : null;
+                    
+                    let displayHtml;
+
+                    if (discordTagPart) {
+                        // Display: Nickname [username]
+                        displayHtml = `
+                            ${namePart} 
+                            <span class="text-sm theme-subtle-text font-normal">
+                                [${discordTagPart}]
+                            </span>`;
+                    } else {
+                        // Display: Username (raw)
+                        displayHtml = namePart; 
+                    }
 
                     // Set header welcome message (inside the <h1> tag)
                     if (welcomeMessageDisplay) {
-                        // Use innerHTML to render the span tag for the Discord username
                         welcomeMessageDisplay.innerHTML = displayHtml;
                     }
                     
