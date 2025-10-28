@@ -62,6 +62,14 @@
         .vehicle-card, .trailer-card, .record-card { border: 1px solid var(--border-color); background-color: var(--input-bg-color); border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem; position: relative; }
         .ban-level-0 { color: #22c55e; } .ban-level-1 { color: #facc15; } .ban-level-2 { color: #f97316; } .ban-level-3 { color: #ef4444; } .ban-level-unknown { color: var(--subtle-text-color); }
         .registration-form { border: 1px solid var(--border-color); background-color: var(--input-bg-color); border-radius: 0.75rem; padding: 1.5rem; margin-top: 1rem; }
+        
+        /* --- NEW STYLE FOR VISIBLE LABELS INSIDE FORMS --- */
+        .registration-form .theme-label {
+            /* Override subtle text color to primary text color for better contrast over the input background */
+            color: var(--text-color) !important; 
+        }
+        /* ------------------------------------------------ */
+
         .add-button { color: #22c55e; font-size: 1.5rem; font-weight: bold; transition: color 0.2s; }
         .add-button:hover { color: #16a34a; }
 
