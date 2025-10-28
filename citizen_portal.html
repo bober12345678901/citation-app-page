@@ -150,7 +150,7 @@
                      </div>
                      <div class="column-content">
                         <form id="addVehicleForm" class="registration-form hidden mb-6">
-                            <h3 class="theme-title font-semibold text-xl mb-4">Register New Vehicle</h3>
+                            <h3 id="addVehicleFormTitle" class="theme-title font-semibold text-xl mb-4">Register New Vehicle</h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label for="vehicleBrand" class="theme-label block mb-1 text-sm font-medium">Brand:</label>
@@ -172,7 +172,6 @@
                                     <label for="vehiclePlate" class="theme-label block mb-1 text-sm font-medium">Plate Text:</label>
                                     <input type="text" id="vehiclePlate" name="plateText" required class="theme-input w-full p-2 border rounded-lg text-sm uppercase" maxlength="10">
                                 </div>
-
                                 <div>
                                     <label for="vehicleState" class="theme-label block mb-1 text-sm font-medium">State:</label>
                                     <select id="vehicleState" name="state" required class="theme-input w-full p-2 border rounded-lg text-sm">
@@ -238,7 +237,7 @@
                             </div>
                             <div class="mt-4 flex justify-end space-x-2">
                                 <button type="button" id="cancelAddVehicleBtn" class="theme-button-secondary py-2 px-4 rounded-lg font-semibold text-sm">Cancel</button>
-                                <button type="submit" class="theme-button-primary py-2 px-4 rounded-lg font-semibold text-sm">Register Vehicle</button>
+                                <button type="submit" id="addVehicleSubmitBtn" class="theme-button-primary py-2 px-4 rounded-lg font-semibold text-sm">Register Vehicle</button>
                             </div>
                         </form>	
                         <div id="vehicleList">
@@ -269,7 +268,7 @@
                     </div>
                     <div class="column-content">
                          <form id="addTrailerForm" class="registration-form hidden mb-6">
-                              <h3 class="theme-title font-semibold text-lg mb-4">Register New Trailer</h3>
+                              <h3 id="addTrailerFormTitle" class="theme-title font-semibold text-lg mb-4">Register New Trailer</h3>
                               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                   <div><label for="trailerModel" class="theme-label block mb-1 text-sm font-medium">Trailer Model:</label><input type="text" id="trailerModel" name="trailerModel" required class="theme-input w-full p-2 border rounded-lg text-sm"></div>
                                   <div><label for="trailerColor" class="theme-label block mb-1 text-sm font-medium">Trailer Color:</label><input type="text" id="trailerColor" name="trailerColor" required class="theme-input w-full p-2 border rounded-lg text-sm"></div>
@@ -333,10 +332,10 @@
                                           <option value="OT">Other</option>
                                       </select>
                                   </div>
-                                  </div>
+                              </div>
                               <div class="mt-4 flex justify-end space-x-2">
                                   <button type="button" id="cancelAddTrailerBtn" class="theme-button-secondary py-2 px-4 rounded-lg font-semibold text-sm">Cancel</button>
-                                  <button type="submit" class="theme-button-primary py-2 px-4 rounded-lg font-semibold text-sm">Register Trailer</button>
+                                  <button type="submit" id="addTrailerSubmitBtn" class="theme-button-primary py-2 px-4 rounded-lg font-semibold text-sm">Register Trailer</button>
                               </div>
                          </form>
                         <div id="trailerList">
@@ -350,8 +349,12 @@
     </main>
     <script>
         // --- !!! IMPORTANT: SET YOUR WORKER URL HERE !!! ---
-        const API_BASE_URL = 'https://citation-app-worker.pnbober.workers.dev';
+        const API_BASE_URL = 'https://YOUR-WORKER-URL.workers.dev';
         // --------------------------------------------------
+
+        // --- GLOBAL STATE ---
+        let currentlyEditingVehicleId = null;
+        let currentlyEditingTrailerId = null;
 
         // --- UTILITY FUNCTIONS ---
         if (typeof window.showCustomAlert === 'undefined') { window.showCustomAlert = (msg, type) => { alert(msg); return Promise.resolve(); }; }
@@ -362,19 +365,14 @@
             catch (e) { return null; } 
         }
 
-        // Centralized API fetch function
         async function fetchWithAuth(url, options = {}) {
             const token = localStorage.getItem('citizenAuthToken');
             if (!token) {
                 redirectToLogin("No session found. Please log in.");
-                return null; // Stop execution
+                return null;
             }
 
-            options.headers = {
-                ...options.headers,
-                'Authorization': `Bearer ${token}`
-            };
-
+            options.headers = { ...options.headers, 'Authorization': `Bearer ${token}` };
             if (options.body) {
                 options.headers['Content-Type'] = 'application/json';
             }
@@ -384,22 +382,23 @@
                 
                 if (response.status === 401 || response.status === 403) {
                     redirectToLogin("Session expired or invalid. Please log in again.");
-                    return null; // Stop execution
-                }
-                if (!response.ok) {
-                    const err = await response.json();
-                    throw new Error(err.message || `Error ${response.status}`);
+                    return null;
                 }
                 
-                // Handle 201/204 No Content responses
-                if (response.status === 201 || response.status === 204) {
-                    return { success: true, message: "Operation successful." };
-                }
+                const responseData = await response.json().catch(() => ({})); // Handle empty/non-json responses
 
-                return await response.json();
+                if (!response.ok) {
+                    throw new Error(responseData.message || `Error ${response.status}`);
+                }
+                
+                // Return success message for 200/201 on POST/PUT/DELETE
+                if (options.method === 'POST' || options.method === 'PUT' || options.method === 'DELETE') {
+                     return { success: true, message: responseData.message || "Operation successful." };
+                }
+                
+                return responseData; // Return JSON data for GET
             } catch (error) {
                 console.error("API Fetch Error:", error.message);
-                // The backend now sends a specific error for duplicates
                 if (error.message.includes("already registered")) {
                     await window.showCustomAlert(error.message, "Error");
                 } else {
@@ -433,6 +432,8 @@
             const showAddVehicleFormBtn = document.getElementById('showAddVehicleFormBtn');
             const addVehicleForm = document.getElementById('addVehicleForm');
             const cancelAddVehicleBtn = document.getElementById('cancelAddVehicleBtn');
+            const addVehicleFormTitle = document.getElementById('addVehicleFormTitle');
+            const addVehicleSubmitBtn = document.getElementById('addVehicleSubmitBtn');
 
             // Trailer elements
             const trailerListDiv = document.getElementById('trailerList');
@@ -440,57 +441,57 @@
             const showAddTrailerFormBtn = document.getElementById('showAddTrailerFormBtn');
             const addTrailerForm = document.getElementById('addTrailerForm');
             const cancelAddTrailerBtn = document.getElementById('cancelAddTrailerBtn');
+            const addTrailerFormTitle = document.getElementById('addTrailerFormTitle');
+            const addTrailerSubmitBtn = document.getElementById('addTrailerSubmitBtn');
 
             // Record elements
             const recordListDiv = document.getElementById('recordList');
             const noRecordsMessage = document.getElementById('noRecordsMessage');
 
             // --- 1. LOGIN & AUTHENTICATION ---
-            const params = new URLSearchParams(window.location.search);
-            const token = params.get('token');
+            (function handleAuthentication() {
+                const params = new URLSearchParams(window.location.search);
+                const token = params.get('token');
+
+                if (token) {
+                    localStorage.setItem('citizenAuthToken', token);
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                    loadCitizenInfo(token);
+                } else {
+                    const existingToken = localStorage.getItem('citizenAuthToken');
+                    if (existingToken) {
+                        loadCitizenInfo(existingToken);
+                    } else {
+                        redirectToLogin('You are not logged in. Redirecting...');
+                    }
+                }
+                
+                if (citizenLogoutBtn) {
+                    citizenLogoutBtn.addEventListener('click', () => {
+                        redirectToLogin('Logging out...');
+                    });
+                }
+            })();
 
             function loadCitizenInfo(token) {
                 const payload = decodeJwt(token);
                 if (payload && payload.role === 'citizen' && payload.exp * 1000 > Date.now()) {
-                    // Set welcome messages
                     welcomeMessage.textContent = `Welcome, ${payload.username}!`;
                     if (citizenUserNameDisplay) citizenUserNameDisplay.textContent = payload.username;
                     if (sidebarCitizenUsernameDisplay) sidebarCitizenUsernameDisplay.textContent = payload.username;
                     if (recordDiscordIdSpan) recordDiscordIdSpan.textContent = payload.discordId;
-
-                    // --- 2. FETCH GARAGE DATA ---
-                    fetchMyGarageData();
-
+                    
+                    fetchMyGarageData(); // Now fetch all data
                 } else {
                     redirectToLogin("Session expired or invalid. Please log in again.");
                 }
             }
-            
-            if (token) {
-                localStorage.setItem('citizenAuthToken', token);
-                window.history.replaceState({}, document.title, window.location.pathname);
-                loadCitizenInfo(token);
-            } else {
-                const existingToken = localStorage.getItem('citizenAuthToken');
-                if (existingToken) {
-                    loadCitizenInfo(existingToken);
-                } else {
-                    redirectToLogin('You are not logged in. Redirecting...');
-                }
-            }
-            
-            if (citizenLogoutBtn) {
-                citizenLogoutBtn.addEventListener('click', () => {
-                    redirectToLogin('Logging out...');
-                });
-            }
 
-            // --- 3. DATA FETCHING & RENDERING ---
+            // --- 2. DATA FETCHING & RENDERING ---
             
             async function fetchMyGarageData() {
                 const data = await fetchWithAuth('/api/citizen/my-garage', { method: 'GET' });
-                
-                if (!data) return; // Error was already handled by fetchWithAuth
+                if (!data) return; 
 
                 loadVehicleData(data.vehicles || []);
                 loadTrailerData(data.trailers || []);
@@ -522,6 +523,7 @@
             function createVehicleCard(vehicle) {
                 const div = document.createElement('div');
                 div.className = 'vehicle-card';
+                div.dataset.id = vehicle.id; // <-- Set ID for actions
                 const banInfo = getBanLevelTextAndClass(vehicle.ban_lvl);
                 const isBanned = vehicle.ban_lvl > 0;
                 div.innerHTML = `
@@ -534,8 +536,8 @@
                         <p><span class="info-label">Vehicle Ban Lvl:</span> <span class="info-value font-bold ${banInfo.className}">${banInfo.text}</span></p>
                     </div>
                     <div class="mt-4 flex space-x-2">
-                        <button class="theme-button-secondary text-xs py-1 px-2 rounded" ${isBanned ? 'disabled' : ''}>Edit Info</button>
-                        <button class="theme-button-secondary text-xs py-1 px-2 rounded text-red-500 hover:bg-red-500/10" ${isBanned ? 'disabled' : ''}>Report Stolen</button>
+                        <button class="btn-edit-vehicle theme-button-secondary text-xs py-1 px-2 rounded" ${isBanned ? 'disabled' : ''}>Edit Info</button>
+                        <button class="btn-remove-vehicle theme-button-secondary text-xs py-1 px-2 rounded text-red-500 hover:bg-red-500/10">Remove</button>
                     </div>`;
                 return div;
             }
@@ -554,6 +556,7 @@
             function createTrailerCard(trailer) {
                 const div = document.createElement('div');
                 div.className = 'trailer-card';
+                div.dataset.id = trailer.id; // <-- Set ID for actions
                 div.innerHTML = `
                     <h3 class="theme-title font-semibold text-lg mb-3">Plate: <span class="font-mono theme-text-color">${trailer.plate || 'N/A'} [${trailer.state || 'N/A'}]</span></h3>
                     <div class="space-y-1 text-sm sm:text-base">
@@ -561,8 +564,8 @@
                         <p><span class="info-label">Trailer Color:</span> <span class="info-value">${trailer.color || '--'}</span></p>
                     </div>
                     <div class="mt-4 flex space-x-2">
-                        <button class="theme-button-secondary text-xs py-1 px-2 rounded">Edit Info</button>
-                        <button class="theme-button-secondary text-xs py-1 px-2 rounded text-red-500 hover:bg-red-500/10">Report Stolen</button>
+                        <button class="btn-edit-trailer theme-button-secondary text-xs py-1 px-2 rounded">Edit Info</button>
+                        <button class="btn-remove-trailer theme-button-secondary text-xs py-1 px-2 rounded text-red-500 hover:bg-red-500/10">Remove</button>
                     </div>`;
                 return div;
             }
@@ -571,20 +574,12 @@
             function loadRecordData(citations, arrests) {
                 recordListDiv.innerHTML = '';
                 let totalRecords = 0;
-
                 if (citations && citations.length > 0) {
-                    citations.forEach(c => {
-                        recordListDiv.appendChild(createRecordCard(c, 'Citation'));
-                        totalRecords++;
-                    });
+                    citations.forEach(c => { recordListDiv.appendChild(createRecordCard(c, 'Citation')); totalRecords++; });
                 }
                 if (arrests && arrests.length > 0) {
-                    arrests.forEach(a => {
-                        recordListDiv.appendChild(createRecordCard(a, 'Arrest'));
-                        totalRecords++;
-                    });
+                    arrests.forEach(a => { recordListDiv.appendChild(createRecordCard(a, 'Arrest')); totalRecords++; });
                 }
-
                 noRecordsMessage.classList.toggle('hidden', totalRecords > 0);
             }
 
@@ -593,17 +588,15 @@
                 div.className = 'record-card';
                 const date = new Date(record.timestamp).toLocaleDateString();
                 let title, details, amount;
-
                 if (type === 'Citation') {
                     title = `Citation (#${record.id.slice(-6)})`;
                     details = (record.appliedPenalCodes || []).map(pc => pc.description || pc.code).join(', ');
                     amount = `Due: $${parseFloat(record.totalAmountDue || 0).toFixed(2)}`;
-                } else { // Arrest
+                } else {
                     title = `Arrest (#${record.id.slice(-6)})`;
                     details = (record.appliedCharges || []).map(c => c.description || c.code).join(', ');
                     amount = `Fines: $${parseFloat(record.totalFines || 0).toFixed(2)} | Jail: ${record.totalJailTime || 0}s`;
                 }
-
                 div.innerHTML = `
                     <h3 class="theme-title font-semibold text-lg mb-2 ${type === 'Arrest' ? 'text-red-500' : ''}">${title}</h3>
                     <p class="text-sm"><span class="info-label">Date:</span> <span class="info-value">${date}</span></p>
@@ -613,11 +606,27 @@
                 return div;
             }
 
-            // --- 4. FORM HANDLING ---
+            // --- 3. FORM & ACTION HANDLING ---
 
-            // Vehicle form
-            showAddVehicleFormBtn.addEventListener('click', () => { addVehicleForm.classList.remove('hidden'); showAddVehicleFormBtn.classList.add('hidden'); });
-            cancelAddVehicleBtn.addEventListener('click', () => { addVehicleForm.classList.add('hidden'); showAddVehicleFormBtn.classList.remove('hidden'); addVehicleForm.reset(); });
+            // --- Vehicle Form ---
+            showAddVehicleFormBtn.addEventListener('click', () => {
+                resetVehicleForm(); // Reset to "Add" mode
+                addVehicleForm.classList.remove('hidden');
+                showAddVehicleFormBtn.classList.add('hidden');
+            });
+            
+            cancelAddVehicleBtn.addEventListener('click', () => {
+                addVehicleForm.classList.add('hidden');
+                showAddVehicleFormBtn.classList.remove('hidden');
+                resetVehicleForm();
+            });
+
+            function resetVehicleForm() {
+                currentlyEditingVehicleId = null;
+                addVehicleForm.reset();
+                addVehicleFormTitle.textContent = "Register New Vehicle";
+                addVehicleSubmitBtn.textContent = "Register Vehicle";
+            }
 
             addVehicleForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -629,27 +638,52 @@
                     color: formData.get('color'),
                     plateText: formData.get('plateText'),
                     vehicleBanLvl: parseInt(formData.get('vehicleBanLvl') || 0),
-                    state: formData.get('state') // <-- ADDED
+                    state: formData.get('state')
                 };
 
-                const result = await fetchWithAuth('/api/citizen/vehicles', {
-                    method: 'POST',
-                    body: JSON.stringify(vehicleData)
-                });
+                let result;
+                if (currentlyEditingVehicleId) {
+                    // --- UPDATE (PUT) ---
+                    result = await fetchWithAuth(`/api/citizen/vehicles/${currentlyEditingVehicleId}`, {
+                        method: 'PUT',
+                        body: JSON.stringify(vehicleData)
+                    });
+                } else {
+                    // --- CREATE (POST) ---
+                    result = await fetchWithAuth('/api/citizen/vehicles', {
+                        method: 'POST',
+                        body: JSON.stringify(vehicleData)
+                    });
+                }
 
-                if (result && result.success) { // Check for success
-                    await window.showCustomAlert("Vehicle registered successfully!", "Success");
-                    addVehicleForm.reset();
+                if (result && result.success) {
+                    await window.showCustomAlert(result.message, "Success");
                     addVehicleForm.classList.add('hidden');
                     showAddVehicleFormBtn.classList.remove('hidden');
-                    fetchMyGarageData(); // Refresh the garage list
+                    resetVehicleForm();
+                    fetchMyGarageData(); // Refresh list
                 }
-                // If result is null, the error was already shown by fetchWithAuth
             });
 
-            // Trailer form
-            showAddTrailerFormBtn.addEventListener('click', () => { addTrailerForm.classList.remove('hidden'); showAddTrailerFormBtn.classList.add('hidden'); });
-            cancelAddTrailerBtn.addEventListener('click', () => { addTrailerForm.classList.add('hidden'); showAddTrailerFormBtn.classList.remove('hidden'); addTrailerForm.reset(); });
+            // --- Trailer Form ---
+            showAddTrailerFormBtn.addEventListener('click', () => {
+                resetTrailerForm();
+                addTrailerForm.classList.remove('hidden');
+                showAddTrailerFormBtn.classList.add('hidden');
+            });
+
+            cancelAddTrailerBtn.addEventListener('click', () => {
+                addTrailerForm.classList.add('hidden');
+                showAddTrailerFormBtn.classList.remove('hidden');
+                resetTrailerForm();
+            });
+
+            function resetTrailerForm() {
+                currentlyEditingTrailerId = null;
+                addTrailerForm.reset();
+                addTrailerFormTitle.textContent = "Register New Trailer";
+                addTrailerSubmitBtn.textContent = "Register Trailer";
+            }
 
             addTrailerForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -657,23 +691,140 @@
                 const trailerData = {
                     trailerModel: formData.get('trailerModel'),
                     trailerColor: formData.get('trailerColor'),
-                    plateText: formData.get('plateText'),
-                    state: formData.get('state') // <-- ADDED
+                    plateText: formData.get('trailerPlate'),
+                    state: formData.get('state')
                 };
 
-                const result = await fetchWithAuth('/api/citizen/trailers', {
-                    method: 'POST',
-                    body: JSON.stringify(trailerData)
-                });
+                let result;
+                if (currentlyEditingTrailerId) {
+                    // --- UPDATE (PUT) ---
+                     result = await fetchWithAuth(`/api/citizen/trailers/${currentlyEditingTrailerId}`, {
+                        method: 'PUT',
+                        body: JSON.stringify(trailerData)
+                    });
+                } else {
+                    // --- CREATE (POST) ---
+                    result = await fetchWithAuth('/api/citizen/trailers', {
+                        method: 'POST',
+                        body: JSON.stringify(trailerData)
+                    });
+                }
 
-                if (result && result.success) { // Check for success
-                    await window.showCustomAlert("Trailer registered successfully!", "Success");
-                    addTrailerForm.reset();
+                if (result && result.success) {
+                    await window.showCustomAlert(result.message, "Success");
                     addTrailerForm.classList.add('hidden');
                     showAddTrailerFormBtn.classList.remove('hidden');
-                    fetchMyGarageData(); // Refresh the garage list
+                    resetTrailerForm();
+                    fetchMyGarageData(); // Refresh list
                 }
             });
+
+            // --- 4. CARD ACTION LISTENERS (EDIT/REMOVE) ---
+
+            // --- Vehicle Actions ---
+            vehicleListDiv.addEventListener('click', async (e) => {
+                // Handle EDIT
+                const editButton = e.target.closest('.btn-edit-vehicle');
+                if (editButton) {
+                    const card = e.target.closest('.vehicle-card');
+                    const vehicleId = card.dataset.id;
+                    await populateVehicleFormForEdit(vehicleId);
+                }
+
+                // Handle REMOVE
+                const removeButton = e.target.closest('.btn-remove-vehicle');
+                if (removeButton) {
+                    const card = e.target.closest('.vehicle-card');
+                    const vehicleId = card.dataset.id;
+                    await removeVehicle(vehicleId);
+                }
+            });
+
+            async function populateVehicleFormForEdit(id) {
+                const vehicle = await fetchWithAuth(`/api/citizen/vehicles/${id}`);
+                if (!vehicle) return;
+
+                // Set global state
+                currentlyEditingVehicleId = id;
+                
+                // Populate form
+                addVehicleForm.querySelector('#vehicleBrand').value = vehicle.brand;
+                addVehicleForm.querySelector('#vehicleModel').value = vehicle.model;
+                addVehicleForm.querySelector('#vehicleYear').value = vehicle.year;
+                addVehicleForm.querySelector('#vehicleColor').value = vehicle.color;
+                addVehicleForm.querySelector('#vehiclePlate').value = vehicle.plate;
+                addVehicleForm.querySelector('#vehicleState').value = vehicle.state;
+                addVehicleForm.querySelector('#vehicleBanLvl').value = vehicle.ban_lvl;
+                
+                // Change form UI
+                addVehicleFormTitle.textContent = "Edit Vehicle";
+                addVehicleSubmitBtn.textContent = "Save Changes";
+                
+                // Show form
+                addVehicleForm.classList.remove('hidden');
+                showAddVehicleFormBtn.classList.add('hidden');
+                addVehicleForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            async function removeVehicle(id) {
+                const confirmed = await window.showCustomConfirm("Are you sure you want to remove this vehicle? This action cannot be undone.");
+                if (confirmed) {
+                    const result = await fetchWithAuth(`/api/citizen/vehicles/${id}`, { method: 'DELETE' });
+                    if (result && result.success) {
+                        await window.showCustomAlert(result.message, "Success");
+                        fetchMyGarageData(); // Refresh list
+                    }
+                }
+            }
+
+            // --- Trailer Actions ---
+            trailerListDiv.addEventListener('click', async (e) => {
+                // Handle EDIT
+                const editButton = e.target.closest('.btn-edit-trailer');
+                if (editButton) {
+                    const card = e.target.closest('.trailer-card');
+                    const trailerId = card.dataset.id;
+                    await populateTrailerFormForEdit(trailerId);
+                }
+
+                // Handle REMOVE
+                const removeButton = e.target.closest('.btn-remove-trailer');
+                if (removeButton) {
+                    const card = e.target.closest('.trailer-card');
+                    const trailerId = card.dataset.id;
+                    await removeTrailer(trailerId);
+                }
+            });
+
+            async function populateTrailerFormForEdit(id) {
+                const trailer = await fetchWithAuth(`/api/citizen/trailers/${id}`);
+                if (!trailer) return;
+
+                currentlyEditingTrailerId = id;
+
+                addTrailerForm.querySelector('#trailerModel').value = trailer.model;
+                addTrailerForm.querySelector('#trailerColor').value = trailer.color;
+                addTrailerForm.querySelector('#trailerPlate').value = trailer.plate;
+                addTrailerForm.querySelector('#trailerState').value = trailer.state;
+                
+                addTrailerFormTitle.textContent = "Edit Trailer";
+                addTrailerSubmitBtn.textContent = "Save Changes";
+                
+                addTrailerForm.classList.remove('hidden');
+                showAddTrailerFormBtn.classList.add('hidden');
+                addTrailerForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            async function removeTrailer(id) {
+                const confirmed = await window.showCustomConfirm("Are you sure you want to remove this trailer? This action cannot be undone.");
+                if (confirmed) {
+                    const result = await fetchWithAuth(`/api/citizen/trailers/${id}`, { method: 'DELETE' });
+                    if (result && result.success) {
+                        await window.showCustomAlert(result.message, "Success");
+                        fetchMyGarageData(); // Refresh list
+                    }
+                }
+            }
 
             // --- Sidebar/Header setup ---
             // (Copied from my_garage.html, unchanged)
