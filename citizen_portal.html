@@ -52,27 +52,35 @@
         .theme-input {
             background-color: var(--input-bg-color); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 0.75rem; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06); width: 100%; transition: border-color 0.2s, box-shadow 0.2s;
         }
-        .info-label { font-weight: 600; color: var(--subtle-text-color); min-width: 100px; /* Adjusted min-width slightly */ display: inline-block; }
+        .info-label { 
+            font-weight: 600; 
+            color: var(--text-color); /* Updated for better contrast in cards */
+            min-width: 100px; /* Adjusted min-width slightly */ 
+            display: inline-block; 
+        }
         .info-value { color: var(--text-color); }
         code { background-color: color-mix(in srgb, var(--input-bg-color) 80%, var(--border-color)); /* Slightly adjusted bg */ padding: 0.1em 0.3em; border-radius: 0.25rem; font-family: monospace; font-size: 0.9em; }
 
         /* Styles copied from my_garage.html */
         .column-card { border: 1px solid var(--border-color); background-color: var(--card-bg-color); border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); min-height: 300px; display: flex; flex-direction: column; }
         .column-content { flex-grow: 1; overflow-y: auto; padding-right: 5px; /* Add slight padding for scrollbar */ }
-        .vehicle-card, .trailer-card, .record-card { border: 1px solid var(--border-color); background-color: var(--input-bg-color); border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem; position: relative; }
-        .ban-level-0 { color: #22c55e; } .ban-level-1 { color: #facc15; } .ban-level-2 { color: #f97316; } .ban-level-3 { color: #ef4444; } .ban-level-unknown { color: var(--subtle-text-color); }
-        .registration-form { border: 1px solid var(--border-color); background-color: var(--input-bg-color); border-radius: 0.75rem; padding: 1.5rem; margin-top: 1rem; }
-        
-        /* --- START FIX: Ensure labels contrast with card backgrounds --- */
-        .registration-form .theme-label,
-        .vehicle-card .info-label,
-        .trailer-card .info-label,
-        .record-card .info-label {
-            /* Use the primary text color for better contrast inside these components */
-            color: var(--text-color) !important; 
+        .vehicle-card, .trailer-card, .record-card { 
+            border: 1px solid var(--border-color); 
+            background-color: var(--input-bg-color); /* Ensure high contrast with .info-label */
+            border-radius: 0.5rem; 
+            padding: 1rem; 
+            margin-bottom: 1rem; 
+            position: relative; 
         }
-        /* --- END FIX --- */
+        /* New custom ban level colors/classes */
+        .ban-level-0 { color: #22c55e; } /* Green */
+        .ban-level-1 { color: #facc15; } /* Yellow */
+        .ban-level-2 { color: #f97316; } /* Orange */
+        .ban-level-3 { color: #ef4444; } /* Red */
+        .ban-level-4 { color: #8b5cf6; } /* Violet */
+        .ban-level-unknown { color: var(--subtle-text-color); }
 
+        .registration-form { border: 1px solid var(--border-color); background-color: var(--input-bg-color); border-radius: 0.75rem; padding: 1.5rem; margin-top: 1rem; }
         .add-button { color: #22c55e; font-size: 1.5rem; font-weight: bold; transition: color 0.2s; }
         .add-button:hover { color: #16a34a; }
 
@@ -82,6 +90,9 @@
         }
         /* Focus state */
         .theme-input:focus { outline: none; border-color: var(--accent-color); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-color) 30%, transparent); }
+        /* Registration Form Labels override subtle text color for contrast */
+        .registration-form .theme-label { color: var(--text-color); } 
+
 
         /* Theme Dropdown Styles */
         .theme-dropdown-menu { background-color: var(--box-bg-color); border: 1px solid var(--border-color); opacity: 1; z-index: 60; position: absolute; right: 0; margin-top: 0.5rem; width: 12rem; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); origin-y: top; display: none; }
@@ -118,7 +129,7 @@
             </a>
         </div>
         <div class="sidebar-user-info theme-subtle-text">
-            <p class="font-bold mb-1 theme-text-color" id="sidebarCitizenUsernameDisplay">Citizen</p>
+            <p class="font-bold mb-1 theme-text-color" id="sidebarCitizenUsernameDisplay"></p>
             <p class="block theme-subtle-text">Shadow LE Web© 2025</p>
             <button id="citizenLogoutBtn" class="theme-subtle-text text-sm hover:underline mt-2">Logout</button>
         </div>
@@ -127,7 +138,7 @@
     <header class="theme-section-bg fixed top-0 w-full z-50 main-header" id="appHeader">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
             <div class="flex items-end space-x-4">
-                <h1 id="welcomeMessage" class="text-3xl font-bold theme-text-color">Loading Portal...</h1> 
+                <h1 class="text-3xl font-bold theme-text-color">Welcome, <span id="welcomeMessageDisplay">Loading Portal</span></h1>
             </div>
             <nav class="space-x-4 flex items-center">
                  <p class="theme-text-color font-medium hidden sm:block">Welcome, <span id="citizenUserNameDisplay">Citizen</span></p>
@@ -205,7 +216,7 @@
                     </div>
                     <div class="column-content">
                          <form id="addTrailerForm" class="registration-form hidden mb-6">
-                              <h3 id="addTrailerFormTitle" class="theme-title font-semibold text-lg mb-4">Register New Trailer</h3>
+                              <h3 id="addTrailerFormTitle" class="theme-title font-semibold text-xl mb-4">Register New Trailer</h3>
                               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                   <div><label for="trailerModel" class="theme-label block mb-1 text-sm font-medium">Trailer Model:</label><input type="text" id="trailerModel" name="trailerModel" required class="theme-input w-full p-2 border rounded-lg text-sm"></div>
                                   <div><label for="trailerColor" class="theme-label block mb-1 text-sm font-medium">Trailer Color:</label><input type="text" id="trailerColor" name="trailerColor" required class="theme-input w-full p-2 border rounded-lg text-sm"></div>
@@ -297,7 +308,7 @@
              console.warn(message);
              localStorage.removeItem('citizenAuthToken');
              // Attempt to update message even if element might not exist yet
-             const welcomeMsgEl = document.getElementById('welcomeMessage');
+             const welcomeMsgEl = document.getElementById('welcomeMessageDisplay');
              if (welcomeMsgEl) welcomeMsgEl.textContent = message;
              setTimeout(() => {
                 window.location.href = 'citizen_login.html';
@@ -310,7 +321,7 @@
             const citizenUserNameDisplay = document.getElementById('citizenUserNameDisplay');
             const sidebarCitizenUsernameDisplay = document.getElementById('sidebarCitizenUsernameDisplay');
             const citizenLogoutBtn = document.getElementById('citizenLogoutBtn');
-            const welcomeMessage = document.getElementById('welcomeMessage');
+            const welcomeMessageDisplay = document.getElementById('welcomeMessageDisplay');
             const recordDiscordIdSpan = document.getElementById('recordDiscordId');
             
             // Vehicle elements
@@ -364,30 +375,31 @@
                 const payload = decodeJwt(token);
                 if (payload && payload.role === 'citizen' && payload.exp * 1000 > Date.now()) {
                     
-                    const nickname = payload.nickname;
-                    const username = payload.username;
+                    const displayUsername = payload.nickname || payload.username || 'Citizen';
+                    const discordUsername = payload.username || 'N/A';
                     
-                    let displayHtml;
+                    const displayHtml = `
+                        ${displayUsername} 
+                        <span class="text-sm theme-subtle-text font-normal">
+                            [${discordUsername}]
+                        </span>`;
 
-                    if (nickname) {
-                        // Display: Nickname [Username] (smaller font for username)
-                        displayHtml = `${nickname} <span class="text-xs font-normal opacity-75">[${username}]</span>`;
-                    } else {
-                        // Display: Username
-                        displayHtml = username;
+                    // Set header welcome message (inside the <h1> tag)
+                    if (welcomeMessageDisplay) {
+                        // Use innerHTML to render the span tag for the Discord username
+                        welcomeMessageDisplay.innerHTML = displayHtml;
                     }
                     
-                    // FIX: Remove '!' from the end of the welcome message
-                    welcomeMessage.innerHTML = `Welcome, <span class="text-3xl font-bold theme-text-color">${displayHtml}</span>`;
+                    // Set top-right display (inside the <p> tag)
+                    if (citizenUserNameDisplay) {
+                        citizenUserNameDisplay.innerHTML = displayHtml;
+                    }
+
+                    // Set sidebar display (inside the <p> tag)
+                    if (sidebarCitizenUsernameDisplay) {
+                         sidebarCitizenUsernameDisplay.innerHTML = displayHtml;
+                    }
                     
-                    welcomeMessage.classList.remove('text-3xl', 'font-bold'); 
-                    welcomeMessage.classList.add('text-3xl', 'font-bold', 'theme-text-color'); 
-
-
-                    // Update Header and Sidebar Username Displays (using innerHTML now)
-                    if (citizenUserNameDisplay) citizenUserNameDisplay.innerHTML = displayHtml;
-                    if (sidebarCitizenUsernameDisplay) sidebarCitizenUsernameDisplay.innerHTML = displayHtml;
-
                     if (recordDiscordIdSpan) recordDiscordIdSpan.textContent = payload.discordId;
                     
                     fetchMyGarageData(); // Now fetch all data
@@ -418,7 +430,6 @@
                 }
             }
 
-            // --- UPDATED Ban Level Text Function ---
             function getBanLevelTextAndClass(level) {
                 level = parseInt(level, 10); 
                 switch (level) { 
@@ -426,11 +437,10 @@
                     case 1: return { text: '1 (Basic+)', className: 'ban-level-1' }; 
                     case 2: return { text: '2 (Standard+)', className: 'ban-level-2' }; 
                     case 3: return { text: '3 (Premium+)', className: 'ban-level-3' }; 
-                    case 4: return { text: '4 (Prestige+)', className: 'text-red-700 dark:text-red-400' };
+                    case 4: return { text: '4 (Prestige+)', className: 'ban-level-4' };
                     default: return { text: `${level === null || isNaN(level) ? 'N/A' : level} (Unknown)`, className: 'ban-level-unknown' }; 
                 } 
             }
-            // --- END UPDATED Ban Level Text Function ---
 
             function createVehicleCard(vehicle) {
                 const div = document.createElement('div');

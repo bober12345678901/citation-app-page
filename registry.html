@@ -367,7 +367,7 @@
         }
         // --- END UTILITY FUNCTIONS ---
 
-        // Helper function to get ban level text and class (UPDATED)
+        // Helper function to get ban level text and class (UPDATED TO LEVEL 4)
         function getBanLevelTextAndClass(level) {
             level = parseInt(level, 10);
             switch (level) {
@@ -487,7 +487,10 @@
                         resultMake.textContent = data.make || '--';
                         resultModel.textContent = data.model || '--';
                         resultColor.textContent = data.color || '--';
+                        
+                        // FIX: Display Owner Username
                         resultOwnerUsername.textContent = data.owner_username || '--';
+                        
                         resultOwnerId.textContent = data.owner_discord_id || '--';
 
                         // Show/Hide fields based on type
