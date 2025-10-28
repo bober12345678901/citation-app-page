@@ -6,30 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vehicle Registry Lookup</title>
 	<script>
-  // prevent light-mode flash before theme.js runs
-  (function() {
-    try {
-      const savedTheme = localStorage.getItem('theme');
-      if (savedTheme) {
-        document.documentElement.classList.add(savedTheme);
-        document.documentElement.setAttribute('data-theme', savedTheme);
-      } else {
-        // optional: match system preference if no saved theme
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const theme = prefersDark ? 'dark' : 'light';
-        document.documentElement.classList.add(theme);
-        document.documentElement.setAttribute('data-theme', theme);
-      }
-    } catch(e) {
-      console.warn('Theme preloader failed:', e);
-    }
-    // Hide until theme styles are applied, then unhide
-    document.documentElement.style.visibility = 'hidden';
-    window.addEventListener('DOMContentLoaded', () => {
-      document.documentElement.style.visibility = '';
-    });
-  })();
-</script>
+      // prevent light-mode flash
+      (function() {
+        try {
+          const savedTheme = localStorage.getItem('theme');
+          const theme = savedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+          document.documentElement.classList.add(theme);
+          document.documentElement.setAttribute('data-theme', theme);
+        } catch(e) { console.warn('Theme preloader failed:', e); }
+        document.documentElement.style.visibility = 'hidden';
+        window.addEventListener('DOMContentLoaded', () => { document.documentElement.style.visibility = ''; });
+      })();
+    </script>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="styles.css">
@@ -41,7 +29,7 @@
             transition: box-shadow 0.3s;
         }
 
-       /* --- New Sidebar/Header Styles for Unification (Copied from shift_log.html) --- */
+       /* --- Sidebar/Header Styles --- */
         :root {
           --app-header-height: 5rem;
           --sidebar-width: 250px;
@@ -82,14 +70,14 @@
         .sidebar-toggle-button { position: absolute; right: -12px; top: 50%; transform: translateY(-50%); width: 24px; height: 24px; border-radius: 50%; background-color: var(--accent-color); color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); transition: transform 0.3s, background-color 0.3s, right 0.3s; z-index: 50; }
         /* --- End Sidebar/Header Styles --- */
 
-        /* General form styles matching dashboard theme */
+        /* General form styles */
         .theme-input {
             border-radius: 0.5rem; padding: 0.75rem; border-color: var(--border-color); box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
         }
         /* Style for the results area */
         #resultsArea {
              border: 1px solid var(--border-color);
-             background-color: var(--input-bg-color); /* Slightly different bg for contrast */
+             background-color: var(--input-bg-color);
         }
         .results-label {
             font-weight: 600; /* semibold */
@@ -99,6 +87,64 @@
         }
         .results-value {
              color: var(--text-color);
+        }
+        /* Ban Level colors */
+        .ban-level-0 { color: #22c55e; } .ban-level-1 { color: #facc15; } .ban-level-2 { color: #f97316; } .ban-level-3 { color: #ef4444; } .ban-level-unknown { color: var(--subtle-text-color); }
+
+        /*
+         * === DROPDOWN / SELECT FIXES ===
+         * Ensure selects are opaque and match the theme dropdown styling.
+         * Using !important here to override theme.js / external CSS or browser defaults.
+         */
+        /* Make the select opaque and styled like the theme dropdown */
+        select.theme-input {
+          background-color: var(--box-bg-color) !important;     /* use same tile/box background */
+          color: var(--text-color) !important;
+          border: 1px solid var(--border-color) !important;
+          box-shadow: 0 6px 18px rgba(0,0,0,0.08) !important;
+          -webkit-appearance: none !important;
+          -moz-appearance: none !important;
+          appearance: none !important;
+          padding-right: 2.5rem !important; /* room for arrow */
+          padding-left: 0.75rem !important;
+          background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.6' d='M6 8l4 4 4-4'/></svg>") !important;
+          background-repeat: no-repeat !important;
+          background-position: right 0.75rem center !important;
+          background-size: 1rem !important;
+          border-radius: 0.5rem !important;
+          transition: box-shadow 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+        }
+        /* Focus state that matches theme accent */
+        select.theme-input:focus {
+          outline: none !important;
+          border-color: var(--accent-color) !important;
+          box-shadow: 0 0 0 6px rgba(0,0,0,0.02), 0 0 0 3px var(--accent-color)33 !important;
+        }
+
+        /* Ensure option list items also use the theme background / text */
+        select.theme-input option {
+          background-color: var(--box-bg-color) !important;
+          color: var(--text-color) !important;
+        }
+
+        /* For the header theme dropdown (menu that appears when toggling theme) match the visual style */
+        .theme-dropdown-menu {
+          background-color: var(--box-bg-color) !important;
+          border: 1px solid var(--border-color) !important;
+          box-shadow: 0 12px 40px rgba(0,0,0,0.12) !important;
+          border-radius: 0.75rem !important;
+          padding: 0.25rem !important;
+        }
+        .theme-dropdown-menu .py-1 > * {
+          color: var(--text-color);
+        }
+
+        /*
+         * Small helper for small screens where native selects may still show differently.
+         * This keeps the dropdown visually consistent.
+         */
+        @media (max-width: 480px) {
+          select.theme-input { font-size: 0.95rem !important; }
         }
 
     </style>
@@ -177,12 +223,74 @@
             <h2 class="theme-title text-3xl font-bold text-center mb-8">Vehicle Registry Lookup</h2>
 
             <form id="lookupForm" class="mb-6">
-                <label for="plateInput" class="theme-label block mb-2 font-medium">Enter License Plate:</label>
-                <div class="flex items-center space-x-3">
-                    <input type="text" id="plateInput" name="plate" required
-                           class="theme-input flex-grow p-3 border rounded-lg uppercase"
-                           placeholder="e.g., LSPD123">
-                    <button type="submit" id="lookupButton" class="theme-button-primary py-3 px-6 rounded-lg font-semibold">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                    <div class="md:col-span-2">
+                        <label for="plateInput" class="theme-label block mb-2 font-medium">License Plate:</label>
+                        <input type="text" id="plateInput" name="plate" required
+                               class="theme-input w-full p-3 border rounded-lg uppercase"
+                               placeholder="e.g., LSPD123">
+                    </div>
+                    <div>
+                        <label for="stateInput" class="theme-label block mb-2 font-medium">State:</label>
+                        <select id="stateInput" name="state" required class="theme-input w-full p-3 border rounded-lg text-sm">
+                            <option value="">Select State...</option>
+                            <option value="AL">Alabama</option>
+                            <option value="AK">Alaska</option>
+                            <option value="AZ">Arizona</option>
+                            <option value="AR">Arkansas</option>
+                            <option value="CA">California</option>
+                            <option value="CO">Colorado</option>
+                            <option value="CT">Connecticut</option>
+                            <option value="DE">Delaware</option>
+                            <option value="DC">District Of Columbia</option>
+                            <option value="FL">Florida</option>
+                            <option value="GA">Georgia</option>
+                            <option value="HI">Hawaii</option>
+                            <option value="ID">Idaho</option>
+                            <option value="IL">Illinois</option>
+                            <option value="IN">Indiana</option>
+                            <option value="IA">Iowa</option>
+                            <option value="KS">Kansas</option>
+                            <option value="KY">Kentucky</option>
+                            <option value="LA">Louisiana</option>
+                            <option value="ME">Maine</option>
+                            <option value="MD">Maryland</option>
+                            <option value="MA">Massachusetts</option>
+                            <option value="MI">Michigan</option>
+                            <option value="MN">Minnesota</option>
+                            <option value="MS">Mississippi</option>
+                            <option value="MO">Missouri</option>
+                            <option value="MT">Montana</option>
+                            <option value="NE">Nebraska</option>
+                            <option value="NV">Nevada</option>
+                            <option value="NH">New Hampshire</option>
+                            <option value="NJ">New Jersey</option>
+                            <option value="NM">New Mexico</option>
+                            <option value="NY">New York</option>
+                            <option value="NC">North Carolina</option>
+                            <option value="ND">North Dakota</option>
+                            <option value="OH">Ohio</option>
+                            <option value="OK">Oklahoma</option>
+                            <option value="OR">Oregon</option>
+                            <option value="PA">Pennsylvania</option>
+                            <option value="RI">Rhode Island</option>
+                            <option value="SC">South Carolina</option>
+                            <option value="SD">South Dakota</option>
+                            <option value="TN">Tennessee</option>
+                            <option value="TX">Texas</option>
+                            <option value="UT">Utah</option>
+                            <option value="VT">Vermont</option>
+                            <option value="VA">Virginia</option>
+                            <option value="WA">Washington</option>
+                            <option value="WV">West Virginia</option>
+                            <option value="WI">Wisconsin</option>
+                            <option value="WY">Wyoming</option>
+                            <option value="OT">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="text-center mt-4">
+                     <button type="submit" id="lookupButton" class="theme-button-primary py-3 px-8 rounded-lg font-semibold">
                         Lookup
                     </button>
                 </div>
@@ -198,47 +306,61 @@
 
             <p id="errorMessage" class="text-red-500 text-center mt-4 hidden"></p>
 
-
             <div id="resultsArea" class="mt-6 p-6 rounded-lg theme-section-bg shadow-inner hidden">
-                <h3 class="theme-title font-semibold text-xl mb-4">Vehicle Details</h3>
+                <h3 class="theme-title font-semibold text-xl mb-4">Registry Details</h3>
 
                 <div id="vehicleData" class="space-y-2">
                     <p><span class="results-label">Plate:</span> <span id="resultPlate" class="results-value font-mono">--</span></p>
+                    <p><span class="results-label">State:</span> <span id="resultState" class="results-value font-mono">--</span></p>
+                    <p><span class="results-label">Type:</span> <span id="resultType" class="results-value">--</span></p>
                     <p><span class="results-label">Make:</span> <span id="resultMake" class="results-value">--</span></p>
                     <p><span class="results-label">Model:</span> <span id="resultModel" class="results-value">--</span></p>
                     <p><span class="results-label">Color:</span> <span id="resultColor" class="results-value">--</span></p>
-                    <p><span class="results-label">Status:</span> <span id="resultStatus" class="results-value font-semibold">--</span></p>
+                    <p id="resultYearRow"><span class="results-label">Year:</span> <span id="resultYear" class="results-value">--</span></p>
+                    <p id="resultBanLvlRow"><span class="results-label">Ban Lvl:</span> <span id="resultBanLvl" class="results-value font-semibold">--</span></p>
+                    <p><span class="results-label">Owner User:</span> <span id="resultOwnerUsername" class="results-value">--</span></p>
                     <p><span class="results-label">Owner ID:</span> <span id="resultOwnerId" class="results-value font-mono">--</span></p>
-                     </div>
+                 </div>
 
-                <p id="notFoundMessage" class="theme-subtle-text text-center py-4 hidden">Vehicle not found in registry.</p>
+                <p id="notFoundMessage" class="theme-subtle-text text-center py-4 hidden">Plate not found in registry for the specified state.</p>
             </div>
         </div>
     </main>
 
     <script>
-        // --- UTILITY FUNCTIONS (Copied from shift_log.html for standalone usability) ---
-        // Basic Alert/Confirm/Redirect/Auth logic needed
-        if (typeof window.showCustomAlert === 'undefined') { window.showCustomAlert = (msg) => alert(msg); }
-        if (typeof window.showCustomConfirm === 'undefined') { window.showCustomConfirm = (msg) => confirm(msg); }
-        function redirectToLogin(message = "Session expired.") {
-            console.warn("Redirecting to login:", message);
-            window.showCustomAlert(message).then(() => {
-                sessionStorage.clear(); window.location.href = 'index.html';
-            });
-        }
-        // Basic stubs for JWT/Auth refresh - replace with your actual functions
+        // --- !!! IMPORTANT: SET YOUR WORKER URL HERE !!! ---
+        const API_BASE_URL = 'https://citation-app-worker.pnbober.workers.dev';
+        // --------------------------------------------------
+
+        // --- UTILITY FUNCTIONS ---
+        if (typeof window.showCustomAlert === 'undefined') { window.showCustomAlert = (msg, type) => { alert(msg); return Promise.resolve(); }; }
+        if (typeof window.showCustomConfirm === 'undefined') { window.showCustomConfirm = (msg) => Promise.resolve(confirm(msg)); }
+        function redirectToLogin(message = "Session error.") { console.warn("Redirecting:", message); window.showCustomAlert(message).then(() => { sessionStorage.clear(); window.location.href = 'index.html'; }); }
         function decodeJwt(token) { try { return JSON.parse(atob(token.split('.')[1])); } catch (e) { return null; } }
-        async function refreshAuthToken() { return false; } // Replace with actual refresh logic
         async function fetchWithAuth(url, options = {}) {
             let token = sessionStorage.getItem('authToken');
-             if (!token) { redirectToLogin(); return null; } // Basic check
+             if (!token) { redirectToLogin(); return null; }
             options.headers = { ...options.headers, 'Authorization': `Bearer ${token}` };
+             if (options.body && typeof options.body === 'object') {
+                 options.headers['Content-Type'] = 'application/json';
+                 options.body = JSON.stringify(options.body);
+             }
             try {
-                const response = await fetch(url, options);
-                 if (response.status === 401 || response.status === 403) { redirectToLogin(); return null; } // Basic handling
-                return response;
-            } catch (error) { console.error("Fetch error:", error); window.showCustomAlert('Network error.'); return null; }
+                const response = await fetch(API_BASE_URL + url, options);
+                 if (response.status === 401 || response.status === 403) { redirectToLogin(); return null; }
+                 if (response.status === 404 && url.includes('/api/registry/lookup/')) {
+                     return response; // Return 404 response for lookup
+                 }
+                 if (!response.ok) {
+                    const errData = await response.json().catch(() => ({ message: response.statusText }));
+                    throw new Error(errData.message || `HTTP error ${response.status}`);
+                 }
+                return response.status === 204 ? null : await response.json();
+            } catch (error) {
+                 console.error("Fetch error:", error);
+                 window.showCustomAlert(`Network or API error: ${error.message}`);
+                 return null;
+            }
         }
         // --- END UTILITY FUNCTIONS ---
 
@@ -253,6 +375,7 @@
             // --- Get DOM Elements ---
             const lookupForm = document.getElementById('lookupForm');
             const plateInput = document.getElementById('plateInput');
+            const stateInput = document.getElementById('stateInput');
             const lookupButton = document.getElementById('lookupButton');
             const loadingIndicator = document.getElementById('loadingIndicator');
             const errorMessage = document.getElementById('errorMessage');
@@ -262,86 +385,61 @@
 
             // Result spans
             const resultPlate = document.getElementById('resultPlate');
+            const resultState = document.getElementById('resultState');
+            const resultType = document.getElementById('resultType');
             const resultMake = document.getElementById('resultMake');
             const resultModel = document.getElementById('resultModel');
             const resultColor = document.getElementById('resultColor');
-            const resultStatus = document.getElementById('resultStatus');
+            const resultYearRow = document.getElementById('resultYearRow');
+            const resultYear = document.getElementById('resultYear');
+            const resultBanLvlRow = document.getElementById('resultBanLvlRow');
+            const resultBanLvl = document.getElementById('resultBanLvl');
+            const resultOwnerUsername = document.getElementById('resultOwnerUsername');
             const resultOwnerId = document.getElementById('resultOwnerId');
 
+            // Header/Sidebar elements
             const userNameDisplay = document.getElementById('userNameDisplay');
             const sidebarUsernameDisplay = document.getElementById('sidebarUsernameDisplay');
             const logoutButton = document.getElementById('logoutButton');
             const sidebarLogoutButton = document.getElementById('sidebarLogoutButton');
             const mainContentArea = document.getElementById('mainContentArea');
 
-            // Load user info
-            const loggedInUserString = sessionStorage.getItem('loggedInUser');
-            if (loggedInUserString) {
-                const loggedInUser = JSON.parse(loggedInUserString);
-                if (userNameDisplay && sidebarUsernameDisplay) {
-                    userNameDisplay.textContent = loggedInUser.username || 'Officer';
-                    sidebarUsernameDisplay.textContent = loggedInUser.username || 'USERNAME';
+            // --- Load user info & setup Logout ---
+             (function setupUserInfoAndLogout() {
+                const loggedInUserString = sessionStorage.getItem('loggedInUser');
+                if (loggedInUserString) {
+                    const loggedInUser = JSON.parse(loggedInUserString);
+                    if (userNameDisplay) userNameDisplay.textContent = loggedInUser.username || 'Officer';
+                    if (sidebarUsernameDisplay) sidebarUsernameDisplay.textContent = loggedInUser.username || 'USERNAME';
+                } else {
+                    redirectToLogin("User session data not found."); return;
                 }
-            } else {
-                redirectToLogin("User session data not found.");
-                return;
-            }
+                function handleLogout(event) {
+                    event.preventDefault();
+                    window.showCustomConfirm("Are you sure you want to log out?", "Confirm Logout").then(confirmed => {
+                        if (confirmed) { sessionStorage.clear(); window.location.href = 'index.html'; }
+                    });
+                }
+                if (logoutButton) logoutButton.addEventListener('click', handleLogout);
+                if (sidebarLogoutButton) sidebarLogoutButton.addEventListener('click', handleLogout);
+            })();
 
-            // Setup Logout button
-            function handleLogout(event) {
-                event.preventDefault();
-                window.showCustomConfirm("Are you sure you want to log out?", "Confirm Logout").then((confirmed) => {
-                    if (confirmed) {
-                        sessionStorage.clear(); // Clear all session data on logout
-                        window.location.href = 'index.html';
-                    }
-                });
-            }
-            if (logoutButton) logoutButton.addEventListener('click', handleLogout);
-            if (sidebarLogoutButton) sidebarLogoutButton.addEventListener('click', handleLogout);
+            // --- Sidebar/Swipe/Header Height Logic ---
+             (function setupLayout() {
+                 const appSidebar = document.getElementById('appSidebar'); const sidebarToggle = document.getElementById('sidebarToggle'); const appHeader = document.getElementById('appHeader'); const SIDEBAR_COLLAPSED_KEY = 'sidebarCollapsed'; const isCollapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true'; if (isCollapsed) { appSidebar.classList.add('collapsed'); appHeader.classList.add('collapsed'); if (window.innerWidth <= 1024) mainContentArea.classList.add('collapsed'); } else { if (window.innerWidth <= 1024) mainContentArea.classList.remove('collapsed'); } function toggleSidebar() { const isCurrentlyCollapsed = appSidebar.classList.toggle('collapsed'); appHeader.classList.toggle('collapsed'); if (window.innerWidth <= 1024) mainContentArea.classList.toggle('collapsed', isCurrentlyCollapsed); localStorage.setItem(SIDEBAR_COLLAPSED_KEY, isCurrentlyCollapsed); setTimeout(syncHeaderHeight, 300); } if (sidebarToggle) sidebarToggle.addEventListener('click', toggleSidebar); let touchStartX = 0, touchEndX = 0; const swipeThreshold = 50; document.body.addEventListener('touchstart', (e) => { if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') { touchStartX = null; return; } touchStartX = e.changedTouches[0].screenX; }, { passive: true }); document.body.addEventListener('touchend', (e) => { if (touchStartX === null) return; touchEndX = e.changedTouches[0].screenX; handleSwipeGesture(); }, { passive: true }); function handleSwipeGesture() { if (window.innerWidth >= 1024) return; const deltaX = touchEndX - touchStartX; const isSidebarCollapsed = appSidebar.classList.contains('collapsed'); if (deltaX < -swipeThreshold && !isSidebarCollapsed) toggleSidebar(); else if (deltaX > swipeThreshold && isSidebarCollapsed) toggleSidebar(); touchStartX = 0; touchEndX = 0; }
+                 window.syncHeaderHeight = function() { const header = document.getElementById('appHeader'); const mainContent = document.getElementById('mainContentArea'); if (!header || !mainContent) return; const height = header.offsetHeight || 0; const safePadding = height + 16; mainContent.style.paddingTop = safePadding + 'px'; document.documentElement.style.setProperty('--app-header-height', height + 'px'); }; window.addEventListener('DOMContentLoaded', async () => { syncHeaderHeight(); setTimeout(syncHeaderHeight, 250); }); window.addEventListener('resize', syncHeaderHeight);
+             })();
 
-             // --- Sidebar Collapse Logic ---
-            const appSidebar = document.getElementById('appSidebar');
-            const sidebarToggle = document.getElementById('sidebarToggle');
-            const appHeader = document.getElementById('appHeader');
-            const SIDEBAR_COLLAPSED_KEY = 'sidebarCollapsed';
-            const isCollapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
-
-            if (isCollapsed) {
-                appSidebar.classList.add('collapsed'); appHeader.classList.add('collapsed');
-                 if (window.innerWidth <= 1024) mainContentArea.classList.add('collapsed');
-            } else {
-                 if (window.innerWidth <= 1024) mainContentArea.classList.remove('collapsed');
-            }
-            function toggleSidebar() {
-                const isCurrentlyCollapsed = appSidebar.classList.toggle('collapsed');
-                appHeader.classList.toggle('collapsed');
-                 if (window.innerWidth <= 1024) mainContentArea.classList.toggle('collapsed', isCurrentlyCollapsed);
-                localStorage.setItem(SIDEBAR_COLLAPSED_KEY, isCurrentlyCollapsed);
-                setTimeout(syncHeaderHeight, 300);
-            }
-            if (sidebarToggle) sidebarToggle.addEventListener('click', toggleSidebar);
-             // --- End Sidebar Collapse Logic ---
-
-             // --- Swipe Gesture Logic ---
-            let touchStartX = 0, touchEndX = 0; const swipeThreshold = 50;
-            document.body.addEventListener('touchstart', (e) => {
-                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') { touchStartX = null; return; }
-                 touchStartX = e.changedTouches[0].screenX; }, { passive: true });
-            document.body.addEventListener('touchend', (e) => {
-                 if (touchStartX === null) return; touchEndX = e.changedTouches[0].screenX; handleSwipeGesture(); }, { passive: true });
-            function handleSwipeGesture() {
-                 if (window.innerWidth >= 1024) return; const deltaX = touchEndX - touchStartX; const isSidebarCollapsed = appSidebar.classList.contains('collapsed');
-                if (deltaX < -swipeThreshold && !isSidebarCollapsed) toggleSidebar(); else if (deltaX > swipeThreshold && isSidebarCollapsed) toggleSidebar();
-                touchStartX = 0; touchEndX = 0;
-            }
-             // --- End Swipe Gesture Logic ---
 
             // --- Lookup Form Submission ---
             lookupForm.addEventListener('submit', async function(event) {
                 event.preventDefault();
                 const plate = plateInput.value.trim().toUpperCase();
-                if (!plate) return;
+                const state = stateInput.value;
+                if (!plate || !state) {
+                     window.showCustomAlert("Please enter both plate number and state.");
+                     return;
+                };
 
                 // Reset UI
                 resultsArea.classList.add('hidden');
@@ -351,86 +449,59 @@
                 loadingIndicator.classList.remove('hidden');
                 lookupButton.disabled = true;
 
-                // MOCK API CALL - Replace with actual fetchWithAuth
-                console.log(`Looking up plate: ${plate}`);
-                await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
-
                 try {
-                    // --- Replace this block with your actual API call ---
-                    let found = false;
-                    let data = null;
-                    if (plate === 'TEST123') { // Example: Found
-                         found = true;
-                         data = {
-                            plate_number: 'TEST123',
-                            make: 'ExampleMake',
-                            model: 'ExampleModel',
-                            color: 'Blue',
-                            registration_status: 'Valid',
-                            owner_user_id: 'user123'
-                         };
-                    } else if (plate === 'EXPIRED') { // Example: Found but Expired
-                        found = true;
-                        data = {
-                            plate_number: 'EXPIRED',
-                            make: 'OldMake',
-                            model: 'OldModel',
-                            color: 'Red',
-                            registration_status: 'Expired',
-                            owner_user_id: 'user456'
-                         };
-                    }
-                     // --- End of mock block ---
+                    // --- ACTUAL API CALL ---
+                    const lookupUrl = `/api/registry/lookup/${encodeURIComponent(plate)}/${encodeURIComponent(state)}`;
+                    const response = await fetchWithAuth(lookupUrl, { method: 'GET' });
+                    // --- END API CALL ---
 
-                    /* --- EXAMPLE Actual API Call ---
-                    const response = await fetchWithAuth(`/api/vehicles/lookup/${plate}`);
-                    if (!response) { // fetchWithAuth handles auth errors/redirects
-                        throw new Error("Authentication or network issue.");
-                    }
-
-                    if (response.ok) {
-                        data = await response.json();
-                        found = true;
-                    } else if (response.status === 404) {
-                        found = false;
-                    } else {
-                        throw new Error(`Server error: ${response.statusText}`);
-                    }
-                    */
-
-                    // --- Process results ---
                     loadingIndicator.classList.add('hidden');
                     resultsArea.classList.remove('hidden');
 
-                    if (found && data) {
-                        resultPlate.textContent = data.plate_number || '--';
+                    if (response && response.status === 404) {
+                        // Not found
+                        vehicleData.classList.add('hidden');
+                        notFoundMessage.classList.remove('hidden');
+                    } else if (response) { // Found (status 200 assumed)
+                        const data = response; // Response is already parsed JSON
+
+                        resultPlate.textContent = data.plate || '--';
+                        resultState.textContent = data.state || '--';
+                        resultType.textContent = data.type || '--';
                         resultMake.textContent = data.make || '--';
                         resultModel.textContent = data.model || '--';
                         resultColor.textContent = data.color || '--';
-                        resultStatus.textContent = data.registration_status || '--';
-                        resultOwnerId.textContent = data.owner_user_id || '--';
+                        resultOwnerUsername.textContent = data.owner_username || '--';
+                        resultOwnerId.textContent = data.owner_discord_id || '--';
 
-                        // Highlight status based on value (example)
-                        resultStatus.classList.remove('text-green-500', 'text-red-500', 'text-yellow-500');
-                        if (data.registration_status?.toLowerCase() === 'valid') {
-                            resultStatus.classList.add('text-green-500');
-                        } else if (data.registration_status?.toLowerCase() === 'expired' || data.registration_status?.toLowerCase() === 'stolen') {
-                             resultStatus.classList.add('text-red-500');
-                        } else {
-                             resultStatus.classList.add('text-yellow-500'); // For unknown or other statuses
+                        // Show/Hide fields based on type
+                        if (data.type === 'Vehicle') {
+                            resultYearRow.classList.remove('hidden');
+                            resultBanLvlRow.classList.remove('hidden');
+                            resultYear.textContent = data.year || '--';
+                            
+                            // Ban Level Display
+                            const banInfo = getBanLevelTextAndClass(data.ban_lvl);
+                            resultBanLvl.textContent = banInfo.text;
+                            resultBanLvl.className = `results-value font-semibold ${banInfo.className}`;
+                        } else { // Trailer or unknown
+                            resultYearRow.classList.add('hidden');
+                            resultBanLvlRow.classList.add('hidden');
+                            resultYear.textContent = '--';
+                            resultBanLvl.textContent = '--';
+                            resultBanLvl.className = 'results-value font-semibold';
                         }
 
                         vehicleData.classList.remove('hidden');
                         notFoundMessage.classList.add('hidden');
 
                     } else {
-                        // Not found
-                        vehicleData.classList.add('hidden');
-                        notFoundMessage.classList.remove('hidden');
+                        // fetchWithAuth returned null (e.g., auth error)
+                         resultsArea.classList.add('hidden');
                     }
 
                 } catch (error) {
-                    console.error('Lookup failed:', error);
+                    console.error('Lookup processing failed:', error);
                     loadingIndicator.classList.add('hidden');
                     errorMessage.textContent = `Lookup failed: ${error.message || 'Check console.'}`;
                     errorMessage.classList.remove('hidden');
@@ -439,22 +510,19 @@
                     lookupButton.disabled = false;
                 }
             });
-        });
 
-        // --- DYNAMIC HEADER HEIGHT SCRIPT ---
-        (function() {
-            window.syncHeaderHeight = function() { // Made global
-              const header = document.getElementById('appHeader');
-              const mainContent = document.getElementById('mainContentArea');
-              if (!header || !mainContent) return;
-              const height = header.offsetHeight || 0; const safePadding = height + 16;
-              mainContent.style.paddingTop = safePadding + 'px';
-              document.documentElement.style.setProperty('--app-header-height', height + 'px');
+            // Helper function to get ban level text and class
+            function getBanLevelTextAndClass(level) {
+                level = parseInt(level, 10);
+                switch (level) {
+                    case 0: return { text: '0 (None)', className: 'ban-level-0 text-green-500' };
+                    case 1: return { text: '1 (Warning)', className: 'ban-level-1 text-yellow-500' };
+                    case 2: return { text: '2 (Suspended)', className: 'ban-level-2 text-orange-500' };
+                    case 3: return { text: '3 (Impound/Ban)', className: 'ban-level-3 text-red-500' };
+                    default: return { text: `${level === null || isNaN(level) ? 'N/A' : level} (Unknown)`, className: 'ban-level-unknown theme-subtle-text' };
+                }
             }
-            window.addEventListener('DOMContentLoaded', async () => { syncHeaderHeight(); setTimeout(syncHeaderHeight, 250); });
-            window.addEventListener('resize', syncHeaderHeight);
-        })();
-        // --- END DYNAMIC HEADER HEIGHT SCRIPT ---
+        });
     </script>
 </body>
 </html>
