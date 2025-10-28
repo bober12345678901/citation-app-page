@@ -52,14 +52,14 @@
         .theme-input {
             background-color: var(--input-bg-color); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 0.75rem; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06); width: 100%; transition: border-color 0.2s, box-shadow 0.2s;
         }
-        .info-label { font-weight: 600; color: var(--subtle-text-color); min-width: 130px; display: inline-block; }
+        .info-label { font-weight: 600; color: var(--subtle-text-color); min-width: 100px; /* Adjusted min-width slightly */ display: inline-block; }
         .info-value { color: var(--text-color); }
-        code { background-color: var(--input-bg-color); padding: 0.1em 0.3em; border-radius: 0.25rem; font-family: monospace; } /* Style for code tags */
+        code { background-color: color-mix(in srgb, var(--input-bg-color) 80%, var(--border-color)); /* Slightly adjusted bg */ padding: 0.1em 0.3em; border-radius: 0.25rem; font-family: monospace; font-size: 0.9em; }
 
         /* Styles copied from my_garage.html */
         .column-card { border: 1px solid var(--border-color); background-color: var(--card-bg-color); border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); min-height: 300px; display: flex; flex-direction: column; }
-        .column-content { flex-grow: 1; overflow-y: auto; }
-        .vehicle-card, .trailer-card, .record-card { border: 1px solid var(--border-color); background-color: var(--input-bg-color); border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem; position: relative; } /* Added position relative */
+        .column-content { flex-grow: 1; overflow-y: auto; padding-right: 5px; /* Add slight padding for scrollbar */ }
+        .vehicle-card, .trailer-card, .record-card { border: 1px solid var(--border-color); background-color: var(--input-bg-color); border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem; position: relative; }
         .ban-level-0 { color: #22c55e; } .ban-level-1 { color: #facc15; } .ban-level-2 { color: #f97316; } .ban-level-3 { color: #ef4444; } .ban-level-unknown { color: var(--subtle-text-color); }
         .registration-form { border: 1px solid var(--border-color); background-color: var(--input-bg-color); border-radius: 0.75rem; padding: 1.5rem; margin-top: 1rem; }
         .add-button { color: #22c55e; font-size: 1.5rem; font-weight: bold; transition: color 0.2s; }
@@ -74,8 +74,12 @@
 
         /* Theme Dropdown Styles */
         .theme-dropdown-menu { background-color: var(--box-bg-color); border: 1px solid var(--border-color); opacity: 1; z-index: 60; position: absolute; right: 0; margin-top: 0.5rem; width: 12rem; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); origin-y: top; display: none; }
-        .theme-dropdown-menu button { color: var(--text-color); }
+        .theme-dropdown-menu button { color: var(--text-color); width: 100%; text-align: left; padding: 0.5rem 1rem; } /* Added button styling */
         .theme-dropdown-menu button:hover { background-color: var(--input-bg-color); }
+
+        /* Style for Paid Checkbox Area */
+        .record-card .absolute { line-height: 1; } /* Ensure checkbox aligns well */
+        .record-card .paid-checkbox:disabled { opacity: 0.7; cursor: not-allowed; }
     </style>
 </head>
 <body class="min-h-screen theme-app-container flex flex-row theme-bg-color">
@@ -218,9 +222,9 @@
         </div>
     </main>
     <script>
-        // --- !!! IMPORTANT: SET YOUR WORKER URL HERE !!! ---
+        // --- !!! Worker URL !!! ---
         const API_BASE_URL = 'https://citation-app-worker.pnbober.workers.dev';
-        // --------------------------------------------------
+        // --------------------------
 
         // --- GLOBAL STATE ---
         let currentlyEditingVehicleId = null;
@@ -243,7 +247,7 @@
             }
 
             options.headers = { ...options.headers, 'Authorization': `Bearer ${token}` };
-            if (options.body && typeof options.body === 'object') { // Auto-stringify if object
+            if (options.body && typeof options.body === 'object') {
                 options.headers['Content-Type'] = 'application/json';
                 options.body = JSON.stringify(options.body);
             }
@@ -256,16 +260,13 @@
                     return null;
                 }
                 
-                // Get response data, handle empty or non-JSON
                 const responseData = await response.json().catch(() => ({})); 
 
                 if (!response.ok) {
                     throw new Error(responseData.message || `Error ${response.status}`);
                 }
                 
-                // Return success message plus data for 200/201 on POST/PUT/DELETE
                  if (options.method === 'POST' || options.method === 'PUT' || options.method === 'DELETE') {
-                     // For DELETE, response might be empty, use a default success message
                      return { success: true, message: responseData.message || "Operation successful.", data: responseData };
                  }
                 
@@ -284,7 +285,9 @@
         function redirectToLogin(message) {
              console.warn(message);
              localStorage.removeItem('citizenAuthToken');
-             document.getElementById('welcomeMessage').textContent = message;
+             // Attempt to update message even if element might not exist yet
+             const welcomeMsgEl = document.getElementById('welcomeMessage');
+             if (welcomeMsgEl) welcomeMsgEl.textContent = message;
              setTimeout(() => {
                 window.location.href = 'citizen_login.html';
              }, 2000);
@@ -410,7 +413,7 @@
                     </div>
                     <div class="mt-4 flex space-x-2">
                         <button class="btn-edit-vehicle theme-button-secondary text-xs py-1 px-2 rounded" ${isBanned ? 'disabled' : ''}>Edit Info</button>
-                        <button class="btn-remove-vehicle theme-button-danger text-xs py-1 px-2 rounded">Remove</button> {/* */}
+                        <button class="btn-remove-vehicle theme-button-danger text-xs py-1 px-2 rounded">Remove</button>
                     </div>`;
                 return div;
             }
@@ -438,7 +441,7 @@
                     </div>
                     <div class="mt-4 flex space-x-2">
                         <button class="btn-edit-trailer theme-button-secondary text-xs py-1 px-2 rounded">Edit Info</button>
-                        <button class="btn-remove-trailer theme-button-danger text-xs py-1 px-2 rounded">Remove</button> {/* */}
+                        <button class="btn-remove-trailer theme-button-danger text-xs py-1 px-2 rounded">Remove</button>
                     </div>`;
                 return div;
             }
@@ -470,7 +473,7 @@
                 const isPaid = record.paidStatus === true;
                 const checkboxId = `paid-${type.toLowerCase()}-${record.id}`;
 
-                const paidCheckboxHTML = type === 'Citation' ? ` {/* */}
+                const paidCheckboxHTML = `
                     <div class="absolute top-2 right-2 flex items-center">
                         <input type="checkbox" id="${checkboxId}" class="paid-checkbox h-4 w-4 theme-input rounded mr-1"
                                data-record-id="${record.id}" data-record-type="${type}"
@@ -479,19 +482,15 @@
                             ${isPaid ? 'Paid' : 'Mark Paid'}
                         </label>
                     </div>
-                ` : ''; // No checkbox for arrests
+                `;
 
                 if (type === 'Citation') {
                     title = `Citation (#${record.id.slice(-6)})`;
                     officer = record.submittedBy || record.officerName || 'N/A';
                     amount = `Due: $${parseFloat(record.totalAmountDue || 0).toFixed(2)}`;
                     const codes = record.appliedPenalCodes || [];
-                    if (codes.length > 0) {
-                        penalCodes = codes.map(pc => `<code>${pc.code || 'N/A'}</code>`).join(', ');
-                        details = codes.map(pc => pc.description || 'N/A').join('; ');
-                    } else {
-                        penalCodes = 'N/A'; details = record.violationDetails || 'N/A';
-                    }
+                    penalCodes = codes.length > 0 ? codes.map(pc => `<code>${pc.code || 'N/A'}</code>`).join(', ') : 'N/A';
+                    details = codes.length > 0 ? codes.map(pc => pc.description || 'N/A').join('; ') : (record.violationDetails || 'N/A');
                 } else { // Arrest
                     title = `Arrest (#${record.id.slice(-6)})`;
                     officer = record.submittedBy || record.arrestingOfficerName || 'N/A';
@@ -505,7 +504,7 @@
                     }
                 }
 
-                if (isPaid && type === 'Citation') div.classList.add('opacity-60'); // Dim only paid citations
+                if (isPaid) div.classList.add('opacity-60'); // Dim if paid
 
                 div.innerHTML = `
                     ${paidCheckboxHTML}
@@ -532,19 +531,26 @@
             async function handlePaidCheckboxChange(event) {
                 const checkbox = event.target;
                 const recordId = checkbox.dataset.recordId;
-                const recordType = checkbox.dataset.recordType;
+                const recordType = checkbox.dataset.recordType; // 'Citation' or 'Arrest'
 
-                if (!recordId || recordType !== 'Citation') {
+                if (!recordId || (recordType !== 'Citation' && recordType !== 'Arrest')) {
+                    console.error("Invalid record type or ID for marking paid.");
                     checkbox.checked = false; return;
                 }
                 checkbox.disabled = true;
                 const label = checkbox.nextElementSibling;
                 if(label) label.textContent = 'Saving...';
 
-                const confirmed = await window.showCustomConfirm("Are you sure you want to mark this citation as paid? This cannot be undone through the portal.", "Confirm Payment");
+                const confirmMessage = `Are you sure you want to mark this ${recordType.toLowerCase()} record as paid? This cannot be undone through the portal.`;
+                const confirmed = await window.showCustomConfirm(confirmMessage, `Confirm ${recordType} Paid`);
 
                 if (confirmed) {
-                    const result = await fetchWithAuth(`/api/citizen/citations/${recordId}/mark-paid`, { method: 'PUT' });
+                    let apiUrl = '';
+                    if (recordType === 'Citation') apiUrl = `/api/citizen/citations/${recordId}/mark-paid`;
+                    else apiUrl = `/api/citizen/arrests/${recordId}/mark-paid`; // Arrest endpoint
+
+                    const result = await fetchWithAuth(apiUrl, { method: 'PUT' });
+
                     if (result && result.success) {
                         await window.showCustomAlert(result.message, "Success");
                         checkbox.checked = true; checkbox.disabled = true;
