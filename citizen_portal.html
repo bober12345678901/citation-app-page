@@ -21,7 +21,7 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="styles.css">
-    <script src="theme.js"></script>
+    <script src="theme.js" defer></script> {/* */}
     <style>
         /* All styles from my_garage.html */
         .dashboard-form-container { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); transition: box-shadow 0.3s; }
@@ -49,42 +49,33 @@
         .sidebar-item-text { margin-left: 1rem; transition: opacity 0.3s; }
         .sidebar-user-info { padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); font-size: 0.875rem; transition: opacity 0.3s; }
         .sidebar-toggle-button { position: absolute; right: -12px; top: 50%; transform: translateY(-50%); width: 24px; height: 24px; border-radius: 50%; background-color: var(--accent-color); color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); transition: transform 0.3s, background-color 0.3s, right 0.3s; z-index: 50; }
-        .theme-input { border-radius: 0.5rem; padding: 0.75rem; border-color: var(--border-color); box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06); }
+        .theme-input {
+            background-color: var(--input-bg-color); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 0.75rem; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06); width: 100%; transition: border-color 0.2s, box-shadow 0.2s;
+        }
         .info-label { font-weight: 600; color: var(--subtle-text-color); min-width: 130px; display: inline-block; }
         .info-value { color: var(--text-color); }
+        code { background-color: var(--input-bg-color); padding: 0.1em 0.3em; border-radius: 0.25rem; font-family: monospace; } /* Style for code tags */
 
         /* Styles copied from my_garage.html */
-        .column-card {
-            border: 1px solid var(--border-color);
-            background-color: var(--card-bg-color);
-            border-radius: 0.75rem; /* rounded-xl */
-            padding: 1.5rem; /* p-6 */
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            min-height: 300px;
-            display: flex;
-            flex-direction: column;
-        }
+        .column-card { border: 1px solid var(--border-color); background-color: var(--card-bg-color); border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); min-height: 300px; display: flex; flex-direction: column; }
         .column-content { flex-grow: 1; overflow-y: auto; }
-        .vehicle-card, .trailer-card {
-             border: 1px solid var(--border-color);
-             background-color: var(--input-bg-color);
-             border-radius: 0.5rem;
-             padding: 1rem;
-             margin-bottom: 1rem;
-        }
-        .record-card {
-             border: 1px solid var(--border-color);
-             background-color: var(--input-bg-color);
-             border-radius: 0.5rem;
-             padding: 1rem;
-             margin-bottom: 1rem;
-        }
+        .vehicle-card, .trailer-card, .record-card { border: 1px solid var(--border-color); background-color: var(--input-bg-color); border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem; position: relative; } /* Added position relative */
         .ban-level-0 { color: #22c55e; } .ban-level-1 { color: #facc15; } .ban-level-2 { color: #f97316; } .ban-level-3 { color: #ef4444; } .ban-level-unknown { color: var(--subtle-text-color); }
         .registration-form { border: 1px solid var(--border-color); background-color: var(--input-bg-color); border-radius: 0.75rem; padding: 1.5rem; margin-top: 1rem; }
-        .add-button {
-             color: #22c55e; font-size: 1.5rem; font-weight: bold; transition: color 0.2s;
-        }
+        .add-button { color: #22c55e; font-size: 1.5rem; font-weight: bold; transition: color 0.2s; }
         .add-button:hover { color: #16a34a; }
+
+        /* Styles for themed select */
+        .theme-input select, select.theme-input {
+            appearance: none; background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>'); background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 1.5em 1.5em; padding-right: 2.5rem;
+        }
+        /* Focus state */
+        .theme-input:focus { outline: none; border-color: var(--accent-color); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-color) 30%, transparent); }
+
+        /* Theme Dropdown Styles */
+        .theme-dropdown-menu { background-color: var(--box-bg-color); border: 1px solid var(--border-color); opacity: 1; z-index: 60; position: absolute; right: 0; margin-top: 0.5rem; width: 12rem; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); origin-y: top; display: none; }
+        .theme-dropdown-menu button { color: var(--text-color); }
+        .theme-dropdown-menu button:hover { background-color: var(--input-bg-color); }
     </style>
 </head>
 <body class="min-h-screen theme-app-container flex flex-row theme-bg-color">
@@ -130,7 +121,7 @@
                         <span id="currentThemeIcon" class="w-6 h-6 flex items-center justify-center"></span>
                         <svg id="dropdownArrow" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
-                    <div id="themeDropdownMenu" class="absolute right-0 mt-2 w-48 rounded-lg shadow-2xl ring-1 ring-black ring-opacity-10 origin-top-right hidden theme-dropdown-menu">
+                    <div id="themeDropdownMenu" class="theme-dropdown-menu absolute right-0 mt-2 w-48 rounded-lg shadow-2xl ring-1 ring-black ring-opacity-10 origin-top-right hidden">
                         <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="themeToggle" id="themeOptions"></div>
                     </div>
                 </div>
@@ -152,88 +143,19 @@
                         <form id="addVehicleForm" class="registration-form hidden mb-6">
                             <h3 id="addVehicleFormTitle" class="theme-title font-semibold text-xl mb-4">Register New Vehicle</h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label for="vehicleBrand" class="theme-label block mb-1 text-sm font-medium">Brand:</label>
-                                    <input type="text" id="vehicleBrand" name="brand" required class="theme-input w-full p-2 border rounded-lg text-sm">
-                                </div>
-                                <div>
-                                    <label for="vehicleModel" class="theme-label block mb-1 text-sm font-medium">Model:</label>
-                                    <input type="text" id="vehicleModel" name="model" required class="theme-input w-full p-2 border rounded-lg text-sm">
-                                </div>
-                                <div>
-                                    <label for="vehicleYear" class="theme-label block mb-1 text-sm font-medium">Year:</label>
-                                    <input type="number" id="vehicleYear" name="year" required class="theme-input w-full p-2 border rounded-lg text-sm" min="1900" max="2100">
-                                </div>
-                                <div>
-                                    <label for="vehicleColor" class="theme-label block mb-1 text-sm font-medium">Color:</label>
-                                    <input type="text" id="vehicleColor" name="color" required class="theme-input w-full p-2 border rounded-lg text-sm">
-                                </div>
-                                <div>
-                                    <label for="vehiclePlate" class="theme-label block mb-1 text-sm font-medium">Plate Text:</label>
-                                    <input type="text" id="vehiclePlate" name="plateText" required class="theme-input w-full p-2 border rounded-lg text-sm uppercase" maxlength="10">
-                                </div>
+                                <div><label for="vehicleBrand" class="theme-label block mb-1 text-sm font-medium">Brand:</label><input type="text" id="vehicleBrand" name="brand" required class="theme-input w-full p-2 border rounded-lg text-sm"></div>
+                                <div><label for="vehicleModel" class="theme-label block mb-1 text-sm font-medium">Model:</label><input type="text" id="vehicleModel" name="model" required class="theme-input w-full p-2 border rounded-lg text-sm"></div>
+                                <div><label for="vehicleYear" class="theme-label block mb-1 text-sm font-medium">Year:</label><input type="number" id="vehicleYear" name="year" required class="theme-input w-full p-2 border rounded-lg text-sm" min="1900" max="2100"></div>
+                                <div><label for="vehicleColor" class="theme-label block mb-1 text-sm font-medium">Color:</label><input type="text" id="vehicleColor" name="color" required class="theme-input w-full p-2 border rounded-lg text-sm"></div>
+                                <div><label for="vehiclePlate" class="theme-label block mb-1 text-sm font-medium">Plate Text:</label><input type="text" id="vehiclePlate" name="plateText" required class="theme-input w-full p-2 border rounded-lg text-sm uppercase" maxlength="10"></div>
                                 <div>
                                     <label for="vehicleState" class="theme-label block mb-1 text-sm font-medium">State:</label>
                                     <select id="vehicleState" name="state" required class="theme-input w-full p-2 border rounded-lg text-sm">
                                         <option value="">Select State...</option>
-                                        <option value="AL">Alabama</option>
-                                        <option value="AK">Alaska</option>
-                                        <option value="AZ">Arizona</option>
-                                        <option value="AR">Arkansas</option>
-                                        <option value="CA">California</option>
-                                        <option value="CO">Colorado</option>
-                                        <option value="CT">Connecticut</option>
-                                        <option value="DE">Delaware</option>
-                                        <option value="DC">District Of Columbia</option>
-                                        <option value="FL">Florida</option>
-                                        <option value="GA">Georgia</option>
-                                        <option value="HI">Hawaii</option>
-                                        <option value="ID">Idaho</option>
-                                        <option value="IL">Illinois</option>
-                                        <option value="IN">Indiana</option>
-                                        <option value="IA">Iowa</option>
-                                        <option value="KS">Kansas</option>
-                                        <option value="KY">Kentucky</option>
-                                        <option value="LA">Louisiana</option>
-                                        <option value="ME">Maine</option>
-                                        <option value="MD">Maryland</option>
-                                        <option value="MA">Massachusetts</option>
-                                        <option value="MI">Michigan</option>
-                                        <option value="MN">Minnesota</option>
-                                        <option value="MS">Mississippi</option>
-                                        <option value="MO">Missouri</option>
-                                        <option value="MT">Montana</option>
-                                        <option value="NE">Nebraska</option>
-                                        <option value="NV">Nevada</option>
-                                        <option value="NH">New Hampshire</option>
-                                        <option value="NJ">New Jersey</option>
-                                        <option value="NM">New Mexico</option>
-                                        <option value="NY">New York</option>
-                                        <option value="NC">North Carolina</option>
-                                        <option value="ND">North Dakota</option>
-                                        <option value="OH">Ohio</option>
-                                        <option value="OK">Oklahoma</option>
-                                        <option value="OR">Oregon</option>
-                                        <option value="PA">Pennsylvania</option>
-                                        <option value="RI">Rhode Island</option>
-                                        <option value="SC">South Carolina</option>
-                                        <option value="SD">South Dakota</option>
-                                        <option value="TN">Tennessee</option>
-                                        <option value="TX">Texas</option>
-                                        <option value="UT">Utah</option>
-                                        <option value="VT">Vermont</option>
-                                        <option value="VA">Virginia</option>
-                                        <option value="WA">Washington</option>
-                                        <option value="WV">West Virginia</option>
-                                        <option value="WI">Wisconsin</option>
-                                        <option value="WY">Wyoming</option>
-                                        <option value="OT">Other</option>
+                                        <option value="AL">Alabama</option><option value="AK">Alaska</option><option value="AZ">Arizona</option><option value="AR">Arkansas</option><option value="CA">California</option><option value="CO">Colorado</option><option value="CT">Connecticut</option><option value="DE">Delaware</option><option value="DC">District Of Columbia</option><option value="FL">Florida</option><option value="GA">Georgia</option><option value="HI">Hawaii</option><option value="ID">Idaho</option><option value="IL">Illinois</option><option value="IN">Indiana</option><option value="IA">Iowa</option><option value="KS">Kansas</option><option value="KY">Kentucky</option><option value="LA">Louisiana</option><option value="ME">Maine</option><option value="MD">Maryland</option><option value="MA">Massachusetts</option><option value="MI">Michigan</option><option value="MN">Minnesota</option><option value="MS">Mississippi</option><option value="MO">Missouri</option><option value="MT">Montana</option><option value="NE">Nebraska</option><option value="NV">Nevada</option><option value="NH">New Hampshire</option><option value="NJ">New Jersey</option><option value="NM">New Mexico</option><option value="NY">New York</option><option value="NC">North Carolina</option><option value="ND">North Dakota</option><option value="OH">Ohio</option><option value="OK">Oklahoma</option><option value="OR">Oregon</option><option value="PA">Pennsylvania</option><option value="RI">Rhode Island</option><option value="SC">South Carolina</option><option value="SD">South Dakota</option><option value="TN">Tennessee</option><option value="TX">Texas</option><option value="UT">Utah</option><option value="VT">Vermont</option><option value="VA">Virginia</option><option value="WA">Washington</option><option value="WV">West Virginia</option><option value="WI">Wisconsin</option><option value="WY">Wyoming</option><option value="OT">Other</option>
                                     </select>
                                 </div>
-                                <div>
-                                    <label for="vehicleBanLvl" class="theme-label block mb-1 text-sm font-medium">Vehicle Ban Lvl:</label>
-                                    <input type="number" id="vehicleBanLvl" name="vehicleBanLvl" required class="theme-input w-full p-2 border rounded-lg text-sm" min="0" max="3" value="0">
-                                </div>
+                                <div><label for="vehicleBanLvl" class="theme-label block mb-1 text-sm font-medium">Vehicle Ban Lvl:</label><input type="number" id="vehicleBanLvl" name="vehicleBanLvl" required class="theme-input w-full p-2 border rounded-lg text-sm" min="0" max="3" value="0"></div>
                             </div>
                             <div class="mt-4 flex justify-end space-x-2">
                                 <button type="button" id="cancelAddVehicleBtn" class="theme-button-secondary py-2 px-4 rounded-lg font-semibold text-sm">Cancel</button>
@@ -246,7 +168,7 @@
                     </div>
                 </div>
 
-				<div id="recordSection" class="column-card flex-1">
+                <div id="recordSection" class="column-card flex-1">
                     <div class="flex justify-between items-center mb-4 pb-2 border-b border-[var(--border-color)]">
                         <h2 class="theme-title text-xl font-bold flex items-center">My Record</h2>
                     </div>
@@ -255,7 +177,6 @@
                              <p class="text-sm"><span class="info-label">Discord ID:</span> <span id="recordDiscordId" class="info-value font-mono">--</span></p>
                         </div>
                         <h3 class="theme-title font-semibold mb-2">Citations & Arrests:</h3>
-                        {/* */}
                         <div id="recordList">
                             <p id="noRecordsMessage" class="theme-subtle-text text-center mt-4">You have a clean record!</p>
                         </div>
@@ -274,63 +195,11 @@
                                   <div><label for="trailerModel" class="theme-label block mb-1 text-sm font-medium">Trailer Model:</label><input type="text" id="trailerModel" name="trailerModel" required class="theme-input w-full p-2 border rounded-lg text-sm"></div>
                                   <div><label for="trailerColor" class="theme-label block mb-1 text-sm font-medium">Trailer Color:</label><input type="text" id="trailerColor" name="trailerColor" required class="theme-input w-full p-2 border rounded-lg text-sm"></div>
                                   <div class="md:col-span-2"><label for="trailerPlate" class="theme-label block mb-1 text-sm font-medium">Plate Text:</label><input type="text" id="trailerPlate" name="trailerPlate" required class="theme-input w-full p-2 border rounded-lg text-sm uppercase" maxlength="10"></div>
-                                  
                                   <div class="md:col-span-2">
                                       <label for="trailerState" class="theme-label block mb-1 text-sm font-medium">State:</label>
                                       <select id="trailerState" name="state" required class="theme-input w-full p-2 border rounded-lg text-sm">
                                           <option value="">Select State...</option>
-                                          <option value="AL">Alabama</option>
-                                          <option value="AK">Alaska</option>
-                                          <option value="AZ">Arizona</option>
-                                          <option value="AR">Arkansas</option>
-                                          <option value="CA">California</option>
-                                          <option value="CO">Colorado</option>
-                                          <option value="CT">Connecticut</option>
-                                          <option value="DE">Delaware</option>
-                                          <option value="DC">District Of Columbia</option>
-                                          <option value="FL">Florida</option>
-                                          <option value="GA">Georgia</option>
-                                          <option value="HI">Hawaii</option>
-                                          <option value="ID">Idaho</option>
-                                          <option value="IL">Illinois</option>
-                                          <option value="IN">Indiana</option>
-                                          <option value="IA">Iowa</option>
-                                          <option value="KS">Kansas</option>
-                                          <option value="KY">Kentucky</option>
-                                          <option value="LA">Louisiana</option>
-                                          <option value="ME">Maine</option>
-                                          <option value="MD">Maryland</option>
-                                          <option value="MA">Massachusetts</option>
-                                          <option value="MI">Michigan</option>
-                                          <option value="MN">Minnesota</option>
-                                          <option value="MS">Mississippi</option>
-                                          <option value="MO">Missouri</option>
-                                          <option value="MT">Montana</option>
-                                          <option value="NE">Nebraska</option>
-                                          <option value="NV">Nevada</option>
-                                          <option value="NH">New Hampshire</option>
-                                          <option value="NJ">New Jersey</option>
-                                          <option value="NM">New Mexico</option>
-                                          <option value="NY">New York</option>
-                                          <option value="NC">North Carolina</option>
-                                          <option value="ND">North Dakota</option>
-                                          <option value="OH">Ohio</option>
-                                          <option value="OK">Oklahoma</option>
-                                          <option value="OR">Oregon</option>
-                                          <option value="PA">Pennsylvania</option>
-                                          <option value="RI">Rhode Island</option>
-                                          <option value="SC">South Carolina</option>
-                                          <option value="SD">South Dakota</option>
-                                          <option value="TN">Tennessee</option>
-                                          <option value="TX">Texas</option>
-                                          <option value="UT">Utah</option>
-                                          <option value="VT">Vermont</option>
-                                          <option value="VA">Virginia</option>
-                                          <option value="WA">Washington</option>
-                                          <option value="WV">West Virginia</option>
-                                          <option value="WI">Wisconsin</option>
-                                          <option value="WY">Wyoming</option>
-                                          <option value="OT">Other</option>
+                                          <option value="AL">Alabama</option><option value="AK">Alaska</option><option value="AZ">Arizona</option><option value="AR">Arkansas</option><option value="CA">California</option><option value="CO">Colorado</option><option value="CT">Connecticut</option><option value="DE">Delaware</option><option value="DC">District Of Columbia</option><option value="FL">Florida</option><option value="GA">Georgia</option><option value="HI">Hawaii</option><option value="ID">Idaho</option><option value="IL">Illinois</option><option value="IN">Indiana</option><option value="IA">Iowa</option><option value="KS">Kansas</option><option value="KY">Kentucky</option><option value="LA">Louisiana</option><option value="ME">Maine</option><option value="MD">Maryland</option><option value="MA">Massachusetts</option><option value="MI">Michigan</option><option value="MN">Minnesota</option><option value="MS">Mississippi</option><option value="MO">Missouri</option><option value="MT">Montana</option><option value="NE">Nebraska</option><option value="NV">Nevada</option><option value="NH">New Hampshire</option><option value="NJ">New Jersey</option><option value="NM">New Mexico</option><option value="NY">New York</option><option value="NC">North Carolina</option><option value="ND">North Dakota</option><option value="OH">Ohio</option><option value="OK">Oklahoma</option><option value="OR">Oregon</option><option value="PA">Pennsylvania</option><option value="RI">Rhode Island</option><option value="SC">South Carolina</option><option value="SD">South Dakota</option><option value="TN">Tennessee</option><option value="TX">Texas</option><option value="UT">Utah</option><option value="VT">Vermont</option><option value="VA">Virginia</option><option value="WA">Washington</option><option value="WV">West Virginia</option><option value="WI">Wisconsin</option><option value="WY">Wyoming</option><option value="OT">Other</option>
                                       </select>
                                   </div>
                               </div>
@@ -374,8 +243,9 @@
             }
 
             options.headers = { ...options.headers, 'Authorization': `Bearer ${token}` };
-            if (options.body) {
+            if (options.body && typeof options.body === 'object') { // Auto-stringify if object
                 options.headers['Content-Type'] = 'application/json';
+                options.body = JSON.stringify(options.body);
             }
 
             try {
@@ -386,16 +256,18 @@
                     return null;
                 }
                 
-                const responseData = await response.json().catch(() => ({})); // Handle empty/non-json responses
+                // Get response data, handle empty or non-JSON
+                const responseData = await response.json().catch(() => ({})); 
 
                 if (!response.ok) {
                     throw new Error(responseData.message || `Error ${response.status}`);
                 }
                 
-                // Return success message for 200/201 on POST/PUT/DELETE
-                if (options.method === 'POST' || options.method === 'PUT' || options.method === 'DELETE') {
-                     return { success: true, message: responseData.message || "Operation successful." };
-                }
+                // Return success message plus data for 200/201 on POST/PUT/DELETE
+                 if (options.method === 'POST' || options.method === 'PUT' || options.method === 'DELETE') {
+                     // For DELETE, response might be empty, use a default success message
+                     return { success: true, message: responseData.message || "Operation successful.", data: responseData };
+                 }
                 
                 return responseData; // Return JSON data for GET
             } catch (error) {
@@ -517,14 +389,14 @@
                     case 1: return { text: '1 (Warning)', className: 'ban-level-1' }; 
                     case 2: return { text: '2 (Suspended)', className: 'ban-level-2' }; 
                     case 3: return { text: '3 (Impound/Ban)', className: 'ban-level-3' }; 
-                    default: return { text: `${level || 'N/A'} (Unknown)`, className: 'ban-level-unknown' }; 
+                    default: return { text: `${level === null || isNaN(level) ? 'N/A' : level} (Unknown)`, className: 'ban-level-unknown' }; 
                 } 
             }
 
             function createVehicleCard(vehicle) {
                 const div = document.createElement('div');
                 div.className = 'vehicle-card';
-                div.dataset.id = vehicle.id; // <-- Set ID for actions
+                div.dataset.id = vehicle.id;
                 const banInfo = getBanLevelTextAndClass(vehicle.ban_lvl);
                 const isBanned = vehicle.ban_lvl > 0;
                 div.innerHTML = `
@@ -538,7 +410,7 @@
                     </div>
                     <div class="mt-4 flex space-x-2">
                         <button class="btn-edit-vehicle theme-button-secondary text-xs py-1 px-2 rounded" ${isBanned ? 'disabled' : ''}>Edit Info</button>
-                        <button class="btn-remove-vehicle theme-button-secondary text-xs py-1 px-2 rounded text-red-500 hover:bg-red-500/10">Remove</button>
+                        <button class="btn-remove-vehicle theme-button-danger text-xs py-1 px-2 rounded">Remove</button> {/* */}
                     </div>`;
                 return div;
             }
@@ -557,7 +429,7 @@
             function createTrailerCard(trailer) {
                 const div = document.createElement('div');
                 div.className = 'trailer-card';
-                div.dataset.id = trailer.id; // <-- Set ID for actions
+                div.dataset.id = trailer.id;
                 div.innerHTML = `
                     <h3 class="theme-title font-semibold text-lg mb-3">Plate: <span class="font-mono theme-text-color">${trailer.plate || 'N/A'} [${trailer.state || 'N/A'}]</span></h3>
                     <div class="space-y-1 text-sm sm:text-base">
@@ -566,7 +438,7 @@
                     </div>
                     <div class="mt-4 flex space-x-2">
                         <button class="btn-edit-trailer theme-button-secondary text-xs py-1 px-2 rounded">Edit Info</button>
-                        <button class="btn-remove-trailer theme-button-secondary text-xs py-1 px-2 rounded text-red-500 hover:bg-red-500/10">Remove</button>
+                        <button class="btn-remove-trailer theme-button-danger text-xs py-1 px-2 rounded">Remove</button> {/* */}
                     </div>`;
                 return div;
             }
@@ -575,148 +447,163 @@
             function loadRecordData(citations, arrests) {
                 recordListDiv.innerHTML = '';
                 let totalRecords = 0;
-                if (citations && citations.length > 0) {
-                    citations.forEach(c => { recordListDiv.appendChild(createRecordCard(c, 'Citation')); totalRecords++; });
-                }
-                if (arrests && arrests.length > 0) {
-                    arrests.forEach(a => { recordListDiv.appendChild(createRecordCard(a, 'Arrest')); totalRecords++; });
+                const allRecords = [
+                    ...(citations || []).map(c => ({ ...c, recordType: 'Citation' })),
+                    ...(arrests || []).map(a => ({ ...a, recordType: 'Arrest' }))
+                ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+                if (allRecords.length > 0) {
+                     allRecords.forEach(record => {
+                        recordListDiv.appendChild(createRecordCard(record, record.recordType));
+                        totalRecords++;
+                    });
                 }
                 noRecordsMessage.classList.toggle('hidden', totalRecords > 0);
+                attachPaidCheckboxListeners(); // Attach listeners after creating cards
             }
 
             function createRecordCard(record, type) {
                 const div = document.createElement('div');
-                div.className = 'record-card';
-                const date = new Date(record.timestamp).toLocaleDateString();
-                let title, details, amount;
+                div.className = 'record-card relative';
+                const date = new Date(record.timestamp).toLocaleDateString(); // Use LocaleDateString
+                let title, details = '', amount = '', officer = '', penalCodes = '';
+                const isPaid = record.paidStatus === true;
+                const checkboxId = `paid-${type.toLowerCase()}-${record.id}`;
+
+                const paidCheckboxHTML = type === 'Citation' ? ` {/* */}
+                    <div class="absolute top-2 right-2 flex items-center">
+                        <input type="checkbox" id="${checkboxId}" class="paid-checkbox h-4 w-4 theme-input rounded mr-1"
+                               data-record-id="${record.id}" data-record-type="${type}"
+                               ${isPaid ? 'checked disabled' : ''}>
+                        <label for="${checkboxId}" class="text-xs ${isPaid ? 'theme-subtle-text' : 'theme-label'}">
+                            ${isPaid ? 'Paid' : 'Mark Paid'}
+                        </label>
+                    </div>
+                ` : ''; // No checkbox for arrests
+
                 if (type === 'Citation') {
                     title = `Citation (#${record.id.slice(-6)})`;
-                    details = (record.appliedPenalCodes || []).map(pc => pc.description || pc.code).join(', ');
+                    officer = record.submittedBy || record.officerName || 'N/A';
                     amount = `Due: $${parseFloat(record.totalAmountDue || 0).toFixed(2)}`;
-                } else {
+                    const codes = record.appliedPenalCodes || [];
+                    if (codes.length > 0) {
+                        penalCodes = codes.map(pc => `<code>${pc.code || 'N/A'}</code>`).join(', ');
+                        details = codes.map(pc => pc.description || 'N/A').join('; ');
+                    } else {
+                        penalCodes = 'N/A'; details = record.violationDetails || 'N/A';
+                    }
+                } else { // Arrest
                     title = `Arrest (#${record.id.slice(-6)})`;
-                    details = (record.appliedCharges || []).map(c => c.description || c.code).join(', ');
+                    officer = record.submittedBy || record.arrestingOfficerName || 'N/A';
                     amount = `Fines: $${parseFloat(record.totalFines || 0).toFixed(2)} | Jail: ${record.totalJailTime || 0}s`;
+                    const charges = record.appliedCharges || [];
+                     if (charges.length > 0) {
+                        penalCodes = charges.map(c => `<code>${c.code || 'N/A'}</code>`).join(', ');
+                        details = charges.map(c => c.description || 'N/A').join('; ');
+                    } else {
+                        penalCodes = 'N/A'; details = record.incidentDetails || 'N/A';
+                    }
                 }
+
+                if (isPaid && type === 'Citation') div.classList.add('opacity-60'); // Dim only paid citations
+
                 div.innerHTML = `
+                    ${paidCheckboxHTML}
                     <h3 class="theme-title font-semibold text-lg mb-2 ${type === 'Arrest' ? 'text-red-500' : ''}">${title}</h3>
                     <p class="text-sm"><span class="info-label">Date:</span> <span class="info-value">${date}</span></p>
-                    <p class="text-sm"><span class="info-label">Details:</span> <span class="info-value">${details || 'N/A'}</span></p>
+                    <p class="text-sm"><span class="info-label">Officer:</span> <span class="info-value">${officer}</span></p>
+                    <p class="text-sm"><span class="info-label">Code(s):</span> <span class="info-value">${penalCodes}</span></p>
+                    <p class="text-sm"><span class="info-label">Offense(s):</span> <span class="info-value">${details}</span></p>
                     <p class="text-sm"><span class="info-label">Total:</span> <span class="info-value">${amount}</span></p>
                 `;
                 return div;
             }
 
+            function attachPaidCheckboxListeners() {
+                const checkboxes = recordListDiv.querySelectorAll('.paid-checkbox');
+                checkboxes.forEach(checkbox => {
+                    checkbox.removeEventListener('change', handlePaidCheckboxChange);
+                    if (!checkbox.checked) {
+                         checkbox.addEventListener('change', handlePaidCheckboxChange);
+                    }
+                });
+            }
+
+            async function handlePaidCheckboxChange(event) {
+                const checkbox = event.target;
+                const recordId = checkbox.dataset.recordId;
+                const recordType = checkbox.dataset.recordType;
+
+                if (!recordId || recordType !== 'Citation') {
+                    checkbox.checked = false; return;
+                }
+                checkbox.disabled = true;
+                const label = checkbox.nextElementSibling;
+                if(label) label.textContent = 'Saving...';
+
+                const confirmed = await window.showCustomConfirm("Are you sure you want to mark this citation as paid? This cannot be undone through the portal.", "Confirm Payment");
+
+                if (confirmed) {
+                    const result = await fetchWithAuth(`/api/citizen/citations/${recordId}/mark-paid`, { method: 'PUT' });
+                    if (result && result.success) {
+                        await window.showCustomAlert(result.message, "Success");
+                        checkbox.checked = true; checkbox.disabled = true;
+                        if(label) label.textContent = 'Paid';
+                        checkbox.closest('.record-card')?.classList.add('opacity-60');
+                    } else {
+                        checkbox.checked = false; checkbox.disabled = false;
+                        if(label) label.textContent = 'Mark Paid';
+                    }
+                } else {
+                    checkbox.checked = false; checkbox.disabled = false;
+                    if(label) label.textContent = 'Mark Paid';
+                }
+            }
+
+
             // --- 3. FORM & ACTION HANDLING ---
 
             // --- Vehicle Form ---
-            showAddVehicleFormBtn.addEventListener('click', () => {
-                resetVehicleForm(); // Reset to "Add" mode
-                addVehicleForm.classList.remove('hidden');
-                showAddVehicleFormBtn.classList.add('hidden');
-            });
-            
-            cancelAddVehicleBtn.addEventListener('click', () => {
-                addVehicleForm.classList.add('hidden');
-                showAddVehicleFormBtn.classList.remove('hidden');
-                resetVehicleForm();
-            });
+            showAddVehicleFormBtn.addEventListener('click', () => { resetVehicleForm(); addVehicleForm.classList.remove('hidden'); showAddVehicleFormBtn.classList.add('hidden'); });
+            cancelAddVehicleBtn.addEventListener('click', () => { addVehicleForm.classList.add('hidden'); showAddVehicleFormBtn.classList.remove('hidden'); resetVehicleForm(); });
 
-            function resetVehicleForm() {
-                currentlyEditingVehicleId = null;
-                addVehicleForm.reset();
-                addVehicleFormTitle.textContent = "Register New Vehicle";
-                addVehicleSubmitBtn.textContent = "Register Vehicle";
-            }
+            function resetVehicleForm() { currentlyEditingVehicleId = null; addVehicleForm.reset(); addVehicleFormTitle.textContent = "Register New Vehicle"; addVehicleSubmitBtn.textContent = "Register Vehicle"; }
 
             addVehicleForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const formData = new FormData(addVehicleForm);
-                const vehicleData = {
-                    brand: formData.get('brand'),
-                    model: formData.get('model'),
-                    year: parseInt(formData.get('year')),
-                    color: formData.get('color'),
-                    plateText: formData.get('plateText'),
-                    vehicleBanLvl: parseInt(formData.get('vehicleBanLvl') || 0),
-                    state: formData.get('state')
-                };
-
+                const vehicleData = { brand: formData.get('brand'), model: formData.get('model'), year: parseInt(formData.get('year')), color: formData.get('color'), plateText: formData.get('plateText'), vehicleBanLvl: parseInt(formData.get('vehicleBanLvl') || 0), state: formData.get('state') };
                 let result;
                 if (currentlyEditingVehicleId) {
-                    // --- UPDATE (PUT) ---
-                    result = await fetchWithAuth(`/api/citizen/vehicles/${currentlyEditingVehicleId}`, {
-                        method: 'PUT',
-                        body: JSON.stringify(vehicleData)
-                    });
+                    result = await fetchWithAuth(`/api/citizen/vehicles/${currentlyEditingVehicleId}`, { method: 'PUT', body: vehicleData });
                 } else {
-                    // --- CREATE (POST) ---
-                    result = await fetchWithAuth('/api/citizen/vehicles', {
-                        method: 'POST',
-                        body: JSON.stringify(vehicleData)
-                    });
+                    result = await fetchWithAuth('/api/citizen/vehicles', { method: 'POST', body: vehicleData });
                 }
-
                 if (result && result.success) {
                     await window.showCustomAlert(result.message, "Success");
-                    addVehicleForm.classList.add('hidden');
-                    showAddVehicleFormBtn.classList.remove('hidden');
-                    resetVehicleForm();
-                    fetchMyGarageData(); // Refresh list
+                    addVehicleForm.classList.add('hidden'); showAddVehicleFormBtn.classList.remove('hidden'); resetVehicleForm(); fetchMyGarageData();
                 }
             });
 
             // --- Trailer Form ---
-            showAddTrailerFormBtn.addEventListener('click', () => {
-                resetTrailerForm();
-                addTrailerForm.classList.remove('hidden');
-                showAddTrailerFormBtn.classList.add('hidden');
-            });
+            showAddTrailerFormBtn.addEventListener('click', () => { resetTrailerForm(); addTrailerForm.classList.remove('hidden'); showAddTrailerFormBtn.classList.add('hidden'); });
+            cancelAddTrailerBtn.addEventListener('click', () => { addTrailerForm.classList.add('hidden'); showAddTrailerFormBtn.classList.remove('hidden'); resetTrailerForm(); });
 
-            cancelAddTrailerBtn.addEventListener('click', () => {
-                addTrailerForm.classList.add('hidden');
-                showAddTrailerFormBtn.classList.remove('hidden');
-                resetTrailerForm();
-            });
-
-            function resetTrailerForm() {
-                currentlyEditingTrailerId = null;
-                addTrailerForm.reset();
-                addTrailerFormTitle.textContent = "Register New Trailer";
-                addTrailerSubmitBtn.textContent = "Register Trailer";
-            }
+            function resetTrailerForm() { currentlyEditingTrailerId = null; addTrailerForm.reset(); addTrailerFormTitle.textContent = "Register New Trailer"; addTrailerSubmitBtn.textContent = "Register Trailer"; }
 
             addTrailerForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const formData = new FormData(addTrailerForm);
-                const trailerData = {
-                    trailerModel: formData.get('trailerModel'),
-                    trailerColor: formData.get('trailerColor'),
-                    plateText: formData.get('trailerPlate'),
-                    state: formData.get('state')
-                };
-
+                const trailerData = { trailerModel: formData.get('trailerModel'), trailerColor: formData.get('trailerColor'), plateText: formData.get('trailerPlate'), state: formData.get('state') };
                 let result;
                 if (currentlyEditingTrailerId) {
-                    // --- UPDATE (PUT) ---
-                     result = await fetchWithAuth(`/api/citizen/trailers/${currentlyEditingTrailerId}`, {
-                        method: 'PUT',
-                        body: JSON.stringify(trailerData)
-                    });
+                     result = await fetchWithAuth(`/api/citizen/trailers/${currentlyEditingTrailerId}`, { method: 'PUT', body: trailerData });
                 } else {
-                    // --- CREATE (POST) ---
-                    result = await fetchWithAuth('/api/citizen/trailers', {
-                        method: 'POST',
-                        body: JSON.stringify(trailerData)
-                    });
+                    result = await fetchWithAuth('/api/citizen/trailers', { method: 'POST', body: trailerData });
                 }
-
                 if (result && result.success) {
                     await window.showCustomAlert(result.message, "Success");
-                    addTrailerForm.classList.add('hidden');
-                    showAddTrailerFormBtn.classList.remove('hidden');
-                    resetTrailerForm();
-                    fetchMyGarageData(); // Refresh list
+                    addTrailerForm.classList.add('hidden'); showAddTrailerFormBtn.classList.remove('hidden'); resetTrailerForm(); fetchMyGarageData();
                 }
             });
 
@@ -724,112 +611,66 @@
 
             // --- Vehicle Actions ---
             vehicleListDiv.addEventListener('click', async (e) => {
-                // Handle EDIT
                 const editButton = e.target.closest('.btn-edit-vehicle');
-                if (editButton) {
-                    const card = e.target.closest('.vehicle-card');
-                    const vehicleId = card.dataset.id;
-                    await populateVehicleFormForEdit(vehicleId);
-                }
-
-                // Handle REMOVE
+                if (editButton) { const card = e.target.closest('.vehicle-card'); const vehicleId = card.dataset.id; await populateVehicleFormForEdit(vehicleId); }
                 const removeButton = e.target.closest('.btn-remove-vehicle');
-                if (removeButton) {
-                    const card = e.target.closest('.vehicle-card');
-                    const vehicleId = card.dataset.id;
-                    await removeVehicle(vehicleId);
-                }
+                if (removeButton) { const card = e.target.closest('.vehicle-card'); const vehicleId = card.dataset.id; await removeVehicle(vehicleId); }
             });
 
             async function populateVehicleFormForEdit(id) {
-                const vehicle = await fetchWithAuth(`/api/citizen/vehicles/${id}`);
-                if (!vehicle) return;
-
-                // Set global state
+                const vehicle = await fetchWithAuth(`/api/citizen/vehicles/${id}`); if (!vehicle) return;
                 currentlyEditingVehicleId = id;
-                
-                // Populate form
-                addVehicleForm.querySelector('#vehicleBrand').value = vehicle.brand;
-                addVehicleForm.querySelector('#vehicleModel').value = vehicle.model;
-                addVehicleForm.querySelector('#vehicleYear').value = vehicle.year;
-                addVehicleForm.querySelector('#vehicleColor').value = vehicle.color;
-                addVehicleForm.querySelector('#vehiclePlate').value = vehicle.plate;
-                addVehicleForm.querySelector('#vehicleState').value = vehicle.state;
-                addVehicleForm.querySelector('#vehicleBanLvl').value = vehicle.ban_lvl;
-                
-                // Change form UI
-                addVehicleFormTitle.textContent = "Edit Vehicle";
-                addVehicleSubmitBtn.textContent = "Save Changes";
-                
-                // Show form
-                addVehicleForm.classList.remove('hidden');
-                showAddVehicleFormBtn.classList.add('hidden');
-                addVehicleForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                addVehicleForm.querySelector('#vehicleBrand').value = vehicle.brand || '';
+                addVehicleForm.querySelector('#vehicleModel').value = vehicle.model || '';
+                addVehicleForm.querySelector('#vehicleYear').value = vehicle.year || '';
+                addVehicleForm.querySelector('#vehicleColor').value = vehicle.color || '';
+                addVehicleForm.querySelector('#vehiclePlate').value = vehicle.plate || '';
+                addVehicleForm.querySelector('#vehicleState').value = vehicle.state || '';
+                addVehicleForm.querySelector('#vehicleBanLvl').value = vehicle.ban_lvl || 0;
+                addVehicleFormTitle.textContent = "Edit Vehicle"; addVehicleSubmitBtn.textContent = "Save Changes";
+                addVehicleForm.classList.remove('hidden'); showAddVehicleFormBtn.classList.add('hidden'); addVehicleForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
 
             async function removeVehicle(id) {
-                const confirmed = await window.showCustomConfirm("Are you sure you want to remove this vehicle? This action cannot be undone.");
+                const confirmed = await window.showCustomConfirm("Are you sure you want to remove this vehicle? This cannot be undone.");
                 if (confirmed) {
                     const result = await fetchWithAuth(`/api/citizen/vehicles/${id}`, { method: 'DELETE' });
-                    if (result && result.success) {
-                        await window.showCustomAlert(result.message, "Success");
-                        fetchMyGarageData(); // Refresh list
-                    }
+                    if (result && result.success) { await window.showCustomAlert(result.message, "Success"); fetchMyGarageData(); }
                 }
             }
 
             // --- Trailer Actions ---
             trailerListDiv.addEventListener('click', async (e) => {
-                // Handle EDIT
                 const editButton = e.target.closest('.btn-edit-trailer');
-                if (editButton) {
-                    const card = e.target.closest('.trailer-card');
-                    const trailerId = card.dataset.id;
-                    await populateTrailerFormForEdit(trailerId);
-                }
-
-                // Handle REMOVE
+                if (editButton) { const card = e.target.closest('.trailer-card'); const trailerId = card.dataset.id; await populateTrailerFormForEdit(trailerId); }
                 const removeButton = e.target.closest('.btn-remove-trailer');
-                if (removeButton) {
-                    const card = e.target.closest('.trailer-card');
-                    const trailerId = card.dataset.id;
-                    await removeTrailer(trailerId);
-                }
+                if (removeButton) { const card = e.target.closest('.trailer-card'); const trailerId = card.dataset.id; await removeTrailer(trailerId); }
             });
 
             async function populateTrailerFormForEdit(id) {
-                const trailer = await fetchWithAuth(`/api/citizen/trailers/${id}`);
-                if (!trailer) return;
-
+                const trailer = await fetchWithAuth(`/api/citizen/trailers/${id}`); if (!trailer) return;
                 currentlyEditingTrailerId = id;
-
-                addTrailerForm.querySelector('#trailerModel').value = trailer.model;
-                addTrailerForm.querySelector('#trailerColor').value = trailer.color;
-                addTrailerForm.querySelector('#trailerPlate').value = trailer.plate;
-                addTrailerForm.querySelector('#trailerState').value = trailer.state;
-                
-                addTrailerFormTitle.textContent = "Edit Trailer";
-                addTrailerSubmitBtn.textContent = "Save Changes";
-                
-                addTrailerForm.classList.remove('hidden');
-                showAddTrailerFormBtn.classList.add('hidden');
-                addTrailerForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                addTrailerForm.querySelector('#trailerModel').value = trailer.model || '';
+                addTrailerForm.querySelector('#trailerColor').value = trailer.color || '';
+                addTrailerForm.querySelector('#trailerPlate').value = trailer.plate || '';
+                addTrailerForm.querySelector('#trailerState').value = trailer.state || '';
+                addTrailerFormTitle.textContent = "Edit Trailer"; addTrailerSubmitBtn.textContent = "Save Changes";
+                addTrailerForm.classList.remove('hidden'); showAddTrailerFormBtn.classList.add('hidden'); addTrailerForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
 
             async function removeTrailer(id) {
-                const confirmed = await window.showCustomConfirm("Are you sure you want to remove this trailer? This action cannot be undone.");
+                const confirmed = await window.showCustomConfirm("Are you sure you want to remove this trailer? This cannot be undone.");
                 if (confirmed) {
                     const result = await fetchWithAuth(`/api/citizen/trailers/${id}`, { method: 'DELETE' });
-                    if (result && result.success) {
-                        await window.showCustomAlert(result.message, "Success");
-                        fetchMyGarageData(); // Refresh list
-                    }
+                    if (result && result.success) { await window.showCustomAlert(result.message, "Success"); fetchMyGarageData(); }
                 }
             }
 
             // --- Sidebar/Header setup ---
-            // (Copied from my_garage.html, unchanged)
-            const appSidebar = document.getElementById('appSidebar'); const sidebarToggle = document.getElementById('sidebarToggle'); const appHeader = document.getElementById('appHeader'); const mainContentArea = document.getElementById('mainContentArea'); const SIDEBAR_COLLAPSED_KEY = 'sidebarCollapsed'; const isCollapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true'; if (isCollapsed) { appSidebar.classList.add('collapsed'); appHeader.classList.add('collapsed'); if (window.innerWidth <= 1024) mainContentArea.classList.add('collapsed'); } else { if (window.innerWidth <= 1024) mainContentArea.classList.remove('collapsed'); } function toggleSidebar() { const isCurrentlyCollapsed = appSidebar.classList.toggle('collapsed'); appHeader.classList.toggle('collapsed'); if (window.innerWidth <= 1024) mainContentArea.classList.toggle('collapsed', isCurrentlyCollapsed); localStorage.setItem(SIDEBAR_COLLAPSED_KEY, isCurrentlyCollapsed); setTimeout(syncHeaderHeight, 300); } if (sidebarToggle) sidebarToggle.addEventListener('click', toggleSidebar); let touchStartX = 0, touchEndX = 0; const swipeThreshold = 50; document.body.addEventListener('touchstart', (e) => { if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') { touchStartX = null; return; } touchStartX = e.changedTouches[0].screenX; }, { passive: true }); document.body.addEventListener('touchend', (e) => { if (touchStartX === null) return; touchEndX = e.changedTouches[0].screenX; handleSwipeGesture(); }, { passive: true }); function handleSwipeGesture() { if (window.innerWidth >= 1024) return; const deltaX = touchEndX - touchStartX; const isSidebarCollapsed = appSidebar.classList.contains('collapsed'); if (deltaX < -swipeThreshold && !isSidebarCollapsed) toggleSidebar(); else if (deltaX > swipeThreshold && isSidebarCollapsed) toggleSidebar(); touchStartX = 0; touchEndX = 0; } (function() { window.syncHeaderHeight = function() { const header = document.getElementById('appHeader'); const mainContent = document.getElementById('mainContentArea'); if (!header || !mainContent) return; const height = header.offsetHeight || 0; const safePadding = height + 16; mainContent.style.paddingTop = safePadding + 'px'; document.documentElement.style.setProperty('--app-header-height', height + 'px'); }; window.addEventListener('DOMContentLoaded', async () => { syncHeaderHeight(); setTimeout(syncHeaderHeight, 250); }); window.addEventListener('resize', syncHeaderHeight); })();
+            (function setupLayout() {
+                 const appSidebar = document.getElementById('appSidebar'); const sidebarToggle = document.getElementById('sidebarToggle'); const appHeader = document.getElementById('appHeader'); const mainContentArea = document.getElementById('mainContentArea'); const SIDEBAR_COLLAPSED_KEY = 'sidebarCollapsed'; const isCollapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true'; if (isCollapsed) { appSidebar.classList.add('collapsed'); appHeader.classList.add('collapsed'); if (window.innerWidth <= 1024) mainContentArea.classList.add('collapsed'); } else { if (window.innerWidth <= 1024) mainContentArea.classList.remove('collapsed'); } function toggleSidebar() { const isCurrentlyCollapsed = appSidebar.classList.toggle('collapsed'); appHeader.classList.toggle('collapsed'); if (window.innerWidth <= 1024) mainContentArea.classList.toggle('collapsed', isCurrentlyCollapsed); localStorage.setItem(SIDEBAR_COLLAPSED_KEY, isCurrentlyCollapsed); setTimeout(syncHeaderHeight, 300); } if (sidebarToggle) sidebarToggle.addEventListener('click', toggleSidebar); let touchStartX = 0, touchEndX = 0; const swipeThreshold = 50; document.body.addEventListener('touchstart', (e) => { if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') { touchStartX = null; return; } touchStartX = e.changedTouches[0].screenX; }, { passive: true }); document.body.addEventListener('touchend', (e) => { if (touchStartX === null) return; touchEndX = e.changedTouches[0].screenX; handleSwipeGesture(); }, { passive: true }); function handleSwipeGesture() { if (window.innerWidth >= 1024) return; const deltaX = touchEndX - touchStartX; const isSidebarCollapsed = appSidebar.classList.contains('collapsed'); if (deltaX < -swipeThreshold && !isSidebarCollapsed) toggleSidebar(); else if (deltaX > swipeThreshold && isSidebarCollapsed) toggleSidebar(); touchStartX = 0; touchEndX = 0; }
+                 window.syncHeaderHeight = function() { const header = document.getElementById('appHeader'); const mainContent = document.getElementById('mainContentArea'); if (!header || !mainContent) return; const height = header.offsetHeight || 0; const safePadding = height + 16; mainContent.style.paddingTop = safePadding + 'px'; document.documentElement.style.setProperty('--app-header-height', height + 'px'); }; window.addEventListener('DOMContentLoaded', async () => { syncHeaderHeight(); setTimeout(syncHeaderHeight, 250); }); window.addEventListener('resize', syncHeaderHeight);
+             })();
 
         });
     </script>
