@@ -27,7 +27,11 @@
         .dashboard-form-container { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); transition: box-shadow 0.3s; }
         :root { --app-header-height: 5rem; --sidebar-width: 250px; --sidebar-collapsed-width: 65px; }
         header.theme-section-bg { background-color: var(--box-bg-color) !important; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); position: fixed; top: 0; height: auto; min-height: 4rem; z-index: 50; box-sizing: border-box; transition: width 0.3s, left 0.3s; }
-        .main-header { width: calc(100% - var(--sidebar-width)); left: var(--sidebar-width); }
+        .main-header {
+			width: calc(100vw - var(--sidebar-width));
+			left: var(--sidebar-width);
+			transition: width 0.3s ease, left 0.3s ease;
+		}
         .main-content-wrapper { margin-left: var(--sidebar-width); flex-grow: 1; box-sizing: border-box; padding-top: 0; transition: none; position: relative; z-index: 1; }
         .sidebar.collapsed { width: var(--sidebar-collapsed-width); min-width: var(--sidebar-collapsed-width); }
         .sidebar.collapsed .sidebar-item { padding: 0.75rem 0; justify-content: center; }
@@ -35,7 +39,10 @@
         .sidebar.collapsed .sidebar-item-icon { margin-left: 0; }
         .sidebar.collapsed .sidebar-item.active { border-left-color: transparent; }
         .sidebar.collapsed .sidebar-toggle-button { transform: translateY(-50%) rotate(180deg); }
-        .main-header.collapsed { width: calc(100% - var(--sidebar-collapsed-width)); left: var(--sidebar-collapsed-width); }
+        		.main-header.collapsed {
+			width: calc(100vw - var(--sidebar-collapsed-width));
+			left: var(--sidebar-collapsed-width);
+		}
         @media (max-width: 1024px) {
             .sidebar { display: block; } .main-content-wrapper { margin-left: var(--sidebar-width); } .main-header { width: calc(100% - var(--sidebar-width)); left: var(--sidebar-width); }
              .sidebar.collapsed { width: 0; min-width: 0; overflow: hidden; box-shadow: none; border-right: none;} .sidebar.collapsed .sidebar-toggle-button { right: -30px; }
@@ -732,6 +739,21 @@
             (function setupLayout() {
                  const appSidebar = document.getElementById('appSidebar'); const sidebarToggle = document.getElementById('sidebarToggle'); const appHeader = document.getElementById('appHeader'); const mainContentArea = document.getElementById('mainContentArea'); const SIDEBAR_COLLAPSED_KEY = 'sidebarCollapsed'; const isCollapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true'; if (isCollapsed) { appSidebar.classList.add('collapsed'); appHeader.classList.add('collapsed'); if (window.innerWidth <= 1024) mainContentArea.classList.add('collapsed'); } else { if (window.innerWidth <= 1024) mainContentArea.classList.remove('collapsed'); } function toggleSidebar() { const isCurrentlyCollapsed = appSidebar.classList.toggle('collapsed'); appHeader.classList.toggle('collapsed'); if (window.innerWidth <= 1024) mainContentArea.classList.toggle('collapsed', isCurrentlyCollapsed); localStorage.setItem(SIDEBAR_COLLAPSED_KEY, isCurrentlyCollapsed); setTimeout(syncHeaderHeight, 300); } if (sidebarToggle) sidebarToggle.addEventListener('click', toggleSidebar); let touchStartX = 0, touchEndX = 0; const swipeThreshold = 50; document.body.addEventListener('touchstart', (e) => { if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') { touchStartX = null; return; } touchStartX = e.changedTouches[0].screenX; }, { passive: true }); document.body.addEventListener('touchend', (e) => { if (touchStartX === null) return; touchEndX = e.changedTouches[0].screenX; handleSwipeGesture(); }, { passive: true }); function handleSwipeGesture() { if (window.innerWidth >= 1024) return; const deltaX = touchEndX - touchStartX; const isSidebarCollapsed = appSidebar.classList.contains('collapsed'); if (deltaX < -swipeThreshold && !isSidebarCollapsed) toggleSidebar(); else if (deltaX > swipeThreshold && isSidebarCollapsed) toggleSidebar(); touchStartX = 0; touchEndX = 0; }
                  window.syncHeaderHeight = function() { const header = document.getElementById('appHeader'); const mainContent = document.getElementById('mainContentArea'); if (!header || !mainContent) return; const height = header.offsetHeight || 0; const safePadding = height + 16; mainContent.style.paddingTop = safePadding + 'px'; document.documentElement.style.setProperty('--app-header-height', height + 'px'); }; window.addEventListener('DOMContentLoaded', async () => { syncHeaderHeight(); setTimeout(syncHeaderHeight, 250); }); window.addEventListener('resize', syncHeaderHeight);
+				 window.addEventListener('resize', () => {
+  const appHeader = document.getElementById('appHeader');
+  const appSidebar = document.getElementById('appSidebar');
+  if (!appHeader || !appSidebar) return;
+
+  const isCollapsed = appSidebar.classList.contains('collapsed');
+  if (isCollapsed) {
+    appHeader.style.width = `calc(100vw - var(--sidebar-collapsed-width))`;
+    appHeader.style.left = `var(--sidebar-collapsed-width)`;
+  } else {
+    appHeader.style.width = `calc(100vw - var(--sidebar-width))`;
+    appHeader.style.left = `var(--sidebar-width)`;
+  }
+});
+
              })();
 
         });
