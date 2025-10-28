@@ -79,24 +79,28 @@
              border: 1px solid var(--border-color);
              background-color: var(--input-bg-color);
         }
+        /* FIX: Ensure labels inside results area are highly visible */
         .results-label {
             font-weight: 600; /* semibold */
-            color: var(--subtle-text-color);
+            color: var(--text-color); /* Use primary text color for visibility */
             min-width: 100px; /* Align labels */
             display: inline-block;
         }
         .results-value {
              color: var(--text-color);
         }
-        /* Ban Level colors */
-        .ban-level-0 { color: #22c55e; } .ban-level-1 { color: #facc15; } .ban-level-2 { color: #f97316; } .ban-level-3 { color: #ef4444; } .ban-level-unknown { color: var(--subtle-text-color); }
+        /* Ban Level colors - using contrasting text colors */
+        .ban-level-0 { color: #22c55e; } /* green-500 */
+        .ban-level-1 { color: #facc15; } /* yellow-400 */
+        .ban-level-2 { color: #f97316; } /* orange-600 */
+        .ban-level-3 { color: #ef4444; } /* red-500 */
+        .ban-level-4 { color: #b91c1c; } /* red-700 for Prestige+ */
+        .ban-level-unknown { color: var(--subtle-text-color); }
 
         /*
          * === DROPDOWN / SELECT FIXES ===
-         * Ensure selects are opaque and match the theme dropdown styling.
-         * Using !important here to override theme.js / external CSS or browser defaults.
+         * Ensure selects are opaque and matched styling.
          */
-        /* Make the select opaque and styled like the theme dropdown */
         select.theme-input {
           background-color: var(--box-bg-color) !important;     /* use same tile/box background */
           color: var(--text-color) !important;
@@ -141,7 +145,6 @@
 
         /*
          * Small helper for small screens where native selects may still show differently.
-         * This keeps the dropdown visually consistent.
          */
         @media (max-width: 480px) {
           select.theme-input { font-size: 0.95rem !important; }
@@ -364,6 +367,19 @@
         }
         // --- END UTILITY FUNCTIONS ---
 
+        // Helper function to get ban level text and class (UPDATED)
+        function getBanLevelTextAndClass(level) {
+            level = parseInt(level, 10);
+            switch (level) {
+                case 0: return { text: '0 (None)', className: 'ban-level-0 text-green-500' };
+                case 1: return { text: '1 (Basic+)', className: 'ban-level-1 text-yellow-500' };
+                case 2: return { text: '2 (Standard+)', className: 'ban-level-2 text-orange-500' };
+                case 3: return { text: '3 (Premium+)', className: 'ban-level-3 text-red-500' };
+                case 4: return { text: '4 (Prestige+)', className: 'ban-level-4 text-red-700' };
+                default: return { text: `${level === null || isNaN(level) ? 'N/A' : level} (Unknown)`, className: 'ban-level-unknown theme-subtle-text' };
+            }
+        }
+
 
         document.addEventListener('DOMContentLoaded', function() {
             const token = sessionStorage.getItem('authToken');
@@ -510,18 +526,6 @@
                     lookupButton.disabled = false;
                 }
             });
-
-            // Helper function to get ban level text and class
-            function getBanLevelTextAndClass(level) {
-                level = parseInt(level, 10);
-                switch (level) {
-                    case 0: return { text: '0 (None)', className: 'ban-level-0 text-green-500' };
-                    case 1: return { text: '1 (Warning)', className: 'ban-level-1 text-yellow-500' };
-                    case 2: return { text: '2 (Suspended)', className: 'ban-level-2 text-orange-500' };
-                    case 3: return { text: '3 (Impound/Ban)', className: 'ban-level-3 text-red-500' };
-                    default: return { text: `${level === null || isNaN(level) ? 'N/A' : level} (Unknown)`, className: 'ban-level-unknown theme-subtle-text' };
-                }
-            }
         });
     </script>
 </body>
