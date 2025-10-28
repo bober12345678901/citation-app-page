@@ -414,16 +414,19 @@
                 }
             }
 
+            // --- UPDATED Ban Level Text Function ---
             function getBanLevelTextAndClass(level) {
                 level = parseInt(level, 10); 
                 switch (level) { 
                     case 0: return { text: '0 (None)', className: 'ban-level-0' }; 
-                    case 1: return { text: '1 (Warning)', className: 'ban-level-1' }; 
-                    case 2: return { text: '2 (Suspended)', className: 'ban-level-2' }; 
-                    case 3: return { text: '3 (Impound/Ban)', className: 'ban-level-3' }; 
+                    case 1: return { text: '1 (Basic+)', className: 'ban-level-1' }; 
+                    case 2: return { text: '2 (Standard+)', className: 'ban-level-2' }; 
+                    case 3: return { text: '3 (Premium+)', className: 'ban-level-3' }; 
+                    case 4: return { text: '4 (Prestige+)', className: 'text-red-700 dark:text-red-400' }; // Assuming '4' is the highest level, adding a custom class for visibility
                     default: return { text: `${level === null || isNaN(level) ? 'N/A' : level} (Unknown)`, className: 'ban-level-unknown' }; 
                 } 
             }
+            // --- END UPDATED Ban Level Text Function ---
 
             function createVehicleCard(vehicle) {
                 const div = document.createElement('div');
