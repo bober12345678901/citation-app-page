@@ -377,8 +377,12 @@
                         displayHtml = username;
                     }
                     
-                    // Update Header Welcome Message
-                    welcomeMessage.innerHTML = `Welcome, ${displayHtml}!`;
+                    // FIX: Update Header Welcome Message
+                    welcomeMessage.innerHTML = `Welcome, <span class="text-3xl font-bold theme-text-color">${displayHtml}</span>!`;
+                    // FIX: Set class on H1 to match style (removed redundant H1 tags in the HTML structure above)
+                    welcomeMessage.classList.remove('text-3xl', 'font-bold'); 
+                    welcomeMessage.classList.add('text-3xl', 'font-bold', 'theme-text-color'); 
+
 
                     // Update Header and Sidebar Username Displays (using innerHTML now)
                     if (citizenUserNameDisplay) citizenUserNameDisplay.innerHTML = displayHtml;
