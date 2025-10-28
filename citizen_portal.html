@@ -102,6 +102,35 @@
         /* Style for Paid Checkbox Area */
         .record-card .absolute { line-height: 1; } /* Ensure checkbox aligns well */
         .record-card .paid-checkbox:disabled { opacity: 0.7; cursor: not-allowed; }
+		
+		@media (max-width: 1280px) {
+  header.theme-section-bg h1 {
+    font-size: 1.75rem; /* Slightly smaller welcome text */
+  }
+}
+
+@media (max-width: 1024px) {
+  header.theme-section-bg h1 {
+    font-size: 1.5rem;
+  }
+  header.theme-section-bg nav {
+    flex-wrap: wrap; /* Allow theme selector to move below text */
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 768px) {
+  header.theme-section-bg h1 {
+    font-size: 1.25rem;
+  }
+  header.theme-section-bg .flex.items-end.space-x-4 {
+    flex-wrap: wrap;
+  }
+  header.theme-section-bg nav {
+    flex-direction: row-reverse;
+    flex-wrap: wrap;
+  }
+}
     </style>
 </head>
 <body class="min-h-screen theme-app-container flex flex-row theme-bg-color">
