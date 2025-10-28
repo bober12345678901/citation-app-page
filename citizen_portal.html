@@ -102,35 +102,6 @@
         /* Style for Paid Checkbox Area */
         .record-card .absolute { line-height: 1; } /* Ensure checkbox aligns well */
         .record-card .paid-checkbox:disabled { opacity: 0.7; cursor: not-allowed; }
-		
-		@media (max-width: 1280px) {
-  header.theme-section-bg h1 {
-    font-size: 1.75rem; /* Slightly smaller welcome text */
-  }
-}
-
-@media (max-width: 1024px) {
-  header.theme-section-bg h1 {
-    font-size: 1.5rem;
-  }
-  header.theme-section-bg nav {
-    flex-wrap: wrap; /* Allow theme selector to move below text */
-    justify-content: flex-end;
-  }
-}
-
-@media (max-width: 768px) {
-  header.theme-section-bg h1 {
-    font-size: 1.25rem;
-  }
-  header.theme-section-bg .flex.items-end.space-x-4 {
-    flex-wrap: wrap;
-  }
-  header.theme-section-bg nav {
-    flex-direction: row-reverse;
-    flex-wrap: wrap;
-  }
-}
     </style>
 </head>
 <body class="min-h-screen theme-app-container flex flex-row theme-bg-color">
@@ -166,12 +137,12 @@
 
     <header class="theme-section-bg fixed top-0 w-full z-50 main-header" id="appHeader">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-            <div class="flex items-end space-x-4">
-                <h1 class="text-3xl font-bold theme-text-color">Welcome, <span id="welcomeMessageDisplay">Loading Portal</span></h1>
+            <div class="flex items-end space-x-4 min-w-0"> <!-- ADDED: min-w-0 to allow shrinkage -->
+                <h1 class="text-3xl font-bold theme-text-color truncate">Welcome, <span id="welcomeMessageDisplay">Loading Portal</span></h1> <!-- ADDED: truncate to handle long names -->
             </div>
-            <nav class="space-x-4 flex items-center min-w-0"> <!-- ADDED: min-w-0 for nav container to shrink -->
-                 <p class="theme-text-color font-medium hidden sm:block min-w-0 flex-shrink">Welcome, <span id="citizenUserNameDisplay">Citizen</span></p> <!-- ADDED: min-w-0 flex-shrink to username display -->
-                <div class="relative inline-block text-left">
+            <nav class="space-x-4 flex items-center min-w-0 flex-shrink-0 sm:flex-shrink"> <!-- MODIFIED: flex-shrink-0 for mobile, then normal shrink -->
+                 <p class="theme-text-color font-medium hidden sm:block min-w-0 flex-shrink truncate">Welcome, <span id="citizenUserNameDisplay">Citizen</span></p> <!-- ADDED: truncate to username display -->
+                <div class="relative inline-block text-left flex-shrink-0">
                     <button id="themeToggle" type="button" class="p-2 rounded-full theme-text-color hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-colors flex items-center justify-center space-x-1" aria-expanded="false" aria-haspopup="true">
                         <span id="currentThemeIcon" class="w-6 h-6 flex items-center justify-center"></span>
                         <svg id="dropdownArrow" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
