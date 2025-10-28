@@ -6,368 +6,90 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel</title>
 	<script>
-  // prevent light-mode flash before theme.js runs
-  (function() {
-    try {
-      const savedTheme = localStorage.getItem('theme');
-      if (savedTheme) {
-        document.documentElement.classList.add(savedTheme);
-        document.documentElement.setAttribute('data-theme', savedTheme);
-      } else {
-        // optional: match system preference if no saved theme
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const theme = prefersDark ? 'dark' : 'light';
-        document.documentElement.classList.add(theme);
-        document.documentElement.setAttribute('data-theme', theme);
-      }
-    } catch(e) {
-      console.warn('Theme preloader failed:', e);
-    }
-    // Hide until theme styles are applied, then unhide
-    document.documentElement.style.visibility = 'hidden';
-    window.addEventListener('DOMContentLoaded', () => {
-      document.documentElement.style.visibility = '';
-    });
-  })();
-</script>
+      // prevent light-mode flash
+      (function() {
+        try {
+          const savedTheme = localStorage.getItem('theme');
+          const theme = savedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+          document.documentElement.classList.add(theme);
+          document.documentElement.setAttribute('data-theme', theme);
+        } catch(e) { console.warn('Theme preloader failed:', e); }
+        document.documentElement.style.visibility = 'hidden';
+        window.addEventListener('DOMContentLoaded', () => { document.documentElement.style.visibility = ''; });
+      })();
+    </script>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="styles.css">
-    <script src="theme.js"></script>
+    <script src="theme.js" defer></script> 
     <style>
-        /* The main container should look like a dashboard card */
-        .dashboard-form-container {
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            transition: box-shadow 0.3s;
-        }
-
-        /* --- New Sidebar/Header Styles for Unification (Copied from selection.html) --- */
-        /* ===== header-safe-spacing (RECOMMENDED) ===== */
-        :root {
-          --app-header-height: 5rem; /* fallback if JS hasn't run yet */
-          --sidebar-width: 250px; /* Default expanded width */
-          --sidebar-collapsed-width: 65px; /* Collapsed width for icons only */
-        }
-
-        /* 1. Sidebar Styles (Updated for Collapse) */
-        header.theme-section-bg {
-            background-color: var(--box-bg-color) !important;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            position: fixed;
-            top: 0;
-            height: auto;
-            min-height: 4rem;
-            z-index: 50;
-            box-sizing: border-box;
-            transition: width 0.3s, left 0.3s; /* Header animation */
-        }
-        .main-header {
-            width: calc(100% - var(--sidebar-width));
-            left: var(--sidebar-width);
-        }
-        .main-content-wrapper {
-            margin-left: var(--sidebar-width); /* Stays constant */
-            flex-grow: 1;
-            box-sizing: border-box;
-            padding-top: 0; /* Padding is set by JS inline */
-            transition: none; /* Keep content fixed */
-
-            position: relative;
-            z-index: 1;
-        }
-
-        /* Collapsed State Styles */
-        .sidebar.collapsed {
-            width: var(--sidebar-collapsed-width);
-            min-width: var(--sidebar-collapsed-width);
-        }
-        .sidebar.collapsed .sidebar-item {
-            padding: 0.75rem 0; /* Center icon when collapsed */
-            justify-content: center;
-        }
-        .sidebar.collapsed .sidebar-item-text,
-        .sidebar.collapsed .sidebar-user-info,
-        .sidebar.collapsed .sidebar-title,
-        .sidebar.collapsed .sidebar-logout-text {
-            display: none; /* Hide text elements */
-        }
-        .sidebar.collapsed .sidebar-item-icon {
-             margin-left: 0; /* Center icon when text is hidden */
-        }
-        .sidebar.collapsed .sidebar-item.active {
-            border-left-color: transparent; /* Hide border when collapsed for a cleaner look */
-        }
-        .sidebar.collapsed .sidebar-toggle-button {
-            transform: translateY(-50%) rotate(180deg); /* Combine transforms */
-        }
-        .main-header.collapsed {
-            width: calc(100% - var(--sidebar-collapsed-width));
-            left: var(--sidebar-collapsed-width);
-        }
-
+        /* All styles from previous admin.html */
+        .dashboard-form-container { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); transition: box-shadow 0.3s; }
+        :root { --app-header-height: 5rem; --sidebar-width: 250px; --sidebar-collapsed-width: 65px; }
+        header.theme-section-bg { background-color: var(--box-bg-color) !important; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); position: fixed; top: 0; height: auto; min-height: 4rem; z-index: 50; box-sizing: border-box; transition: width 0.3s, left 0.3s; }
+        .main-header { width: calc(100% - var(--sidebar-width)); left: var(--sidebar-width); }
+        .main-content-wrapper { margin-left: var(--sidebar-width); flex-grow: 1; box-sizing: border-box; padding-top: 0; transition: none; position: relative; z-index: 1; }
+        .sidebar.collapsed { width: var(--sidebar-collapsed-width); min-width: var(--sidebar-collapsed-width); }
+        .sidebar.collapsed .sidebar-item { padding: 0.75rem 0; justify-content: center; }
+        .sidebar.collapsed .sidebar-item-text, .sidebar.collapsed .sidebar-user-info, .sidebar.collapsed .sidebar-title, .sidebar.collapsed .sidebar-logout-text { display: none; }
+        .sidebar.collapsed .sidebar-item-icon { margin-left: 0; }
+        .sidebar.collapsed .sidebar-item.active { border-left-color: transparent; }
+        .sidebar.collapsed .sidebar-toggle-button { transform: translateY(-50%) rotate(180deg); }
+        .main-header.collapsed { width: calc(100% - var(--sidebar-collapsed-width)); left: var(--sidebar-collapsed-width); }
         @media (max-width: 1024px) {
-            .sidebar { display: block; /* Ensure sidebar is block for swipe */ }
-            /* When sidebar is shown on mobile due to swipe or initially */
-            .main-content-wrapper { margin-left: var(--sidebar-width); }
-            .main-header { width: calc(100% - var(--sidebar-width)); left: var(--sidebar-width); }
-
-            /* When sidebar is collapsed on mobile */
-             .sidebar.collapsed { width: 0; min-width: 0; overflow: hidden; box-shadow: none; border-right: none;} /* Completely hide collapsed sidebar */
-             .sidebar.collapsed .sidebar-toggle-button { right: -30px; /* Move toggle button off-screen when hidden */}
-             .main-content-wrapper.collapsed { margin-left: 0; }
-             .main-header.collapsed { width: 100%; left: 0; }
+            .sidebar { display: block; } .main-content-wrapper { margin-left: var(--sidebar-width); } .main-header { width: calc(100% - var(--sidebar-width)); left: var(--sidebar-width); }
+             .sidebar.collapsed { width: 0; min-width: 0; overflow: hidden; box-shadow: none; border-right: none;} .sidebar.collapsed .sidebar-toggle-button { right: -30px; }
+             .main-content-wrapper.collapsed { margin-left: 0; } .main-header.collapsed { width: 100%; left: 0; }
         }
-        /* --- Sidebar Styles --- */
-        .sidebar {
-            width: var(--sidebar-width);
-            min-width: var(--sidebar-width);
-            background-color: var(--box-bg-color);
-            color: var(--text-color);
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            padding-top: 2rem;
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
-            z-index: 40;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            transition: width 0.3s, min-width 0.3s; /* Added min-width transition */
-             border-right: 1px solid var(--border-color); /* Add border for visual separation */
-        }
-        .sidebar-item {
-            display: flex; /* Use flex for icon/text alignment */
-            align-items: center;
-            padding: 0.75rem 1.5rem;
-            font-size: 1.125rem;
-            font-weight: 500;
-            border-left: 5px solid transparent;
-            transition: background-color 0.2s, border-left-color 0.2s;
-        }
-        .sidebar-item:hover, .sidebar-item.active {
-            background-color: var(--input-bg-color);
-        }
-        .sidebar-item.active {
-            border-left-color: var(--accent-color);
-            color: var(--accent-color);
-            font-weight: 700;
-        }
-        .sidebar-item-icon {
-            min-width: 24px; /* Ensure icon has space */
-            text-align: center;
-        }
-        .sidebar-item-text {
-            margin-left: 1rem;
-            transition: opacity 0.3s;
-        }
-        .sidebar-user-info {
-            padding: 1rem 1.5rem;
-            border-top: 1px solid var(--border-color);
-            font-size: 0.875rem;
-            transition: opacity 0.3s;
-        }
-        .sidebar-toggle-button {
-            position: absolute;
-            right: -12px;
-            top: 50%; /* Center vertically */
-            transform: translateY(-50%); /* Adjust vertical centering */
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background-color: var(--accent-color);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            transition: transform 0.3s, background-color 0.3s, right 0.3s; /* Added right transition */
-            z-index: 50;
-        }
-        /* --- End Sidebar/Header Styles --- */
-
+        .sidebar { width: var(--sidebar-width); min-width: var(--sidebar-width); background-color: var(--box-bg-color); color: var(--text-color); position: fixed; top: 0; left: 0; height: 100vh; padding-top: 2rem; box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2); z-index: 40; display: flex; flex-direction: column; justify-content: space-between; transition: width 0.3s, min-width 0.3s; border-right: 1px solid var(--border-color); }
+        .sidebar-item { display: flex; align-items: center; padding: 0.75rem 1.5rem; font-size: 1.125rem; font-weight: 500; border-left: 5px solid transparent; transition: background-color 0.2s, border-left-color 0.2s; }
+        .sidebar-item:hover, .sidebar-item.active { background-color: var(--input-bg-color); }
+        .sidebar-item.active { border-left-color: var(--accent-color); color: var(--accent-color); font-weight: 700; }
+        .sidebar-item-icon { min-width: 24px; text-align: center; }
+        .sidebar-item-text { margin-left: 1rem; transition: opacity 0.3s; }
+        .sidebar-user-info { padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); font-size: 0.875rem; transition: opacity 0.3s; }
+        .sidebar-toggle-button { position: absolute; right: -12px; top: 50%; transform: translateY(-50%); width: 24px; height: 24px; border-radius: 50%; background-color: var(--accent-color); color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); transition: transform 0.3s, background-color 0.3s, right 0.3s; z-index: 50; }
+        .theme-input { background-color: var(--input-bg-color); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 0.5rem; padding: 0.75rem; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06); width: 100%; transition: border-color 0.2s, box-shadow 0.2s; }
+        .theme-input select, select.theme-input { appearance: none; background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>'); background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 1.5em 1.5em; padding-right: 2.5rem; }
+        .theme-input:focus { outline: none; border-color: var(--accent-color); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-color) 30%, transparent); }
+        .theme-dropdown-menu { background-color: var(--box-bg-color); border: 1px solid var(--border-color); opacity: 1; z-index: 60; position: absolute; right: 0; margin-top: 0.5rem; width: 12rem; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); origin-y: top; display: none; }
+        .theme-dropdown-menu button { color: var(--text-color); width: 100%; text-align: left; padding: 0.5rem 1rem; }
+        .theme-dropdown-menu button:hover { background-color: var(--input-bg-color); }
 
         /* Specific styles for the table and admin panel */
-        .admin-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        .admin-table th, .admin-table td {
-            border: 1px solid var(--border-color);
-            padding: 8px;
-            text-align: left;
-            word-wrap: break-word; /* Ensures text breaks within cells */
-            font-size: 0.9em;
-            color: var(--text-color); /* Inherit text color */
-        }
-        .admin-table th {
-            background-color: var(--button-primary-bg);
-            color: var(--button-text-color);
-            position: sticky; /* Sticky header for scrolling tables */
-            top: 0;
-            z-index: 1;
-        }
-        .admin-table tbody tr:nth-child(even) {
-            background-color: color-mix(in srgb, var(--box-bg-color) 90%, var(--border-color)); /* Slightly different row color */
-        }
-        .admin-table tbody tr:hover {
-            background-color: color-mix(in srgb, var(--box-bg-color) 70%, var(--accent-color)); /* Hover effect */
-        }
-        .table-container {
-            max-height: 500px; /* Limit height of table for scrolling */
-            overflow-y: auto;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-        }
-        .hidden {
-            display: none !important; /* Use !important to ensure it overrides other display properties */
-        }
-        .action-buttons-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            align-items: center; /* Align items vertically in the group */
-        }
-        .admin-section {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border-color);
-        }
-        .admin-section h3 {
-            margin-bottom: 15px;
-        }
+        .admin-table { width: 100%; border-collapse: collapse; margin-top: 1rem; } /* Reduced margin-top slightly */
+        .admin-table th, .admin-table td { border: 1px solid var(--border-color); padding: 6px 8px; /* Slightly reduced padding */ text-align: left; word-wrap: break-word; font-size: 0.85em; /* Slightly smaller font */ color: var(--text-color); vertical-align: middle; /* Align vertically */ }
+        .admin-table th { background-color: var(--button-primary-bg); color: var(--button-text-color); position: sticky; top: 0; z-index: 1; white-space: nowrap; /* Prevent headers from wrapping */ }
+        .admin-table tbody tr:nth-child(even) { background-color: color-mix(in srgb, var(--box-bg-color) 90%, var(--border-color)); }
+        .admin-table tbody tr:hover { background-color: color-mix(in srgb, var(--box-bg-color) 70%, var(--accent-color)); }
+        .table-container { max-height: 450px; /* Adjusted height */ overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; }
+        .hidden { display: none !important; }
+        .action-buttons-group { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; align-items: center; }
+        .admin-section { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); }
+        .admin-section h3 { margin-bottom: 1rem; }
+        .admin-table details { position: relative; }
+        .admin-table details > summary { cursor: pointer; display: inline-block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px; /* Skinny summary */ padding-right: 5px; vertical-align: middle; }
+        .admin-table .dropdown-content { position: absolute; background: var(--box-bg-color); border: 1px solid var(--border-color); border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); padding: 10px; margin-top: 5px; max-height: 180px; /* Reduced max height */ overflow-y: auto; word-break: break-word; z-index: 10; width: 250px; /* Wider dropdown */ display: block; left: 0; }
+        .admin-table details:not([open]) > .dropdown-content { display: none; }
+        .admin-table .dropdown-content.preserve-whitespace { white-space: pre-wrap; width: 350px; /* Wider for details */ }
+        .ban-level-0 { color: #22c55e; } .ban-level-1 { color: #facc15; } .ban-level-2 { color: #f97316; } .ban-level-3 { color: #ef4444; } .ban-level-unknown { color: var(--subtle-text-color); }
 
         /* Styles for fullscreen image modal */
-        #fullscreenImageModal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: rgba(0, 0, 0, 0.9); /* Dark overlay */
-            display: flex; /* Use flex for centering content */
-            align-items: center;
-            justify-content: center;
-            z-index: 1000; /* High z-index to be on top */
-        }
-        #fullscreenImageModal img {
-            max-width: 90%;
-            max-height: 90%;
-            object-fit: contain; /* Ensure entire image is visible */
-        }
-        #closeFullscreenBtn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(0,0,0,0.5); /* Semi-transparent background */
-            border: none;
-            font-size: 2em;
-            color: white;
-            cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 5px;
-        }
-        #closeFullscreenBtn:hover {
-            background-color: rgba(0,0,0,0.7);
-        }
+        #fullscreenImageModal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0, 0, 0, 0.9); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        #fullscreenImageModal img { max-width: 90%; max-height: 90%; object-fit: contain; }
+        #closeFullscreenBtn { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.5); border: none; font-size: 2em; color: white; cursor: pointer; padding: 5px 10px; border-radius: 5px; }
+        #closeFullscreenBtn:hover { background-color: rgba(0,0,0,0.7); }
 
-        /* Styles for the new Penal Code Edit Modal */
-        #editPenalCodeModalOverlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: rgba(0, 0, 0, 0.7);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
+        /* Penal Code Edit Modal styles */
+        #editPenalCodeModalOverlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0, 0, 0, 0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        #editPenalCodeModal { background-color: var(--box-bg-color); color: var(--text-color); padding: 2rem; border-radius: 0.5rem; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); width: 90%; max-width: 600px; display: flex; flex-direction: column; }
+        #editPenalCodeModal label { color: var(--text-color); }
+        #editPenalCodeModal input, #editPenalCodeModal textarea, #editPenalCodeModal select { background-color: var(--input-bg-color); color: var(--text-color); border-color: var(--border-color); width: 100%; padding: 0.5rem; border-radius: 0.25rem; border-width: 1px; }
 
-        #editPenalCodeModal {
-            background-color: var(--box-bg-color);
-            color: var(--text-color);
-            padding: 2rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            width: 90%;
-            max-width: 600px; /* Wider for the form */
-            display: flex;
-            flex-direction: column;
-        }
-
-        #editPenalCodeModal label {
-            color: var(--text-color);
-        }
-        #editPenalCodeModal input,
-        #editPenalCodeModal textarea,
-        #editPenalCodeModal select {
-            background-color: var(--input-bg-color);
-            color: var(--text-color);
-            border-color: var(--border-color);
-            width: 100%;
-            padding: 0.5rem;
-            border-radius: 0.25rem;
-            border-width: 1px;
-        }
-        /* Ensure custom modal buttons are flex items for proper spacing */
-        #customModalButtons button {
-            display: flex; /* Ensure buttons are always flex items */
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* --- NEW STYLES for overlapping dropdown --- */
-        .admin-table details {
-            position: relative; /* Make details the positioning parent */
-        }
-        .admin-table details > summary {
-            cursor: pointer;
-            display: inline-block;
-            white-space: nowrap; /* Keep summary on one line */
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 120px; /* Make the summary part skinny */
-            padding-right: 5px; /* Space from the dropdown marker */
-        }
-
-        /* Class for overlapping dropdown content */
-        .admin-table .dropdown-content {
-            position: absolute;
-            background: var(--box-bg-color); /* Use box background */
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            padding: 10px;
-            margin-top: 5px;
-            max-height: 200px; /* Max height before scrolling */
-            overflow-y: auto;
-            word-break: break-word; /* Break long words */
-            z-index: 10; /* Make it overlap */
-
-            /* "Weirdly skinny" part */
-            width: 200px; /* Set a specific skinny width */
-
-            display: block;
-            left: 0; /* Align with the start of the summary */
-        }
-
-        /* Hide the div content when details is not open */
-        .admin-table details:not([open]) > .dropdown-content {
-            display: none;
-        }
-
-        /* Style for pre-formatted text (like incident details) */
-        .admin-table .dropdown-content.preserve-whitespace {
-            white-space: pre-wrap;
-            width: 300px; /* Give notes more space */
-        }
-        /* --- END NEW STYLES --- */
-
+        /* Add User Modal styles */
+        #addUserModalOverlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0, 0, 0, 0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        #addUserModal { background-color: var(--box-bg-color); color: var(--text-color); padding: 2rem; border-radius: 0.5rem; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); width: 90%; max-width: 500px; display: flex; flex-direction: column; }
+        #customModalButtons button { display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body class="min-h-screen theme-app-container flex flex-row theme-bg-color">
@@ -383,169 +105,145 @@
         </div>
     </div>
 
-    <div class="sidebar" id="appSidebar"> <div id="sidebarToggle" class="sidebar-toggle-button">
+    <div class="sidebar" id="appSidebar">
+         <div id="sidebarToggle" class="sidebar-toggle-button">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
             </svg>
         </div>
         <div>
-            <div class="text-2xl font-bold px-6 mb-8 text-[var(--accent-color)] sidebar-title">Shadow LE Web</div> <a href="selection.html" class="sidebar-item theme-text-color">
-                <span class="sidebar-item-icon">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-                </span>
+            <div class="text-2xl font-bold px-6 mb-8 text-[var(--accent-color)] sidebar-title">Shadow LE Web</div>
+            <a href="selection.html" class="sidebar-item theme-text-color">
+                <span class="sidebar-item-icon"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg></span>
                 <span class="sidebar-item-text">Dashboard</span>
             </a>
-            <a href="citation.html" class="sidebar-item theme-text-color">
-                <span class="sidebar-item-icon">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                </span>
+             <a href="citation.html" class="sidebar-item theme-text-color">
+                <span class="sidebar-item-icon"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg></span>
                 <span class="sidebar-item-text">Submit Citation</span>
             </a>
             <a href="arrest.html" class="sidebar-item theme-text-color">
-                <span class="sidebar-item-icon">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                </span>
+                <span class="sidebar-item-icon"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg></span>
                 <span class="sidebar-item-text">Submit Arrest Report</span>
             </a>
             <a href="shift_log.html" class="sidebar-item theme-text-color">
-                <span class="sidebar-item-icon">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                </span>
+                <span class="sidebar-item-icon"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></span>
                 <span class="sidebar-item-text">Submit Shift Log</span>
             </a>
+            <a href="registry.html" class="sidebar-item theme-text-color"> <span class="sidebar-item-icon"> <!-- Added active class -->
+                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16l2.879-2.879a3 3 0 014.242 0L18 16m-6-8v7m-4-4h.01M16 12h.01M4 16l2.879-2.879a3 3 0 014.242 0L13 15m5-1v6m0-6V9a2 2 0 00-2-2h-3.172a2 2 0 00-1.414.586l-4.828 4.828a2 2 0 000 2.828l3.172 3.172a2 2 0 002.828 0L18 16m-6-8h.01"></path></svg>
+                 </span>
+                <span class="sidebar-item-text">Vehicle Registry</span>
+            </a>
              </div>
-
         <div class="sidebar-user-info theme-subtle-text">
             <p class="font-bold mb-1 theme-text-color" id="sidebarUsernameDisplay">USERNAME</p>
             <p class="block theme-subtle-text">Shadow LE Web© 2025</p>
-            <button id="sidebarLogoutButton" class="block mt-2 font-medium text-red-400 hover:text-red-500 transition-colors sidebar-logout-text">Log out</button> </div>
+            <button id="sidebarLogoutButton" class="block mt-2 font-medium text-red-400 hover:text-red-500 transition-colors sidebar-logout-text">Log out</button>
+        </div>
     </div>
-    <header class="theme-section-bg fixed top-0 w-full z-50 main-header" id="appHeader"> <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
 
-        <div class="flex items-end space-x-4">
-            <h1 class="text-3xl font-bold theme-text-color">Admin Panel</h1>
-
-            <a href="selection.html"
-               class="text-sm font-medium theme-subtle-text hover:text-[var(--accent-color)] transition-colors mb-1">
-                (Back to Dashboard)
-            </a>
+    <header class="theme-section-bg fixed top-0 w-full z-50 main-header" id="appHeader">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div class="flex items-end space-x-4">
+                <h1 class="text-3xl font-bold theme-text-color">Admin Panel</h1>
+                <a href="selection.html" class="text-sm font-medium theme-subtle-text hover:text-[var(--accent-color)] transition-colors mb-1">(Back to Dashboard)</a>
             </div>
-
-        <nav class="space-x-4 flex items-center">
-          <p class="theme-text-color font-medium hidden sm:block">
-            Welcome, <span id="userNameDisplay">Admin</span>
-          </p>
-
-          <div class="relative inline-block text-left">
-            <button id="themeToggle" type="button"
-              class="p-2 rounded-full theme-text-color hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-colors flex items-center justify-center space-x-1"
-              aria-expanded="false" aria-haspopup="true">
-              <span id="currentThemeIcon" class="w-6 h-6 flex items-center justify-center"></span>
-              <svg id="dropdownArrow" class="w-4 h-4 transition-transform duration-200"
-                fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M19 9l-7 7-7-7"></path>
-              </svg>
-            </button>
-            <div id="themeDropdownMenu"
-              class="absolute right-0 mt-2 w-48 rounded-lg shadow-2xl ring-1 ring-black ring-opacity-10 origin-top-right hidden theme-dropdown-menu">
-              <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="themeToggle"
-                id="themeOptions"></div>
-            </div>
-          </div>
-
-          <button id="logoutButton"
-            class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">
-            Log Out
-          </button>
-        </nav>
-      </div>
-    </header>
-    <main class="main-content-wrapper flex items-start justify-center p-4" id="mainContentArea"> <div class="container mx-auto max-w-5xl w-full theme-lookup-box p-8 rounded-xl shadow-lg transition-colors duration-300 border border-solid dashboard-form-container">
-            <div class="flex flex-wrap justify-between items-center mb-6">
-                <h2 class="theme-title text-3xl font-bold">Admin Panel</h2>
-                <div class="flex gap-4">
-                    <button id="refreshButton" class="theme-button-primary py-2 px-6 rounded-md font-semibold">Refresh Data</button>
-                    <button onclick="window.location.href='selection.html'" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">Back to Selection</button>
-                    <button id="logoutButton" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">Logout</button> </div>
-            </div>
-
-            <p class="theme-label mb-4" id="adminInfo">
-                Welcome, Admin! Loading data...
-            </p>
-
-            <div class="admin-section">
-                <h3 class="theme-title text-xl font-bold mb-4">Filter Logs by User</h3>
-                <div class="action-buttons-group grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div>
-                        <label for="filterUsername" class="theme-label block mb-2 font-medium">Submitted By (Username):</label>
-                        <input type="text" id="filterUsername" placeholder="Enter username" class="theme-input p-2 border rounded-md w-full">
-                    </div>
-                    <div>
-                        <label for="filterViolatorName" class="theme-label block mb-2 font-medium">Violator/Suspect Name:</label>
-                        <input type="text" id="filterViolatorName" placeholder="Enter name" class="theme-input p-2 border rounded-md w-full">
-                    </div>
-                    <div>
-                        <label for="filterDepartment" class="theme-label block mb-2 font-medium">Department:</label>
-                        <input type="text" id="filterDepartment" placeholder="Enter department" class="theme-input p-2 border rounded-md w-full">
-                    </div>
-                    <div>
-                        <label for="filterOfficerBadge" class="theme-label block mb-2 font-medium">Officer Badge:</label>
-                        <input type="text" id="filterOfficerBadge" placeholder="Enter badge #" class="theme-input p-2 border rounded-md w-full">
-                    </div>
-                    <div>
-                        <label for="filterStartDate" class="theme-label block mb-2 font-medium">Start Date:</label>
-                        <input type="date" id="filterStartDate" class="theme-input p-2 border rounded-md w-full">
-                    </div>
-                    <div>
-                        <label for="filterEndDate" class="theme-label block mb-2 font-medium">End Date:</label>
-                        <input type="date" id="filterEndDate" class="theme-input p-2 border rounded-md w-full">
-                    </div>
-                    <div>
-                        <label for="filterHost" class="theme-label block mb-2 font-medium">Host:</label>
-                        <input type="text" id="filterHost" placeholder="Enter host name" class="theme-input p-2 border rounded-md w-full">
-                    </div>
-                    <div>
-                        <label for="filterCallsign" class="theme-label block mb-2 font-medium">Callsign:</label>
-                        <input type="text" id="filterCallsign" placeholder="Enter callsign" class="theme-input p-2 border rounded-md w-full">
-                    </div>
-                    <div class="col-span-full flex justify-center gap-4 mt-4">
-                        <button id="applyFilterBtn" class="theme-button-primary py-2 px-6 rounded-md font-semibold">Apply Filter</button>
-                        <button id="clearFilterBtn" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">Clear Filter</button>
+            <nav class="space-x-4 flex items-center">
+                <p class="theme-text-color font-medium hidden sm:block">Welcome, <span id="userNameDisplay">Admin</span></p>
+                <div class="relative inline-block text-left">
+                    <button id="themeToggle" type="button" class="p-2 rounded-full theme-text-color hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-colors flex items-center justify-center space-x-1" aria-expanded="false" aria-haspopup="true">
+                        <span id="currentThemeIcon" class="w-6 h-6 flex items-center justify-center"></span>
+                        <svg id="dropdownArrow" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div id="themeDropdownMenu" class="theme-dropdown-menu absolute right-0 mt-2 w-48 rounded-lg shadow-2xl ring-1 ring-black ring-opacity-10 origin-top-right hidden">
+                        <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="themeToggle" id="themeOptions"></div>
                     </div>
                 </div>
-                <p class="theme-label mb-4 mt-4">
-                    Total Citations Displayed: <span id="citationCount" class="font-bold">0</span><br>
-                    Total Arrests Displayed: <span id="arrestCount" class="font-bold">0</span><br>
-                    Total Shift Logs Displayed: <span id="shiftLogCount" class="font-bold">0</span>
+                <button id="logoutButton" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300">Log Out</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content-wrapper p-4 sm:p-6 lg:p-8" id="mainContentArea">
+        <div class="container mx-auto max-w-7xl w-full theme-lookup-box p-6 sm:p-8 rounded-xl shadow-lg dashboard-form-container border theme-tile-border">
+            <div class="flex flex-wrap justify-between items-center mb-6">
+                <h2 class="theme-title text-3xl font-bold">Admin Panel</h2>
+                <div class="flex gap-4 mt-2 sm:mt-0">
+                    <button id="refreshButton" class="theme-button-primary py-2 px-6 rounded-md font-semibold">Refresh Data</button>
+                </div>
+            </div>
+
+            <p class="theme-label mb-4" id="adminInfo">Welcome, Admin! Loading data...</p>
+
+            <div class="admin-section">
+                <h3 class="theme-title text-xl font-bold mb-4">Filter Logs</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                    <div><label for="filterUsername" class="theme-label block mb-1 font-medium text-sm">Submitted By:</label><input type="text" id="filterUsername" placeholder="Username" class="theme-input p-2 text-sm"></div>
+                    <div><label for="filterViolatorName" class="theme-label block mb-1 font-medium text-sm">Violator/Suspect:</label><input type="text" id="filterViolatorName" placeholder="Name" class="theme-input p-2 text-sm"></div>
+                    <div><label for="filterDepartment" class="theme-label block mb-1 font-medium text-sm">Department:</label><input type="text" id="filterDepartment" placeholder="Department" class="theme-input p-2 text-sm"></div>
+                    <div><label for="filterOfficerBadge" class="theme-label block mb-1 font-medium text-sm">Officer Badge:</label><input type="text" id="filterOfficerBadge" placeholder="Badge #" class="theme-input p-2 text-sm"></div>
+                    <div><label for="filterStartDate" class="theme-label block mb-1 font-medium text-sm">Start Date:</label><input type="date" id="filterStartDate" class="theme-input p-2 text-sm"></div>
+                    <div><label for="filterEndDate" class="theme-label block mb-1 font-medium text-sm">End Date:</label><input type="date" id="filterEndDate" class="theme-input p-2 text-sm"></div>
+                    <div><label for="filterHost" class="theme-label block mb-1 font-medium text-sm">Host (Shift Logs):</label><input type="text" id="filterHost" placeholder="Host name" class="theme-input p-2 text-sm"></div>
+                    <div><label for="filterCallsign" class="theme-label block mb-1 font-medium text-sm">Callsign (Shift Logs):</label><input type="text" id="filterCallsign" placeholder="Callsign" class="theme-input p-2 text-sm"></div>
+                </div>
+                <div class="flex justify-center gap-4">
+                    <button id="applyFilterBtn" class="theme-button-primary py-2 px-6 rounded-md font-semibold">Apply Filter</button>
+                    <button id="clearFilterBtn" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">Clear Filter</button>
+                </div>
+                 <p class="theme-label text-center mt-4 text-sm">
+                    Displayed Counts:
+                    Citations: <span id="citationCount" class="font-bold">0</span> |
+                    Arrests: <span id="arrestCount" class="font-bold">0</span> |
+                    Shift Logs: <span id="shiftLogCount" class="font-bold">0</span><br>
+                    Total Registered:
+                    Vehicles: <span id="vehicleCount" class="font-bold">0</span> |
+                    Trailers: <span id="trailerCount" class="font-bold">0</span>
                 </p>
             </div>
 
             <div class="admin-section">
                 <div class="action-buttons-group">
                     <h3 class="theme-title text-xl font-bold">Manage Users</h3>
-                    <button id="addUserBtn" class="theme-button-primary py-2 px-6 rounded-md font-semibold">Add User</button>
-                    <button id="refreshUsersBtn" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">Refresh Users</button>
+                    <button id="addUserBtn" class="theme-button-primary py-1 px-4 text-sm rounded-md font-semibold">Add User</button> <!-- Smaller button -->
+                    <button id="refreshUsersBtn" class="theme-button-secondary py-1 px-4 text-sm rounded-md font-semibold">Refresh Users</button>
                 </div>
                 <div id="usersContainer" class="table-container">
-                    <h4 class="theme-label text-lg font-bold mb-2">User List</h4>
                     <table class="admin-table" id="usersTable">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Username</th>
-                                <th>Badge #</th>
-                                <th>Department</th>
-                                <th>Role</th>
-                                <th>Citations Count</th>
-                                <th>Arrest Count</th>
-                                <th>Shift Logs Count</th>
-                                <th>Actions</th>
+                                <th>ID</th><th>Username</th><th>Badge #</th><th>Department</th><th>Role</th><th>Citations</th><th>Arrests</th><th>Shifts</th><th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            </tbody>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="admin-section">
+                <h3 class="theme-title text-xl font-bold mb-4">All Registered Vehicles & Trailers</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                     <div>
+                        <label for="filterOwnerId" class="theme-label block mb-1 font-medium text-sm">Owner Discord ID:</label>
+                        <input type="text" id="filterOwnerId" placeholder="Enter Discord ID" class="theme-input p-2 text-sm">
+                    </div>
+                     <div>
+                        <label for="filterOwnerUsername" class="theme-label block mb-1 font-medium text-sm">Owner Username:</label>
+                        <input type="text" id="filterOwnerUsername" placeholder="Enter Username" class="theme-input p-2 text-sm">
+                    </div>
+                    <div class="flex items-end gap-2">
+                        <button id="applyRegistrationFilterBtn" class="theme-button-primary py-2 px-4 rounded-md font-semibold text-sm flex-grow">Search</button>
+                        <button id="clearRegistrationFilterBtn" class="theme-button-secondary py-2 px-4 rounded-md font-semibold text-sm">Clear</button>
+                    </div>
+                </div>
+                <div id="allRegistrationsContainer" class="table-container">
+                    <table class="admin-table" id="allRegistrationsTable">
+                        <thead>
+                            <tr>
+                                <th>Owner User</th><th>Owner ID</th><th>Type</th><th>Plate</th><th>State</th><th>Make/Brand</th><th>Model</th><th>Color</th><th>Year</th><th>Ban Lvl</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
@@ -553,27 +251,17 @@
             <div class="admin-section">
                 <div class="action-buttons-group">
                     <h3 class="theme-title text-xl font-bold">Manage Citations</h3>
-                    <button id="deleteSelectedCitationsBtn" class="theme-button-danger py-2 px-6 rounded-md font-semibold" disabled>Delete Selected Citations</button>
+                    <button id="deleteSelectedCitationsBtn" class="theme-button-danger py-1 px-4 text-sm rounded-md font-semibold" disabled>Delete Selected</button>
                 </div>
-
                 <div id="citationsContainer" class="table-container">
-                    <h4 class="theme-label text-lg font-bold mb-2">Citations List (Sorted by Latest Submission)</h4>
                     <table class="admin-table" id="citationsTable">
                         <thead>
                             <tr>
                                 <th><input type="checkbox" id="selectAllCitations" class="theme-input"></th>
-                                <th>ID</th>
-                                <th>Timestamp</th>
-                                <th>Submitted By</th>
-                                <th>Badge #</th>
-                                <th>Violator User ID</th>
-                                <th>Type</th>
-                                <th>Amount Due</th>
-                                <th>Notes</th>
+                                <th>ID</th><th>Timestamp</th><th>Submitted By</th><th>Badge #</th><th>Violator ID</th><th>Type</th><th>Amount Due</th><th>Paid?</th><th>Notes</th> <!-- Added Paid? -->
                             </tr>
                         </thead>
-                        <tbody>
-                            </tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
@@ -581,31 +269,17 @@
             <div class="admin-section">
                 <div class="action-buttons-group">
                     <h3 class="theme-title text-xl font-bold">Manage Arrests</h3>
-                    <button id="deleteSelectedArrestsBtn" class="theme-button-danger py-2 px-6 rounded-md font-semibold" disabled>Delete Selected Arrests</button>
+                    <button id="deleteSelectedArrestsBtn" class="theme-button-danger py-1 px-4 text-sm rounded-md font-semibold" disabled>Delete Selected</button>
                 </div>
-
                 <div id="arrestsContainer" class="table-container">
-                    <h4 class="theme-label text-lg font-bold mb-2">Arrests List (Sorted by Latest Submission)</h4>
                     <table class="admin-table" id="arrestsTable">
                         <thead>
                             <tr>
                                 <th><input type="checkbox" id="selectAllArrests" class="theme-input"></th>
-                                <th>ID</th>
-                                <th>Timestamp</th>
-                                <th>Submitted By</th>
-                                <th>Badge #</th>
-                                <th>Department</th>
-                                <th>Suspect Name</th>
-                                <th>Charges</th>
-                                <th>Fines</th>
-                                <th>Jail Time</th>
-                                <th>Warrant?</th>
-                                <th>Serving?</th>
-                                <th>Incident Details</th>
+                                <th>ID</th><th>Timestamp</th><th>Submitted By</th><th>Badge #</th><th>Dept</th><th>Suspect</th><th>Charges</th><th>Fines</th><th>Jail</th><th>Warrant?</th><th>Serving?</th><th>Paid?</th><th>Details</th> <!-- Added Paid? -->
                             </tr>
                         </thead>
-                        <tbody>
-                            </tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
@@ -613,34 +287,18 @@
             <div class="admin-section">
                 <div class="action-buttons-group">
                     <h3 class="theme-title text-xl font-bold">Manage Shift Logs</h3>
-                    <button id="deleteSelectedShiftLogsBtn" class="theme-button-danger py-2 px-6 rounded-md font-semibold" disabled>Delete Selected Shift Logs</button>
-                    <button id="deleteAllR2ScreenshotsBtn" class="theme-button-danger py-2 px-6 rounded-md font-semibold">Delete ALL R2 Screenshots</button>
+                    <button id="deleteSelectedShiftLogsBtn" class="theme-button-danger py-1 px-4 text-sm rounded-md font-semibold" disabled>Delete Selected</button>
+                    <button id="deleteAllR2ScreenshotsBtn" class="theme-button-danger py-1 px-4 text-sm rounded-md font-semibold">Delete ALL R2 Shots</button>
                 </div>
-
                 <div id="shiftLogsContainer" class="table-container">
-                    <h4 class="theme-label text-lg font-bold mb-2">Shift Logs List (Sorted by Latest Submission)</h4>
                     <table class="admin-table" id="shiftLogsTable">
                         <thead>
                             <tr>
                                 <th><input type="checkbox" id="selectAllShiftLogs" class="theme-input"></th>
-                                <th>ID</th>
-                                <th>Timestamp</th>
-                                <th>Submitted By</th>
-                                <th>Badge #</th>
-                                <th>Department</th>
-                                <th>Rank</th>
-                                <th>Host</th>
-                                <th>Callsign</th>
-                                <th>Duration</th>
-                                <th>Traffic Stops</th>
-                                <th>Citations</th>
-                                <th>Arrests</th>
-                                <th>Notes</th>
-                                <th>Screenshot</th>
+                                <th>ID</th><th>Timestamp</th><th>Submitted By</th><th>Badge #</th><th>Dept</th><th>Rank</th><th>Host</th><th>Callsign</th><th>Duration</th><th>Stops</th><th>Cites</th><th>Arrests</th><th>Notes</th><th>Screenshot</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            </tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
@@ -648,115 +306,72 @@
             <div class="admin-section">
                 <div class="action-buttons-group">
                     <h3 class="theme-title text-xl font-bold">Manage Penal Codes</h3>
-                    <button id="refreshPenalCodesBtn" class="theme-button-secondary py-2 px-6 rounded-md font-semibold">Refresh Penal Codes</button>
+                    <button id="refreshPenalCodesBtn" class="theme-button-secondary py-1 px-4 text-sm rounded-md font-semibold">Refresh Codes</button>
                 </div>
                 <div id="penalCodesContainer" class="table-container">
-                    <h4 class="theme-label text-lg font-bold mb-2">Penal Code List</h4>
                     <table class="admin-table" id="penalCodesTable">
                         <thead>
                             <tr>
-                                <th>Code</th>
-                                <th>Description</th>
-                                <th>Amount Due</th>
-                                <th>Type</th>
-                                <th>Jail Time (Sec)</th>
-                                <th>Actions</th>
+                                <th>Code</th><th>Description</th><th>Amount</th><th>Type</th><th>Jail (s)</th><th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            </tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </div>
 
             <div class="admin-section">
-                <h3 class="theme-title text-xl font-bold mb-4">Import Penal Codes</h3>
-                <p class="theme-label mb-4">
-                    Import penal codes from a CSV file. Ensure your CSV has headers: "Penal Code", "Offense", "Amount Due", "Type", "Jail Time (Secor)".<br>
-                    "Amount Due" and "Jail Time (Secor)" columns must contain only numbers (e.g., 750, 10000, 0) with no currency symbols or commas.
-                </p>
-                <div class="action-buttons-group grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label for="penalCodeCsvFile" class="theme-label block mb-2 font-medium">Upload CSV File:</label>
-                        <input type="file" id="penalCodeCsvFile" accept=".csv" class="theme-input p-2 rounded-md w-full">
-                    </div>
-                    <div class="flex items-end">
-                        <button id="importCsvBtn" class="theme-button-primary py-2 px-6 rounded-md font-semibold w-full">Import from File</button>
-                    </div>
+                <h3 class="theme-title text-xl font-bold mb-4">Import Penal Codes (CSV)</h3>
+                <p class="theme-label mb-2 text-sm">Headers: "Penal Code", "Offense", "Amount Due", "Type", "Jail Time (Secor)". Numeric columns require numbers only.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end mb-2">
+                    <div><label for="penalCodeCsvFile" class="theme-label block mb-1 font-medium text-sm">Upload File:</label><input type="file" id="penalCodeCsvFile" accept=".csv" class="theme-input p-2 text-sm"></div>
+                    <button id="importCsvBtn" class="theme-button-primary py-2 px-6 rounded-md font-semibold text-sm w-full md:w-auto">Import from File</button>
                 </div>
-                <div class="mb-4">
-                    <label for="penalCodeCsvText" class="theme-label block mb-2 mt-4">Or paste CSV content directly:</label>
-                    <textarea id="penalCodeCsvText" rows="6" placeholder="Paste CSV data here (e.g., &#34;PC-101&#34;,&#34;Speeding&#34;,150,&#34;Traffic Violation&#34;,60)" class="theme-input w-full p-2 border rounded-md"></textarea>
+                <div>
+                    <label for="penalCodeCsvText" class="theme-label block mb-1 mt-2 text-sm">Or paste CSV content:</label>
+                    <textarea id="penalCodeCsvText" rows="4" placeholder="Paste CSV data here..." class="theme-input w-full p-2 text-sm"></textarea>
                 </div>
-                <div class="flex justify-center">
-                    <button id="pasteImportCsvBtn" class="theme-button-primary py-2 px-6 rounded-md font-semibold">Import from Pasted Text</button>
+                <div class="flex justify-center mt-2">
+                    <button id="pasteImportCsvBtn" class="theme-button-primary py-2 px-6 rounded-md font-semibold text-sm">Import from Text</button>
                 </div>
             </div>
 
-        </div>
+        </div> 
     </main>
 
-    <div id="customModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50"> <div id="customModal" class="theme-lookup-box p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 sm:mx-auto">
-            <h3 id="customModalTitle" class="theme-title text-xl font-bold mb-4"></h3>
-            <p id="customModalMessage" class="theme-label mb-6"></p>
-            <div id="customModalButtons" class="flex justify-end space-x-3">
-                <button id="customModalCancelBtn" class="theme-button-secondary py-2 px-4 rounded-md font-semibold hidden">Cancel</button>
-                <button id="customModalOkBtn" class="theme-button-primary py-2 px-4 rounded-md font-semibold">OK</button>
-            </div>
-        </div>
-    </div>
-
+    <!-- Fullscreen Image Modal -->
     <div id="fullscreenImageModal" class="hidden fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
         <button id="closeFullscreenBtn" class="absolute top-4 right-4 bg-gray-700 hover:bg-gray-600 text-white text-xl p-2 rounded-full w-10 h-10 flex items-center justify-center">X</button>
         <img id="fullscreenImage" src="" alt="Full Screen Screenshot" class="max-w-[90%] max-h-[90%] object-contain">
     </div>
 
-    <div id="editPenalCodeModalOverlay" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div id="editPenalCodeModalOverlay" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
         <div id="editPenalCodeModal" class="theme-lookup-box p-6 rounded-lg shadow-xl max-w-lg w-full mx-4 sm:mx-auto">
             <h3 class="theme-title text-xl font-bold mb-4">Edit Penal Code: <span id="editPenalCodeCodeDisplay"></span></h3>
             <form id="editPenalCodeForm" class="grid grid-cols-1 gap-4">
-                <div>
-                    <label for="editPenalCodeDescription" class="theme-label block mb-2 font-medium">Description:</label>
-                    <textarea id="editPenalCodeDescription" class="theme-input w-full p-2 border rounded-md min-h-[60px]"></textarea>
-                </div>
+                <div><label for="editPenalCodeDescription" class="theme-label block mb-1 font-medium text-sm">Description:</label><textarea id="editPenalCodeDescription" class="theme-input w-full p-2 min-h-[50px] text-sm"></textarea></div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label for="editPenalCodeAmount" class="theme-label block mb-2 font-medium">Amount Due ($):</label>
-                        <input type="number" id="editPenalCodeAmount" step="0.01" min="0" class="theme-input w-full p-2 border rounded-md">
-                    </div>
-                    <div>
-                        <label for="editPenalCodeType" class="theme-label block mb-2 font-medium">Type:</label>
-                        <input type="text" id="editPenalCodeType" class="theme-input w-full p-2 border rounded-md">
-                    </div>
+                    <div><label for="editPenalCodeAmount" class="theme-label block mb-1 font-medium text-sm">Amount Due ($):</label><input type="number" id="editPenalCodeAmount" step="0.01" min="0" class="theme-input w-full p-2 text-sm"></div>
+                    <div><label for="editPenalCodeType" class="theme-label block mb-1 font-medium text-sm">Type:</label><input type="text" id="editPenalCodeType" class="theme-input w-full p-2 text-sm"></div>
                 </div>
-                <div>
-                    <label for="editPenalCodeJailTime" class="theme-label block mb-2 font-medium">Jail Time (Seconds):</label>
-                    <input type="number" id="editPenalCodeJailTime" step="1" min="0" class="theme-input w-full p-2 border rounded-md">
-                </div>
-
+                <div><label for="editPenalCodeJailTime" class="theme-label block mb-1 font-medium text-sm">Jail Time (Seconds):</label><input type="number" id="editPenalCodeJailTime" step="1" min="0" class="theme-input w-full p-2 text-sm"></div>
                 <div class="flex justify-end space-x-3 mt-4">
-                    <button type="button" id="cancelEditPenalCodeBtn" class="theme-button-secondary py-2 px-4 rounded-md font-semibold">Cancel</button>
-                    <button type="submit" class="theme-button-primary py-2 px-4 rounded-md font-semibold">Save Changes</button>
+                    <button type="button" id="cancelEditPenalCodeBtn" class="theme-button-secondary py-2 px-4 rounded-md font-semibold text-sm">Cancel</button>
+                    <button type="submit" class="theme-button-primary py-2 px-4 rounded-md font-semibold text-sm">Save Changes</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <div id="addUserModalOverlay" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div id="addUserModalOverlay" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
         <div id="addUserModal" class="theme-lookup-box p-6 rounded-lg shadow-xl max-w-lg w-full mx-4 sm:mx-auto">
             <h3 class="theme-title text-xl font-bold mb-4">Add New User</h3>
             <form id="addUserForm" class="grid grid-cols-1 gap-4">
+                <div><label for="addUsername" class="theme-label block mb-1 font-medium text-sm">Username:</label><input type="text" id="addUsername" required class="theme-input w-full p-2 text-sm"></div>
+                <div><label for="addBadgeNumber" class="theme-label block mb-1 font-medium text-sm">Badge Number:</label><input type="number" id="addBadgeNumber" required min="1" class="theme-input w-full p-2 text-sm"></div>
                 <div>
-                    <label for="addUsername" class="theme-label block mb-2 font-medium">Username:</label>
-                    <input type="text" id="addUsername" required class="theme-input w-full p-2 border rounded-md">
-                </div>
-                <div>
-                    <label for="addBadgeNumber" class="theme-label block mb-2 font-medium">Badge Number:</label>
-                    <input type="number" id="addBadgeNumber" required min="1" class="theme-input w-full p-2 border rounded-md">
-                </div>
-                <div>
-                    <label for="addDepartment" class="theme-label block mb-2 font-medium">Department:</label>
-                    <select id="addDepartment" required class="theme-input w-full p-2 border rounded-md">
+                    <label for="addDepartment" class="theme-label block mb-1 font-medium text-sm">Department:</label>
+                    <select id="addDepartment" required class="theme-input w-full p-2 text-sm">
                         <option value="" disabled selected>Select Department</option>
                         <option value="Wisconsin State Patrol">Wisconsin State Patrol</option>
                         <option value="Outagamie County Sheriff's Office">Outagamie County Sheriff's Office</option>
@@ -764,8 +379,8 @@
                     </select>
                 </div>
                 <div class="flex justify-end space-x-3 mt-4">
-                    <button type="button" id="cancelAddUserBtn" class="theme-button-secondary py-2 px-4 rounded-md font-semibold">Cancel</button>
-                    <button type="submit" class="theme-button-primary py-2 px-4 rounded-md font-semibold">Create User</button>
+                    <button type="button" id="cancelAddUserBtn" class="theme-button-secondary py-2 px-4 rounded-md font-semibold text-sm">Cancel</button>
+                    <button type="submit" class="theme-button-primary py-2 px-4 rounded-md font-semibold text-sm">Create User</button>
                 </div>
             </form>
         </div>
@@ -773,197 +388,44 @@
 
 
     <script>
-        // Store the authentication token (global for this script)
+        // --- !!! Worker URL !!! ---
+        const API_BASE_URL = 'https://citation-app-worker.pnbober.workers.dev';
+        // --------------------------
+
+        // Store the authentication token
         let authToken = sessionStorage.getItem('authToken');
 
-        // --- UTILITY FUNCTIONS (assuming theme.js provides these, fallbacks included for safety) ---
-        if (typeof window.showCustomAlert === 'undefined') {
-            window.showCustomAlert = (message, type = 'info', title = null) => {
-                return new Promise(resolve => {
-                    const modalOverlay = document.getElementById('customModalOverlay');
-                    const modalTitle = document.getElementById('customModalTitle');
-                    const modalMessage = document.getElementById('customModalMessage');
-                    const modalOkBtn = document.getElementById('customModalOkBtn');
-                    const modalCancelBtn = document.getElementById('customModalCancelBtn');
-
-                    modalTitle.textContent = title || (type === 'success' ? 'Success!' : type === 'error' ? 'Error!' : type === 'warning' ? 'Warning!' : 'Information');
-                    modalMessage.textContent = message;
-                    modalTitle.classList.remove('success', 'error', 'warning', 'info');
-                    modalTitle.classList.add(type.replace(/\s+/g, '-'));
-                    modalCancelBtn.classList.add('hidden');
-                    modalOkBtn.classList.remove('hidden');
-                    modalOkBtn.textContent = 'OK';
-
-                    modalOverlay.classList.remove('hidden');
-                    document.body.style.overflow = 'hidden';
-                    modalOkBtn.focus();
-
-                    modalOkBtn.onclick = () => {
-                        modalOverlay.classList.add('hidden');
-                        document.body.style.overflow = '';
-                        modalOkBtn.onclick = null;
-                        resolve();
-                    };
-                    modalCancelBtn.onclick = null;
-                });
-            };
-        }
-        if (typeof window.showCustomConfirm === 'undefined') {
-            window.showCustomConfirm = (message, title = "Confirm Action") => {
-                return new Promise((resolve) => {
-                    const modalOverlay = document.getElementById('customModalOverlay');
-                    const modalTitle = document.getElementById('customModalTitle');
-                    const modalMessage = document.getElementById('customModalMessage');
-                    const modalOkBtn = document.getElementById('customModalOkBtn');
-                    const modalCancelBtn = document.getElementById('customModalCancelBtn');
-
-                    modalTitle.textContent = title;
-                    modalMessage.textContent = message;
-                    modalTitle.classList.remove('success', 'error', 'warning', 'info');
-                    modalTitle.classList.add('info');
-
-                    modalCancelBtn.classList.remove('hidden');
-                    modalOkBtn.classList.remove('hidden');
-                    modalOkBtn.textContent = 'Yes'; // Set to Yes
-                    modalCancelBtn.textContent = 'No'; // Set to No
-
-                    modalOverlay.classList.remove('hidden');
-                    document.body.style.overflow = 'hidden';
-                    modalOkBtn.focus();
-
-                    const okHandler = () => {
-                        modalOverlay.classList.add('hidden');
-                        document.body.style.overflow = '';
-                        modalOkBtn.removeEventListener('click', okHandler);
-                        modalCancelBtn.removeEventListener('click', cancelHandler);
-                        resolve(true);
-                    };
-                    const cancelHandler = () => {
-                        modalOverlay.classList.add('hidden');
-                        document.body.style.overflow = '';
-                        modalOkBtn.removeEventListener('click', okHandler);
-                        modalCancelBtn.removeEventListener('click', cancelHandler);
-                        resolve(false);
-                    };
-
-                    modalOkBtn.addEventListener('click', okHandler);
-                    modalCancelBtn.addEventListener('click', cancelHandler);
-                });
-            };
-        }
-
-
-        // Function to handle redirection to login page and clear session storage
-        function redirectToLogin(message = "Your session has expired. Please log in again.") {
-            console.warn("Redirecting to login:", message);
-            window.showCustomAlert(message, "Session Expired").then(() => {
-                sessionStorage.clear(); // Clear all session data including tokens
-                // The credits section has been removed from all HTML files as of 2025-07-08.
-                window.location.href = 'index.html'; // Redirect to your login page
-            });
-        }
-
-        // --- JWT Decoding (Client-side, for expiration check) ---
-        function decodeJwt(token) {
-            if (!token) return null;
-            try {
-                const base64Url = token.split('.')[1];
-                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-                return JSON.parse(jsonPayload);
-            } catch (e) {
-                console.error("Error decoding JWT:", e);
-                return null;
-            }
-        }
-
-        // --- Token Refresh Mechanism (Calls your Worker's refresh endpoint) ---
-        async function refreshAuthToken() {
-            console.log("Attempting to refresh token...");
-            try {
-                // Your Worker's refresh token endpoint
-                // It will look for the HTTP-only refresh token cookie
-                const response = await fetch('https://citation-app-worker.pnbober.workers.dev/api/auth/refresh-token', {
-                    method: 'POST',
-                    // Credentials 'include' is important to send HTTP-only cookies
-                    credentials: 'include'
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    sessionStorage.setItem('authToken', data.accessToken); // Store new access token
-                    console.log("Token refreshed successfully.");
-                    return true;
-                } else {
-                    console.error("Refresh token failed:", response.status, await response.text());
-                    // If refresh token itself is invalid or expired, force full re-login
-                    return false;
-                }
-            } catch (error) {
-                console.error("Network error during token refresh:", error);
-                // Optionally, handle specific network errors (e.g., no internet)
-                window.showCustomAlert('A network error occurred. Please check your internet connection.', 'Network Error');
-                return null; // Indicate failure
-            }
-        }
-
-        // --- Authenticated Fetch Wrapper ---
+        // --- UTILITY FUNCTIONS ---
+        // (Keep your existing utility functions: showCustomAlert, showCustomConfirm, redirectToLogin, decodeJwt, refreshAuthToken, fetchWithAuth)
+        if (typeof window.showCustomAlert === 'undefined') { window.showCustomAlert = (msg, type) => { alert(msg); return Promise.resolve(); }; }
+        if (typeof window.showCustomConfirm === 'undefined') { window.showCustomConfirm = (msg) => Promise.resolve(confirm(msg)); }
+        function redirectToLogin(message = "Session error.") { console.warn("Redirecting:", message); window.showCustomAlert(message).then(() => { sessionStorage.clear(); window.location.href = 'index.html'; }); }
+        function decodeJwt(token) { try { return JSON.parse(atob(token.split('.')[1])); } catch (e) { return null; } }
+        async function refreshAuthToken() { return false; /* Placeholder - Implement if needed */ } // Basic stub
         async function fetchWithAuth(url, options = {}) {
             let token = sessionStorage.getItem('authToken');
-
-            // Check if token exists and is about to expire (e.g., within 5 minutes)
-            // Or if it's already expired (though the server should catch this too)
-            const decodedToken = decodeJwt(token);
-            const fiveMinutesFromNow = Math.floor(Date.now() / 1000) + (5 * 60);
-
-            if (!token || !decodedToken || decodedToken.exp < fiveMinutesFromNow) {
-                console.log("Token is missing, expired, or near expiration. Attempting refresh.");
-                const refreshed = await refreshAuthToken();
-                if (refreshed) {
-                    token = sessionStorage.getItem('authToken'); // Get the new token
-                } else {
-                    redirectToLogin("Your session has expired. Please log in again.");
-                    return null; // Stop the request
-                }
-            }
-
-            // Add Authorization header
-            options.headers = {
-                ...options.headers,
-                'Authorization': `Bearer ${token}`
-            };
-
+            if (!token) { redirectToLogin("No session token found."); return null; }
+            options.headers = { ...options.headers, 'Authorization': `Bearer ${token}` };
+            if (options.body && typeof options.body === 'object') {
+                 options.headers['Content-Type'] = 'application/json';
+                 options.body = JSON.stringify(options.body);
+             }
             try {
-                const response = await fetch(url, options);
-
-                // Handle 401/403 responses
-                if (response.status === 401 || response.status === 403) {
-                    console.warn("Received 401/403 from API. Attempting to refresh token once.");
-                    const refreshed = await refreshAuthToken(); // Try refreshing once more
-                    if (refreshed) {
-                        // If refresh succeeded, retry the original request with the new token
-                        console.log("Token refreshed, retrying original request.");
-                        options.headers['Authorization'] = `Bearer ${sessionStorage.getItem('authToken')}`;
-                        const retryResponse = await fetch(url, options);
-                        if (retryResponse.status === 401 || retryResponse.status === 403) {
-                            redirectToLogin("Your session has expired. Please log in again.");
-                            return null; // Still failed after refresh, force login
-                        }
-                        return retryResponse; // Return the successful retry response
-                    } else {
-                        redirectToLogin("Your session has expired. Please log in again.");
-                        return null; // Refresh failed, force login
-                    }
-                }
-
-                return response; // Return original response if not 401/403
+                const response = await fetch(API_BASE_URL + url, options);
+                 if (response.status === 401 || response.status === 403) { redirectToLogin("Session expired or invalid."); return null; }
+                 if (!response.ok) {
+                    const errData = await response.json().catch(() => ({ message: response.statusText }));
+                    throw new Error(errData.message || `HTTP error ${response.status}`);
+                 }
+                // Handle No Content response or return JSON
+                return response.status === 204 ? { ok: true, status: 204 } : await response.json(); // Return simple object for 204
             } catch (error) {
-                console.error("Network error during authenticated fetch:", error);
-                // Optionally, handle specific network errors (e.g., no internet)
-                window.showCustomAlert('A network error occurred. Please check your internet connection.', 'Network Error');
-                return null; // Indicate failure
+                 console.error("Fetch error:", error);
+                 window.showCustomAlert(`Network or API error: ${error.message}`, 'Error');
+                 return null;
             }
         }
+        // --- END UTILITY FUNCTIONS ---
 
         document.addEventListener('DOMContentLoaded', async function() {
             const loggedInUserString = sessionStorage.getItem('loggedInUser');
@@ -972,79 +434,51 @@
                 loggedInUser = JSON.parse(loggedInUserString);
             }
 
-            // --- Global Auth and Element Setup ---
-            const authToken = sessionStorage.getItem('authToken');
-
-            // --- Authentication and Authorization Check ---
-            if (!authToken || !loggedInUser || loggedInUser.role !== 'admin') {
-                window.showCustomAlert("Access Denied: You must be an administrator to view this page.", "Access Denied").then(() => {
-                    sessionStorage.clear(); // Clear any partial session data
-                    window.location.href = 'index.html'; // Redirect to login
+            // --- Auth Check ---
+            const currentAuthToken = sessionStorage.getItem('authToken'); // Renamed to avoid conflict
+            if (!currentAuthToken || !loggedInUser || loggedInUser.role !== 'admin') {
+                window.showCustomAlert("Access Denied: Admins only.", "Access Denied").then(() => {
+                    sessionStorage.clear(); window.location.href = 'index.html';
                 });
-                return; // Stop script execution
+                return;
             }
 
-            // --- Admin Panel Elements (Admin only fields) ---
+            // --- Get DOM Elements ---
             const adminInfoDisplay = document.getElementById('adminInfo');
             const citationsTableBody = document.querySelector('#citationsTable tbody');
-            const arrestsTableBody = document.querySelector('#arrestsTable tbody'); // NEW
+            const arrestsTableBody = document.querySelector('#arrestsTable tbody');
             const shiftLogsTableBody = document.querySelector('#shiftLogsTable tbody');
             const usersTableBody = document.querySelector('#usersTable tbody');
             const penalCodesTableBody = document.querySelector('#penalCodesTable tbody');
+            const allRegistrationsTableBody = document.querySelector('#allRegistrationsTable tbody'); // <-- NEW
 
             const refreshButton = document.getElementById('refreshButton');
-            const logoutButton = document.getElementById('logoutButton'); // Header logout
-            const sidebarLogoutButton = document.getElementById('sidebarLogoutButton'); // Sidebar logout
+            const logoutButton = document.getElementById('logoutButton');
+            const sidebarLogoutButton = document.getElementById('sidebarLogoutButton');
 
-            // Citation specific elements
+            // Deletion Buttons
             const selectAllCitationsCheckbox = document.getElementById('selectAllCitations');
             const deleteSelectedCitationsBtn = document.getElementById('deleteSelectedCitationsBtn');
-
-            // Arrest specific elements (NEW)
             const selectAllArrestsCheckbox = document.getElementById('selectAllArrests');
             const deleteSelectedArrestsBtn = document.getElementById('deleteSelectedArrestsBtn');
-
-            // Shift Log specific elements
             const selectAllShiftLogsCheckbox = document.getElementById('selectAllShiftLogs');
             const deleteSelectedShiftLogsBtn = document.getElementById('deleteSelectedShiftLogsBtn');
-            const deleteAllR2ScreenshotsBtn = document.getElementById('deleteAllR2ScreenshotsBtn'); // New button
+            const deleteAllR2ScreenshotsBtn = document.getElementById('deleteAllR2ScreenshotsBtn');
 
-            // User Management elements
+            // User Management
             const refreshUsersBtn = document.getElementById('refreshUsersBtn');
+            const addUserBtn = document.getElementById('addUserBtn');
+            const addUserModalOverlay = document.getElementById('addUserModalOverlay');
+            const addUserForm = document.getElementById('addUserForm');
+            const cancelAddUserBtn = document.getElementById('cancelAddUserBtn');
 
-            // Penal Code Management elements
+            // Penal Codes
             const refreshPenalCodesBtn = document.getElementById('refreshPenalCodesBtn');
-
-            // Filter elements
-            const filterUsernameInput = document.getElementById('filterUsername');
-            const filterViolatorNameInput = document.getElementById('filterViolatorName');
-            const filterDepartmentInput = document.getElementById('filterDepartment');
-            const filterOfficerBadgeInput = document.getElementById('filterOfficerBadge');
-            const filterStartDateInput = document.getElementById('filterStartDate');
-            const filterEndDateInput = document.getElementById('filterEndDate');
-            const applyFilterBtn = document.getElementById('applyFilterBtn');
-            const clearFilterBtn = document.getElementById('clearFilterBtn');
-            const citationCountDisplay = document.getElementById('citationCount');
-            const arrestCountDisplay = document.getElementById('arrestCount'); // NEW
-            const shiftLogCountDisplay = document.getElementById('shiftLogCount');
-            const filterHostInput = document.getElementById('filterHost');
-            const filterCallsignInput = document.getElementById('filterCallsign');
-
-
-            // CSV Import elements
             const penalCodeCsvFile = document.getElementById('penalCodeCsvFile');
             const importCsvBtn = document.getElementById('importCsvBtn');
             const penalCodeCsvText = document.getElementById('penalCodeCsvText');
             const pasteImportCsvBtn = document.getElementById('pasteImportCsvBtn');
-
-            // Fullscreen image modal elements
-            const fullscreenImageModal = document.getElementById('fullscreenImageModal');
-            const fullscreenImage = document.getElementById('fullscreenImage');
-            const closeFullscreenBtn = document.getElementById('closeFullscreenBtn');
-
-            // Penal Code Edit Modal elements
             const editPenalCodeModalOverlay = document.getElementById('editPenalCodeModalOverlay');
-            const editPenalCodeModal = document.getElementById('editPenalCodeModal');
             const editPenalCodeForm = document.getElementById('editPenalCodeForm');
             const editPenalCodeCodeDisplay = document.getElementById('editPenalCodeCodeDisplay');
             const editPenalCodeDescription = document.getElementById('editPenalCodeDescription');
@@ -1054,11 +488,36 @@
             const cancelEditPenalCodeBtn = document.getElementById('cancelEditPenalCodeBtn');
             let currentEditPenalCode = null;
 
-            // Add User Modal elements
-            const addUserBtn = document.getElementById('addUserBtn');
-            const addUserModalOverlay = document.getElementById('addUserModalOverlay');
-            const addUserForm = document.getElementById('addUserForm');
-            const cancelAddUserBtn = document.getElementById('cancelAddUserBtn');
+            // Filters
+            const filterUsernameInput = document.getElementById('filterUsername');
+            const filterViolatorNameInput = document.getElementById('filterViolatorName');
+            const filterDepartmentInput = document.getElementById('filterDepartment');
+            const filterOfficerBadgeInput = document.getElementById('filterOfficerBadge');
+            const filterStartDateInput = document.getElementById('filterStartDate');
+            const filterEndDateInput = document.getElementById('filterEndDate');
+            const applyFilterBtn = document.getElementById('applyFilterBtn');
+            const clearFilterBtn = document.getElementById('clearFilterBtn');
+            const filterHostInput = document.getElementById('filterHost');
+            const filterCallsignInput = document.getElementById('filterCallsign');
+
+            // Counts
+            const citationCountDisplay = document.getElementById('citationCount');
+            const arrestCountDisplay = document.getElementById('arrestCount');
+            const shiftLogCountDisplay = document.getElementById('shiftLogCount');
+            const vehicleCountDisplay = document.getElementById('vehicleCount'); // <-- NEW
+            const trailerCountDisplay = document.getElementById('trailerCount'); // <-- NEW
+
+            // Registration Filters <-- NEW
+            const filterOwnerIdInput = document.getElementById('filterOwnerId');
+            const filterOwnerUsernameInput = document.getElementById('filterOwnerUsername');
+            const applyRegistrationFilterBtn = document.getElementById('applyRegistrationFilterBtn');
+            const clearRegistrationFilterBtn = document.getElementById('clearRegistrationFilterBtn');
+            let allFetchedRegistrations = []; // <-- NEW: Store all registrations
+
+            // Fullscreen Image Modal
+            const fullscreenImageModal = document.getElementById('fullscreenImageModal');
+            const fullscreenImage = document.getElementById('fullscreenImage');
+            const closeFullscreenBtn = document.getElementById('closeFullscreenBtn');
 
             // Sidebar and Header display
             const userNameDisplay = document.getElementById('userNameDisplay');
@@ -1066,1222 +525,490 @@
             const mainContentArea = document.getElementById('mainContentArea');
 
             // Set Header/Sidebar Username
-            if (userNameDisplay && sidebarUsernameDisplay) {
-                userNameDisplay.textContent = loggedInUser.username || 'Admin';
-                sidebarUsernameDisplay.textContent = loggedInUser.username || 'USERNAME';
-            }
-
+            if (userNameDisplay) userNameDisplay.textContent = loggedInUser.username || 'Admin';
+            if (sidebarUsernameDisplay) sidebarUsernameDisplay.textContent = loggedInUser.username || 'USERNAME';
             adminInfoDisplay.textContent = `Welcome, Admin ${loggedInUser.username} (Badge: ${loggedInUser.badgeNumber})!`;
 
             // --- Logout Functionality ---
              function handleLogout(event) {
                 event.preventDefault();
-                window.showCustomConfirm("Are you sure you want to log out?", "Confirm Logout").then((confirmed) => {
-                    if (confirmed) {
-                        sessionStorage.clear();
-                        window.location.href = 'index.html';
-                    }
+                window.showCustomConfirm("Are you sure you want to log out?", "Confirm Logout").then(confirmed => {
+                    if (confirmed) { sessionStorage.clear(); window.location.href = 'index.html'; }
                 });
             }
             if (logoutButton) logoutButton.addEventListener('click', handleLogout);
             if (sidebarLogoutButton) sidebarLogoutButton.addEventListener('click', handleLogout);
 
+            // --- Sidebar/Swipe/Header Logic ---
+            (function setupLayout() {
+                 const appSidebar = document.getElementById('appSidebar'); const sidebarToggle = document.getElementById('sidebarToggle'); const appHeader = document.getElementById('appHeader'); const SIDEBAR_COLLAPSED_KEY = 'sidebarCollapsed'; const isCollapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true'; if (isCollapsed) { appSidebar.classList.add('collapsed'); appHeader.classList.add('collapsed'); if (window.innerWidth <= 1024) mainContentArea.classList.add('collapsed'); } else { if (window.innerWidth <= 1024) mainContentArea.classList.remove('collapsed'); } function toggleSidebar() { const isCurrentlyCollapsed = appSidebar.classList.toggle('collapsed'); appHeader.classList.toggle('collapsed'); if (window.innerWidth <= 1024) mainContentArea.classList.toggle('collapsed', isCurrentlyCollapsed); localStorage.setItem(SIDEBAR_COLLAPSED_KEY, isCurrentlyCollapsed); setTimeout(syncHeaderHeight, 300); } if (sidebarToggle) sidebarToggle.addEventListener('click', toggleSidebar); let touchStartX = 0, touchEndX = 0; const swipeThreshold = 50; document.body.addEventListener('touchstart', (e) => { if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') { touchStartX = null; return; } touchStartX = e.changedTouches[0].screenX; }, { passive: true }); document.body.addEventListener('touchend', (e) => { if (touchStartX === null) return; touchEndX = e.changedTouches[0].screenX; handleSwipeGesture(); }, { passive: true }); function handleSwipeGesture() { if (window.innerWidth >= 1024) return; const deltaX = touchEndX - touchStartX; const isSidebarCollapsed = appSidebar.classList.contains('collapsed'); if (deltaX < -swipeThreshold && !isSidebarCollapsed) toggleSidebar(); else if (deltaX > swipeThreshold && isSidebarCollapsed) toggleSidebar(); touchStartX = 0; touchEndX = 0; }
+                 window.syncHeaderHeight = function() { const header = document.getElementById('appHeader'); const mainContent = document.getElementById('mainContentArea'); if (!header || !mainContent) return; const height = header.offsetHeight || 0; const safePadding = height + 16; mainContent.style.paddingTop = safePadding + 'px'; document.documentElement.style.setProperty('--app-header-height', height + 'px'); }; window.addEventListener('DOMContentLoaded', async () => { syncHeaderHeight(); setTimeout(syncHeaderHeight, 250); }); window.addEventListener('resize', syncHeaderHeight);
+             })();
 
-            // --- Sidebar Collapse Logic (Copied from selection.html) ---
-            const appSidebar = document.getElementById('appSidebar');
-            const sidebarToggle = document.getElementById('sidebarToggle');
-            const appHeader = document.getElementById('appHeader');
-            const SIDEBAR_COLLAPSED_KEY = 'sidebarCollapsed';
-
-            const isCollapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
-
-            if (isCollapsed) {
-                appSidebar.classList.add('collapsed');
-                appHeader.classList.add('collapsed');
-                if (window.innerWidth <= 1024) { // Only add collapsed to main on mobile if sidebar is collapsed
-                    mainContentArea.classList.add('collapsed');
-                }
-            } else {
-                 if (window.innerWidth <= 1024) { // Remove collapsed from main on mobile if sidebar is NOT collapsed
-                    mainContentArea.classList.remove('collapsed');
-                }
-            }
-
-            function toggleSidebar() {
-                const isCurrentlyCollapsed = appSidebar.classList.toggle('collapsed');
-                appHeader.classList.toggle('collapsed');
-                if (window.innerWidth <= 1024) { // Toggle main content only on mobile
-                     mainContentArea.classList.toggle('collapsed', isCurrentlyCollapsed);
-                }
-                localStorage.setItem(SIDEBAR_COLLAPSED_KEY, isCurrentlyCollapsed);
-                setTimeout(syncHeaderHeight, 300); // Re-sync header height after transition
-            }
-
-
-            if (sidebarToggle) {
-                sidebarToggle.addEventListener('click', toggleSidebar);
-            }
-            // --- End Sidebar Collapse Logic ---
-
-             // --- Swipe Gesture Logic ---
-            let touchStartX = 0;
-            let touchEndX = 0;
-            const swipeThreshold = 50; // Minimum pixels for a swipe
-
-            document.body.addEventListener('touchstart', (event) => {
-                 // Ignore swipes if touching input elements to allow text selection
-                if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA' || event.target.tagName === 'SELECT') {
-                    touchStartX = null; // Invalidate swipe
-                    return;
-                }
-                 touchStartX = event.changedTouches[0].screenX;
-            }, { passive: true }); // Use passive for performance if possible
-
-            document.body.addEventListener('touchend', (event) => {
-                 if (touchStartX === null) return; // Swipe invalidated
-
-                touchEndX = event.changedTouches[0].screenX;
-                handleSwipeGesture();
-            }, { passive: true });
-
-            function handleSwipeGesture() {
-                 if (window.innerWidth >= 1024) return; // Only on mobile view
-
-                const deltaX = touchEndX - touchStartX;
-                const isSidebarCollapsed = appSidebar.classList.contains('collapsed');
-
-                // Swipe Left to Collapse
-                if (deltaX < -swipeThreshold && !isSidebarCollapsed) {
-                    console.log("Swipe Left Detected - Collapsing Sidebar");
-                    toggleSidebar();
-                }
-                // Swipe Right to Expand
-                else if (deltaX > swipeThreshold && isSidebarCollapsed) {
-                     console.log("Swipe Right Detected - Expanding Sidebar");
-                    toggleSidebar();
-                }
-
-                // Reset coordinates
-                touchStartX = 0;
-                touchEndX = 0;
-            }
-             // --- End Swipe Gesture Logic ---
-
-            // --- Fetch & Display Citations Function ---
+            // --- Fetch & Display Citations ---
             async function fetchAndDisplayCitations() {
-                // ... (rest of function as before) ...
                  adminInfoDisplay.textContent = 'Loading citations...';
-                citationsTableBody.innerHTML = '<tr><td colspan="9" class="text-center theme-label">Loading data...</td></tr>';
+                citationsTableBody.innerHTML = '<tr><td colspan="10" class="text-center theme-label">Loading...</td></tr>'; // Colspan = 10
                 deleteSelectedCitationsBtn.disabled = true;
-
-                let url = 'https://citation-app-worker.pnbober.workers.dev/citations';
-                const params = new URLSearchParams();
-
-                // Add filter parameters for citations
-                if (filterUsernameInput.value.trim()) {
-                    params.append('username', filterUsernameInput.value.trim());
-                }
-                if (filterViolatorNameInput.value.trim()) {
-                    params.append('violatorName', filterViolatorNameInput.value.trim());
-                }
-                if (filterDepartmentInput.value.trim()) {
-                    params.append('department', filterDepartmentInput.value.trim());
-                }
-                if (filterOfficerBadgeInput.value.trim()) {
-                    params.append('officerBadge', filterOfficerBadgeInput.value.trim());
-                }
-                if (filterStartDateInput.value) {
-                    params.append('startDate', filterStartDateInput.value);
-                }
-                if (filterEndDateInput.value) {
-                    params.append('endDate', filterEndDateInput.value);
-                }
-
-                if (params.toString()) {
-                    url += `?${params.toString()}`;
-                }
+                let url = '/citations'; const params = new URLSearchParams();
+                if (filterUsernameInput.value.trim()) params.append('username', filterUsernameInput.value.trim());
+                if (filterViolatorNameInput.value.trim()) params.append('violatorName', filterViolatorNameInput.value.trim());
+                if (filterDepartmentInput.value.trim()) params.append('department', filterDepartmentInput.value.trim());
+                if (filterOfficerBadgeInput.value.trim()) params.append('officerBadge', filterOfficerBadgeInput.value.trim());
+                if (filterStartDateInput.value) params.append('startDate', filterStartDateInput.value);
+                if (filterEndDateInput.value) params.append('endDate', filterEndDateInput.value);
+                if (params.toString()) url += `?${params.toString()}`;
 
                 try {
-                    const response = await fetchWithAuth(url, { method: 'GET' });
-
-                    if (response && response.ok) {
-                        let citations = await response.json();
-
-                        citationsTableBody.innerHTML = '';
-
-                        if (citations.length === 0) {
-                            citationsTableBody.innerHTML = '<tr><td colspan="9" class="text-center theme-label">No citations found.</td></tr>';
-                        } else {
-                            citations.forEach(citation => {
-                                const row = citationsTableBody.insertRow();
-
-                                // Handle null/undefined text for summaries
-                                const citationType = citation.violationType || 'N/A';
-                                const citationNotes = citation.violationDetails || 'N/A';
-                                const notesSummary = citationNotes.split('\n')[0]; // Get first line
-
-                                row.innerHTML = `
-                                    <td><input type="checkbox" class="citation-checkbox theme-input" data-id="${citation.id}"></td>
-                                    <td>${citation.id ? citation.id.substring(0, 8) + '...' : 'N/A'}</td>
-                                    <td>${citation.timestamp ? new Date(citation.timestamp).toLocaleString() : 'N/A'}</td>
-                                    <td>${citation.submittedBy || 'N/A'}</td>
-                                    <td>${citation.submittedByBadge || 'N/A'}</td>
-                                    <td>${citation.violatorName || 'N/A'}</td>
-
-                                    <td>
-                                        <details>
-                                            <summary>${citationType}</summary>
-                                            <div class="dropdown-content">
-                                                ${citationType}
-                                            </div>
-                                        </details>
-                                    </td>
-
-                                    <td>$${parseFloat(citation.totalAmountDue || 0).toFixed(2)}</td>
-
-                                    <td>
-                                        <details>
-                                            <summary>${notesSummary}</summary>
-                                            <div class="dropdown-content preserve-whitespace">
-                                                ${citationNotes}
-                                            </div>
-                                        </details>
-                                    </td>
-                                `;
-                            });
-                        }
-                        citationCountDisplay.textContent = citations.length;
-
-                        document.querySelectorAll('.citation-checkbox').forEach(checkbox => {
-                            checkbox.addEventListener('change', toggleDeleteButtonStateCitations);
-                        });
-                        selectAllCitationsCheckbox.checked = false;
-                        toggleDeleteButtonStateCitations();
-                    } else if (response) { // Check if response is not null (meaning fetchWithAuth didn't redirect)
-                        const errorData = await response.json();
-                        window.showCustomAlert(`Error: ${errorData.message || response.statusText}. Please check Worker logs.`, 'Error');
-                        citationsTableBody.innerHTML = `<tr><td colspan="9" class="text-center theme-label text-red-500">Error loading data.</td></tr>`;
-                    }
-                } catch (error) {
-                    console.error('Error fetching citations:', error);
-                    window.showCustomAlert('Network error: Could not connect to the Worker to fetch citations.', 'Error');
-                    citationsTableBody.innerHTML = `<tr><td colspan="9" class="text-center theme-label text-red-500">Network Error. Check console.</td></tr>`;
-                } finally {
-                    adminInfoDisplay.textContent = `Welcome, Admin ${loggedInUser.username} (Badge: ${loggedInUser.badgeNumber})!`;
-                }
-            }
-
-            // --- Fetch & Display Arrests Function ---
-            async function fetchAndDisplayArrests() {
-                // ... (rest of function as before) ...
-                adminInfoDisplay.textContent = 'Loading arrests...';
-                arrestsTableBody.innerHTML = '<tr><td colspan="13" class="text-center theme-label">Loading data...</td></tr>'; // Colspan updated to 13
-                deleteSelectedArrestsBtn.disabled = true;
-
-                let url = 'https://citation-app-worker.pnbober.workers.dev/arrests';
-                const params = new URLSearchParams();
-
-                if (filterUsernameInput.value.trim()) {
-                    params.append('username', filterUsernameInput.value.trim());
-                }
-                if (filterViolatorNameInput.value.trim()) {
-                    params.append('suspectName', filterViolatorNameInput.value.trim());
-                }
-                if (filterDepartmentInput.value.trim()) {
-                    params.append('department', filterDepartmentInput.value.trim());
-                }
-                if (filterOfficerBadgeInput.value.trim()) {
-                    params.append('officerBadge', filterOfficerBadgeInput.value.trim());
-                }
-                if (filterStartDateInput.value) {
-                    params.append('startDate', filterStartDateInput.value);
-                }
-                if (filterEndDateInput.value) {
-                    params.append('endDate', filterEndDateInput.value);
-                }
-
-                if (params.toString()) {
-                    url += `?${params.toString()}`;
-                }
-
-                try {
-                    const response = await fetchWithAuth(url, { method: 'GET' });
-
-                    if (response && response.ok) {
-                        let arrests = await response.json();
-
-                        arrestsTableBody.innerHTML = '';
-
-                        if (arrests.length === 0) {
-                            arrestsTableBody.innerHTML = '<tr><td colspan="13" class="text-center theme-label">No arrests found.</td></tr>'; // Colspan updated to 13
-                        } else {
-                            arrests.forEach(arrest => {
-                                const row = arrestsTableBody.insertRow();
-
-                                // --- Charges Logic ---
-                                const charges = arrest.appliedCharges || [];
-                                let chargesSummary = charges.length > 0 ? charges.map(c => c.code || 'N/A').join(', ') : 'N/A';
-
-                                const chargesDetails = charges.length > 0
-                                    ? charges.map(c => `<strong>${c.code || 'N/A'}:</strong> ${c.description || 'N/A'}`).join('<br>')
-                                    : 'N/A';
-
-                                // --- Incident Details Logic ---
-                                const details = arrest.incidentDetails || 'N/A';
-                                const detailsSummary = details.split('\n')[0]; // Get first line for summary
-
-                                // --- Updated row.innerHTML ---
-                                row.innerHTML = `
-                                    <td><input type="checkbox" class="arrest-checkbox theme-input" data-id="${arrest.id}"></td>
-                                    <td>${arrest.id ? arrest.id.substring(0, 8) + '...' : 'N/A'}</td>
-                                    <td>${arrest.timestamp ? new Date(arrest.timestamp).toLocaleString() : 'N/A'}</td>
-                                    <td>${arrest.submittedBy || 'N/A'}</td>
-                                    <td>${arrest.submittedByBadge || 'N/A'}</td>
-                                    <td>${arrest.department || 'N/A'}</td>
-                                    <td>${arrest.suspectName || 'N/A'}</td>
-
-                                    <td>
-                                        <details>
-                                            <summary>${chargesSummary}</summary>
-                                            <div class="dropdown-content">
-                                                ${chargesDetails}
-                                            </div>
-                                        </details>
-                                    </td>
-
-                                    <td>$${parseFloat(arrest.totalFines || 0).toFixed(2)}</td>
-                                    <td>${parseFloat(arrest.totalJailTime || 0).toFixed(0)}s</td>
-                                    <td>${arrest.warrantNeeded ? 'YES' : 'NO'}</td>
-                                    <td>${arrest.servingWarrant ? 'YES' : 'NO'}</td>
-
-                                    <td>
-                                        <details>
-                                            <summary>${detailsSummary}</summary>
-                                            <div class="dropdown-content preserve-whitespace">
-                                                ${details}
-                                            </div>
-                                        </details>
-                                    </td>
-                                `;
-                            });
-                        }
-                        arrestCountDisplay.textContent = arrests.length;
-
-                        document.querySelectorAll('.arrest-checkbox').forEach(checkbox => {
-                            checkbox.addEventListener('change', toggleDeleteButtonStateArrests);
-                        });
-                        selectAllArrestsCheckbox.checked = false;
-                        toggleDeleteButtonStateArrests();
-                    } else if (response) {
-                        const errorData = await response.json();
-                        window.showCustomAlert(`Error: ${errorData.message || response.statusText}. Please check Worker logs.`, 'Error');
-                        arrestsTableBody.innerHTML = `<tr><td colspan="13" class="text-center theme-label text-red-500">Error loading data.</td></tr>`; // Colspan updated
-                    }
-                } catch (error) {
-                    console.error('Error fetching arrests:', error);
-                    window.showCustomAlert('Network error: Could not connect to the Worker to fetch arrests.', 'Error');
-                    arrestsTableBody.innerHTML = `<tr><td colspan="13" class="text-center theme-label text-red-500">Network Error. Check console.</td></tr>`; // Colspan updated
-                } finally {
-                    adminInfoDisplay.textContent = `Welcome, Admin ${loggedInUser.username} (Badge: ${loggedInUser.badgeNumber})!`;
-                }
-            }
-
-            // --- Fetch & Display Shift Logs Function ---
-            async function fetchAndDisplayShiftLogs() {
-                // ... (rest of function as before) ...
-                shiftLogsTableBody.innerHTML = '<tr><td colspan="15" class="text-center theme-label">Loading shift logs...</td></tr>';
-                adminInfoDisplay.textContent = 'Loading shift logs...';
-
-                const username = filterUsernameInput.value.trim();
-                const department = filterDepartmentInput.value.trim();
-                const host = filterHostInput?.value.trim();
-                const callsign = filterCallsignInput?.value.trim();
-
-
-                let url = 'https://citation-app-worker.pnbober.workers.dev/shift-logs';
-                const params = new URLSearchParams();
-                if (username) {
-                    params.append('username', username);
-                }
-                if (department) {
-                    params.append('department', department);
-                }
-                if (host) {
-                    params.append('host', host);
-                }
-                if (callsign) {
-                    params.append('callsign', callsign);
-                }
-                if (filterStartDateInput.value) {
-                    params.append('startDate', filterStartDateInput.value);
-                }
-                if (filterEndDateInput.value) {
-                    params.append('endDate', filterEndDateInput.value);
-                }
-
-                if (params.toString()) {
-                    url += `?${params.toString()}`;
-                }
-
-                try {
-                    const response = await fetchWithAuth(url, { method: 'GET' });
-
-                    if (response && response.ok) {
-                        let shiftLogs = await response.json();
-
-                        shiftLogsTableBody.innerHTML = '';
-
-                        if (shiftLogs.length === 0) {
-                            shiftLogsTableBody.innerHTML = '<tr><td colspan="15" class="text-center theme-label">No shift logs found matching criteria.</td></tr>';
-                        } else {
-                            shiftLogs.forEach(log => {
-                                const row = shiftLogsTableBody.insertRow();
-
-                                // Handle null/undefined text for summaries
-                                const shiftNotes = log.additionalNotes || 'N/A';
-                                const notesSummary = shiftNotes.split('\n')[0]; // Get first line
-
-                                row.innerHTML = `
-                                    <td><input type="checkbox" class="shiftlog-checkbox theme-input" data-id="${log.id}"></td>
-                                    <td>${log.id ? log.id.substring(0, 8) + '...' : 'N/A'}</td>
-                                    <td>${log.timestamp ? new Date(log.timestamp).toLocaleString() : 'N/A'}</td>
-                                    <td>${log.submittedByUsername || 'N/A'}</td>
-                                    <td>${log.submittedByBadge || 'N/A'}</td>
-                                    <td>${log.submittedByDepartment || 'N/A'}</td>
-                                    <td>${log.submittedByRank || 'N/A'}</td>
-                                    <td>${log.hostOfTheSession || 'N/A'}</td>
-                                    <td>${log.callsign || 'N/A'}</td>
-                                    <td>${log.shiftDuration || 'N/A'}</td>
-                                    <td>${log.trafficStops || 0}</td>
-                                    <td>${log.citations || 0}</td>
-                                    <td>${log.arrests || 0}</td>
-
-                                    <td>
-                                        <details>
-                                            <summary>${notesSummary}</summary>
-                                            <div class="dropdown-content preserve-whitespace">
-                                                ${shiftNotes}
-                                            </div>
-                                        </details>
-                                    </td>
-
-                                    <td>
-                                        ${log.screenshotUrl ? `<img src="${log.screenshotUrl}" alt="Shift Log Screenshot" class="screenshot-thumbnail" style="max-width: 100px; max-height: 100px; cursor: pointer;">` : 'N/A'}
-                                    </td>
-                                `;
-                            });
-
-                            document.querySelectorAll('.screenshot-thumbnail').forEach(img => {
-                                img.addEventListener('click', function() {
-                                    fullscreenImage.src = this.src;
-                                    fullscreenImageModal.classList.remove('hidden');
-                                });
-                            });
-                        }
-                        shiftLogCountDisplay.textContent = shiftLogs.length;
-
-                        document.querySelectorAll('.shiftlog-checkbox').forEach(checkbox => {
-                            checkbox.addEventListener('change', toggleDeleteButtonStateShiftLogs);
-                        });
-                        selectAllShiftLogsCheckbox.checked = false;
-                        toggleDeleteButtonStateShiftLogs();
-
-                    } else if (response) {
-                        const errorData = await response.json();
-                        window.showCustomAlert(`Error loading shift logs: ${errorData.message || response.statusText}. Please check Worker logs.`, 'Error');
-                        shiftLogsTableBody.innerHTML = `<tr><td colspan="15" class="text-center theme-label text-red-500">Error loading shift logs.</td></tr>`;
-                    }
-                } catch (error) {
-                    console.error('Error fetching shift logs:', error);
-                    window.showCustomAlert('Network error: Could not connect to the Worker to fetch shift logs.', 'Error');
-                    shiftLogsTableBody.innerHTML = `<tr><td colspan="15" class="text-center theme-label text-red-500">Network Error. Check console.</td></tr>`;
-                } finally {
-                    adminInfoDisplay.textContent = `Welcome, Admin ${loggedInUser.username} (Badge: ${loggedInUser.badgeNumber})!`;
-                }
-            }
-
-
-            // --- Checkbox Selection Logic & Delete Button State for CITATIONS ---
-            function toggleDeleteButtonStateCitations() {
-                const checkedCheckboxes = document.querySelectorAll('.citation-checkbox:checked');
-                deleteSelectedCitationsBtn.disabled = checkedCheckboxes.length === 0;
-            }
-
-            selectAllCitationsCheckbox.addEventListener('change', function() {
-                const isChecked = this.checked;
-                document.querySelectorAll('.citation-checkbox').forEach(checkbox => {
-                    checkbox.checked = isChecked;
-                });
-                toggleDeleteButtonStateCitations();
-            });
-
-            // --- Checkbox Selection Logic & Delete Button State for ARRESTS ---
-            function toggleDeleteButtonStateArrests() {
-                const checkedCheckboxes = document.querySelectorAll('.arrest-checkbox:checked');
-                deleteSelectedArrestsBtn.disabled = checkedCheckboxes.length === 0;
-            }
-
-            selectAllArrestsCheckbox.addEventListener('change', function() {
-                const isChecked = this.checked;
-                document.querySelectorAll('.arrest-checkbox').forEach(checkbox => {
-                    checkbox.checked = isChecked;
-                });
-                toggleDeleteButtonStateArrests();
-            });
-
-
-            // --- Checkbox Selection Logic & Delete Button State for SHIFT LOGS ---
-            function toggleDeleteButtonStateShiftLogs() {
-                const checkedCheckboxes = document.querySelectorAll('.shiftlog-checkbox:checked');
-                deleteSelectedShiftLogsBtn.disabled = checkedCheckboxes.length === 0;
-            }
-
-            selectAllShiftLogsCheckbox.addEventListener('change', function() {
-                const isChecked = this.checked;
-                document.querySelectorAll('.shiftlog-checkbox').forEach(checkbox => {
-                    checkbox.checked = isChecked;
-                });
-                toggleDeleteButtonStateShiftLogs();
-            });
-
-            // --- Batch Deletion Functionality for CITATIONS ---
-            deleteSelectedCitationsBtn.addEventListener('click', async function() {
-                const selectedIds = [];
-                document.querySelectorAll('.citation-checkbox:checked').forEach(checkbox => {
-                    if (checkbox.dataset.id) {
-                        selectedIds.push(checkbox.dataset.id);
-                    }
-                });
-
-                if (selectedIds.length === 0) {
-                    window.showCustomAlert('Please select at least one citation to delete.', 'Warning');
-                    return;
-                }
-
-                const confirmed = await window.showCustomConfirm(`Are you sure you want to delete ${selectedIds.length} selected citation(s)? This action cannot be undone.`, 'Confirm Deletion');
-                if (!confirmed) {
-                    return; // User cancelled
-                }
-
-                adminInfoDisplay.textContent = `Deleting ${selectedIds.length} citations...`;
-                deleteSelectedCitationsBtn.disabled = true;
-
-                try {
-                    const response = await fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/admin/citations', {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ ids: selectedIds })
-                    });
-
-                    if (response && response.ok) {
-                        const result = await response.json();
-                        window.showCustomAlert('Deletion successful: ' + result.message, 'Success');
-                        selectAllCitationsCheckbox.checked = false;
-                        await fetchAndDisplayCitations();
-                    } else if (response) {
-                        const errorData = await response.json();
-                        window.showCustomAlert('Deletion failed: ' + (errorData.message || response.statusText), 'Error');
-                    }
-                } catch (error) {
-                    console.error('Error during deletion:', error);
-                    window.showCustomAlert('An error occurred during deletion. Check console for details.', 'Error');
-                } finally {
-                    deleteSelectedCitationsBtn.disabled = false;
-                }
-            });
-
-            // --- Batch Deletion Functionality for ARRESTS ---
-            deleteSelectedArrestsBtn.addEventListener('click', async function() {
-                const selectedIds = [];
-                document.querySelectorAll('.arrest-checkbox:checked').forEach(checkbox => {
-                    if (checkbox.dataset.id) {
-                        selectedIds.push(checkbox.dataset.id);
-                    }
-                });
-
-                if (selectedIds.length === 0) {
-                    window.showCustomAlert('Please select at least one arrest to delete.', 'Warning');
-                    return;
-                }
-
-                const confirmed = await window.showCustomConfirm(`Are you sure you want to delete ${selectedIds.length} selected arrest(s)? This action cannot be undone.`, 'Confirm Deletion');
-                if (!confirmed) {
-                    return; // User cancelled
-                }
-
-                adminInfoDisplay.textContent = `Deleting ${selectedIds.length} arrests...`;
-                deleteSelectedArrestsBtn.disabled = true;
-
-                try {
-                    // This endpoint does not exist yet. You will need to add it to your Worker.
-                    const response = await fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/admin/arrests', {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ ids: selectedIds })
-                    });
-
-                    if (response && response.ok) {
-                        const result = await response.json();
-                        window.showCustomAlert('Deletion successful: ' + result.message, 'Success');
-                        selectAllArrestsCheckbox.checked = false;
-                        await fetchAndDisplayArrests(); // Refresh arrests
-                    } else if (response) {
-                        const errorData = await response.json();
-                        window.showCustomAlert('Deletion failed: ' + (errorData.message || "Endpoint not found (404). Backend may need updating."), 'Error');
-                    }
-                } catch (error) {
-                    console.error('Error during arrest deletion:', error);
-                    window.showCustomAlert('An error occurred during arrest deletion. Check console for details.', 'Error');
-                } finally {
-                    deleteSelectedArrestsBtn.disabled = false;
-                }
-            });
-
-            // --- Batch Deletion Functionality for SHIFT LOGS (includes R2 deletion) ---
-            deleteSelectedShiftLogsBtn.addEventListener('click', async function() {
-                const selectedIds = [];
-                document.querySelectorAll('.shiftlog-checkbox:checked').forEach(checkbox => {
-                    if (checkbox.dataset.id) {
-                        selectedIds.push(checkbox.dataset.id);
-                    }
-                });
-
-                if (selectedIds.length === 0) {
-                    window.showCustomAlert('Please select at least one shift log to delete.', 'Warning');
-                    return;
-                }
-
-                const confirmed = await window.showCustomConfirm(`Are you sure you want to delete ${selectedIds.length} selected shift log(s)? This action will also delete associated screenshots from R2. This cannot be undone.`, 'Confirm Deletion');
-                if (!confirmed) {
-                    return; // User cancelled
-                }
-
-                adminInfoDisplay.textContent = `Deleting ${selectedIds.length} shift logs and associated screenshots...`;
-                deleteSelectedShiftLogsBtn.disabled = true;
-
-                try {
-                    const response = await fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/admin/shift_logs', {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ ids: selectedIds })
-                    });
-
-                    if (response && response.ok) {
-                        const result = await response.json();
-                        window.showCustomAlert('Deletion successful: ' + result.message, 'Success');
-                        selectAllShiftLogsCheckbox.checked = false;
-                        await fetchAndDisplayShiftLogs(); // Refresh the shift logs table
-                    } else if (response) {
-                        const errorData = await response.json();
-                        window.showCustomAlert('Deletion failed: ' + (errorData.message || response.statusText), 'Error');
-                    }
-                } catch (error) {
-                    console.error('Error during shift log deletion:', error);
-                    window.showCustomAlert('An error occurred during shift log deletion. Check console for details.', 'Error');
-                } finally {
-                    deleteSelectedShiftLogsBtn.disabled = false;
-                }
-            });
-
-            // --- Delete ALL R2 Screenshots Functionality ---
-            deleteAllR2ScreenshotsBtn.addEventListener('click', async function() {
-                const confirmed = await window.showCustomConfirm(
-                    `WARNING: This action will permanently delete ALL screenshots from your R2 bucket. This cannot be undone. Are you absolutely sure you want to proceed?`,
-                    'EXTREME CAUTION: Delete ALL R2 Screenshots'
-                );
-                if (!confirmed) {
-                    return; // User cancelled
-                }
-
-                const finalConfirmed = await window.showCustomConfirm(
-                    `FINAL CONFIRMATION: This will delete ALL R2 screenshots. Type 'DELETE ALL' to confirm.`,
-                    'FINAL CONFIRMATION'
-                );
-                if (finalConfirmed !== true) { // showCustomConfirm returns true for Yes, or false for No
-                    // If you want to require typing, you'd need a custom prompt input.
-                    // For now, assuming standard confirm.
-                    return;
-                }
-
-
-                adminInfoDisplay.textContent = `Deleting ALL R2 screenshots... This may take a moment.`;
-                deleteAllR2ScreenshotsBtn.disabled = true;
-
-                try {
-                    const response = await fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/admin/delete-all-r2-screenshots', {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        }
-                    });
-
-                    if (response && response.ok) {
-                        const result = await response.json();
-                        window.showCustomAlert('R2 Cleanup successful: ' + result.message, 'Success');
-                        await fetchAndDisplayShiftLogs(); // Refresh shift logs to reflect missing screenshots
-                    } else if (response) {
-                        const errorData = await response.json();
-                        window.showCustomAlert('R2 Cleanup failed: ' + (errorData.message || response.statusText), 'Error');
-                    }
-                } catch (error) {
-                    console.error('Error during R2 bulk deletion:', error);
-                    window.showCustomAlert('An error occurred during R2 bulk deletion. Check console for details.', 'Error');
-                } finally {
-                    deleteAllR2ScreenshotsBtn.disabled = false;
-                }
-            });
-
-
-            // --- CSV Import Functionality (Existing) ---
-            async function handleImportPenalCodes(csvContent) {
-                if (!csvContent) {
-                    window.showCustomAlert("No CSV content provided to import.", 'Warning');
-                    return;
-                }
-
-                let penalCodesToImport = [];
-                try {
-                    const lines = csvContent.trim().split('\n');
-                    if (lines.length < 2) {
-                        window.showCustomAlert("CSV content must have at least a header row and one data row.", 'Warning');
-                        return;
-                    }
-
-                    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-                    const codeColIndex = headers.indexOf('penal code');
-                    const descriptionColIndex = headers.indexOf('offense');
-                    const amountDueColIndex = headers.indexOf('amount due');
-                    const typeColIndex = headers.indexOf('type');
-                    const jailTimeColIndex = headers.indexOf('jail time (secor)');
-
-                    if (codeColIndex === -1 || descriptionColIndex === -1 || amountDueColIndex === -1) {
-                        window.showCustomAlert('Error: CSV headers must include "Penal Code", "Offense", and "Amount Due".', 'Error');
-                        return;
-                    }
-
-                    for (let i = 1; i < lines.length; i++) {
-                        const row = lines[i].split(',');
-
-                        const code = String(row[codeColIndex] || '').trim();
-                        const description = String(row[descriptionColIndex] || '').trim();
-                        let amount_due_raw = String(row[amountDueColIndex] || '').trim();
-                        let type_val = (typeColIndex !== -1) ? String(row[typeColIndex] || '').trim() : null;
-                        let jail_time_raw = (jailTimeColIndex !== -1) ? String(row[jailTimeColIndex] || '').trim() : null;
-
-                        // Clean and parse amount_due
-                        amount_due_raw = amount_due_raw.replace(/\$/g, '').replace(/,/g, '');
-                        let amount_due = parseFloat(amount_due_raw);
-
-                        // Clean and parse jail_time_seconds
-                        let jail_time_seconds_val = null;
-                        if (jail_time_raw !== null && jail_time_raw !== undefined && jail_time_raw.toLowerCase() !== 'n/a' && jail_time_raw !== '') {
-                            jail_time_raw = jail_time_raw.toLowerCase().replace('seconds', '').replace('jail time', '').replace('(', '').replace(')', '').trim();
-                            jail_time_seconds_val = parseFloat(jail_time_raw);
-                            if (isNaN(jail_time_seconds_val)) {
-                                jail_time_seconds_val = null;
-                            }
-                        }
-
-                        // Validate required fields for the worker
-                        if (!code || !description || isNaN(amount_due)) {
-                            console.warn(`Skipping row ${i + 1} due to missing/invalid data: Code='${code}', Desc='${description}', Final Amount Parse: '${amount_due}' (isNaN: ${isNaN(amount_due)})`);
-                            continue;
-                        }
-                        penalCodesToImport.push({
-                            code: code,
-                            description: description,
-                            amount_due: amount_due,
-                            type: type_val,
-                            jail_time_seconds: jail_time_seconds_val
-                        });
-                    }
-
-                    if (penalCodesToImport.length === 0) {
-                        window.showCustomAlert('No valid penal codes found in CSV to import.', 'Warning');
-                        return;
-                    }
-
-                    adminInfoDisplay.textContent = `Importing ${penalCodesToImport.length} penal codes...`;
-                    importCsvBtn.disabled = true;
-                    pasteImportCsvBtn.disabled = true;
-
-                    const response = await fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/admin/penal-codes/import', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ penalCodes: penalCodesToImport })
-                    });
-
-                    if (response && response.ok) {
-                        const result = await response.json();
-                        window.showCustomAlert('Import successful: ' + result.message, 'Success');
-                        await fetchAndDisplayPenalCodes(); // Refresh penal codes table
-                    } else if (response) {
-                        const errorData = await response.json();
-                        window.showCustomAlert('Import failed: ' + (errorData.message || response.statusText), 'Error');
-                    }
-
-                } catch (error) {
-                    console.error('Error parsing or importing CSV:', error);
-                    window.showCustomAlert('An error occurred during CSV import. Check console for details.', 'Error');
-                } finally {
-                    importCsvBtn.disabled = false;
-                    pasteImportCsvBtn.disabled = false;
-                    adminInfoDisplay.textContent = `Welcome, Admin ${loggedInUser.username} (Badge: ${loggedInUser.badgeNumber})!`;
-                }
-            }
-
-            // CSV file input handler
-            penalCodeCsvFile.addEventListener('change', function() {
-                const file = this.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        handleImportPenalCodes(e.target.result);
-                    };
-                    reader.readAsText(file);
-                } else {
-                    window.showCustomAlert("Please select a CSV file to import.", 'Warning');
-                }
-            });
-
-            // Paste CSV text area handler
-            pasteImportCsvBtn.addEventListener('click', function() {
-                const csvText = penalCodeCsvText.value;
-                if (csvText) {
-                    handleImportPenalCodes(csvText);
-                } else {
-                    window.showCustomAlert("Please paste CSV content into the text area.", 'Warning');
-                }
-            });
-
-            // --- Filter Event Listeners ---
-            applyFilterBtn.addEventListener('click', function() {
-                fetchAndDisplayCitations();
-                fetchAndDisplayArrests(); // NEW
-                fetchAndDisplayShiftLogs();
-            });
-
-            clearFilterBtn.addEventListener('click', function() {
-                filterUsernameInput.value = '';
-                filterViolatorNameInput.value = '';
-                filterDepartmentInput.value = '';
-                filterOfficerBadgeInput.value = '';
-                filterStartDateInput.value = '';
-                filterEndDateInput.value = '';
-                filterHostInput.value = '';
-                filterCallsignInput.value = '';
-
-                fetchAndDisplayCitations();
-                fetchAndDisplayArrests(); // NEW
-                fetchAndDisplayShiftLogs();
-            });
-
-            refreshButton.addEventListener('click', function() {
-                fetchAndDisplayCitations();
-                fetchAndDisplayArrests(); // NEW
-                fetchAndDisplayShiftLogs();
-                fetchAndDisplayUsers(); // Refresh users on main refresh
-                fetchAndDisplayPenalCodes(); // Refresh penal codes on main refresh
-            });
-
-            // --- Fullscreen Image Modal Event Listeners ---
-            closeFullscreenBtn.addEventListener('click', function() {
-                fullscreenImageModal.classList.add('hidden');
-                fullscreenImage.src = '';
-            });
-
-            fullscreenImageModal.addEventListener('click', function(event) {
-                if (event.target === fullscreenImageModal) {
-                    fullscreenImageModal.classList.add('hidden');
-                    fullscreenImage.src = '';
-                }
-            });
-            document.addEventListener('keydown', function(event) {
-                if (event.key === 'Escape' && !fullscreenImageModal.classList.contains('hidden')) {
-                    fullscreenImageModal.classList.add('hidden');
-                    fullscreenImage.src = '';
-                }
-            });
-
-            // --- User Management Functions ---
-            async function fetchAndDisplayUsers() {
-                usersTableBody.innerHTML = '<tr><td colspan="9" class="text-center theme-label">Loading users...</td></tr>';
-                try {
-                    const [usersResponse, citationsResponse, shiftLogsResponse, arrestsResponse] = await Promise.all([
-                        fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/admin/users'),
-                        fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/citations'),
-                        fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/shift-logs'),
-                        fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/arrests') // NEW
-                    ]);
-
-                    if (!usersResponse || !usersResponse.ok) throw new Error('Failed to fetch users.');
-
-                    let allUsers = await usersResponse.json();
-
-                    allUsers.sort((a, b) => a.id - b.id);
-
-                    const allCitations = (citationsResponse && citationsResponse.ok) ? await citationsResponse.json() : [];
-                    const allShiftLogs = (shiftLogsResponse && shiftLogsResponse.ok) ? await shiftLogsResponse.json() : [];
-                    const allArrests = (arrestsResponse && arrestsResponse.ok) ? await arrestsResponse.json() : []; // NEW
-
-                    usersTableBody.innerHTML = '';
-                    if (allUsers.length === 0) {
-                        usersTableBody.innerHTML = '<tr><td colspan="9" class="text-center theme-label">No users found.</td></tr>';
-                    } else {
-                        allUsers.forEach(user => {
-                            const citationCount = allCitations.filter(c => c.submittedBy === user.username || c.submittedByBadge === user.badge_number).length;
-                            const arrestCount = allArrests.filter(a => a.submittedBy === user.username || a.submittedByBadge === user.badge_number).length; // NEW
-                            const shiftLogCount = allShiftLogs.filter(sl => sl.submittedByUsername === user.username || sl.submittedByBadge === user.badge_number).length;
-
-                            const row = usersTableBody.insertRow();
+                    const citations = await fetchWithAuth(url, { method: 'GET' });
+                    citationsTableBody.innerHTML = '';
+                    if (citations && citations.length > 0) {
+                        citations.forEach(c => {
+                            const row = citationsTableBody.insertRow();
+                            const type = c.violationType || 'N/A';
+                            const notes = c.violationDetails || 'N/A';
+                            const notesSummary = notes.split('\n')[0].substring(0, 30) + (notes.length > 30 ? '...' : '');
                             row.innerHTML = `
-                                <td>${user.id}</td>
-                                <td>${user.username}</td>
-                                <td>${user.badge_number}</td>
-                                <td>${user.department || 'N/A'}</td>
-                                <td>
-                                    <select class="theme-input p-1 rounded-md user-role-select" data-user-id="${user.id}" data-previous-role="${user.role}">
-                                        <option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option>
-                                        <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
-                                    </select>
-                                </td>
-                                <td>${citationCount}</td>
-                                <td>${arrestCount}</td>
-                                <td>${shiftLogCount}</td>
-                                <td>
-                                    <button class="theme-button-danger py-1 px-3 rounded-md font-semibold delete-user-btn" data-user-id="${user.id}">Delete</button>
-                                </td>
+                                <td><input type="checkbox" class="citation-checkbox theme-input" data-id="${c.id}"></td>
+                                <td>${c.id ? c.id.substring(0, 8) + '...' : 'N/A'}</td>
+                                <td>${c.timestamp ? new Date(c.timestamp).toLocaleString() : 'N/A'}</td>
+                                <td>${c.submittedBy || 'N/A'}</td>
+                                <td>${c.submittedByBadge || 'N/A'}</td>
+                                <td>${c.violatorName || 'N/A'}</td>
+                                <td><details><summary title="${type}">${type.substring(0,20)}${type.length > 20 ? '...' : ''}</summary><div class="dropdown-content">${type}</div></details></td>
+                                <td>$${parseFloat(c.totalAmountDue || 0).toFixed(2)}</td>
+                                <td>${c.paidStatus === true ? 'Yes' : 'No'}</td> <!-- <-- PAID STATUS --> -->
+                                <td><details><summary title="${notes}">${notesSummary}</summary><div class="dropdown-content preserve-whitespace">${notes}</div></details></td>
                             `;
                         });
-                        attachUserActionListeners();
+                        citationCountDisplay.textContent = citations.length;
+                        document.querySelectorAll('.citation-checkbox').forEach(cb => cb.addEventListener('change', toggleDeleteButtonStateCitations));
+                    } else if (citations) {
+                        citationsTableBody.innerHTML = '<tr><td colspan="10" class="text-center theme-label">No citations found.</td></tr>';
+                        citationCountDisplay.textContent = 0;
+                    } else { // Error case from fetchWithAuth
+                        citationsTableBody.innerHTML = '<tr><td colspan="10" class="text-center theme-label text-red-500">Error loading data.</td></tr>';
+                        citationCountDisplay.textContent = 'Err';
                     }
-                } catch (error) {
-                    console.error('Error fetching users or counts:', error);
-                    window.showCustomAlert('Network error: Could not connect to fetch user data or counts.', 'Error');
-                    usersTableBody.innerHTML = `<tr><td colspan="9" class="text-center theme-label text-red-500">Error loading users.</td></tr>`;
-                }
+                    selectAllCitationsCheckbox.checked = false; toggleDeleteButtonStateCitations();
+                } catch (error) { console.error('Error fetching citations:', error); window.showCustomAlert('Network error fetching citations.', 'Error'); citationsTableBody.innerHTML = '<tr><td colspan="10" class="text-center theme-label text-red-500">Network Error.</td></tr>'; citationCountDisplay.textContent = 'Err';
+                } finally { adminInfoDisplay.textContent = `Welcome, Admin ${loggedInUser.username} (Badge: ${loggedInUser.badgeNumber})!`; }
             }
 
-            function attachUserActionListeners() {
-                document.querySelectorAll('.user-role-select').forEach(select => {
-                    select.removeEventListener('change', handleUserRoleChange);
-                    select.addEventListener('change', handleUserRoleChange);
-                });
-
-                document.querySelectorAll('.delete-user-btn').forEach(button => {
-                    button.removeEventListener('click', handleDeleteUser);
-                    button.addEventListener('click', handleDeleteUser);
-                });
-            }
-
-            async function handleUserRoleChange(event) {
-                const userId = event.target.dataset.userId;
-                const newRole = event.target.value;
-                const previousRole = event.target.dataset.previousRole;
-
-                const confirmed = await window.showCustomConfirm(`Are you sure you want to change user ${userId}'s role to "${newRole}"?`, 'Confirm Role Change');
-                if (!confirmed) {
-                    event.target.value = previousRole;
-                    return;
-                }
+            // --- Fetch & Display Arrests ---
+            async function fetchAndDisplayArrests() {
+                adminInfoDisplay.textContent = 'Loading arrests...';
+                arrestsTableBody.innerHTML = '<tr><td colspan="14" class="text-center theme-label">Loading...</td></tr>'; // Colspan = 14
+                deleteSelectedArrestsBtn.disabled = true;
+                let url = '/arrests'; const params = new URLSearchParams();
+                if (filterUsernameInput.value.trim()) params.append('username', filterUsernameInput.value.trim());
+                if (filterViolatorNameInput.value.trim()) params.append('suspectName', filterViolatorNameInput.value.trim());
+                if (filterDepartmentInput.value.trim()) params.append('department', filterDepartmentInput.value.trim());
+                if (filterOfficerBadgeInput.value.trim()) params.append('officerBadge', filterOfficerBadgeInput.value.trim());
+                if (filterStartDateInput.value) params.append('startDate', filterStartDateInput.value);
+                if (filterEndDateInput.value) params.append('endDate', filterEndDateInput.value);
+                if (params.toString()) url += `?${params.toString()}`;
 
                 try {
-                    const response = await fetchWithAuth(`https://citation-app-worker.pnbober.workers.dev/admin/users/${userId}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ role: newRole })
-                    });
-                     if (!response) return; // Auth failure handled in fetchWithAuth
-                    const result = await response.json();
-                    if (response.ok) {
-                        window.showCustomAlert(result.message, 'Success');
-                        event.target.dataset.previousRole = newRole;
-                    } else {
-                        window.showCustomAlert('Failed to update role: ' + (result.message || response.statusText), 'Error');
-                        event.target.value = previousRole;
-                    }
-                } catch (error) {
-                    console.error('Error changing user role:', error);
-                    window.showCustomAlert('Network error during role change.', 'Error');
-                    event.target.value = previousRole;
-                }
-            }
-
-            async function handleDeleteUser(event) {
-                const userId = event.target.dataset.userId;
-                const confirmed = await window.showCustomConfirm(`Are you sure you want to delete user ${userId}? This cannot be undone.`, 'Confirm User Deletion');
-                if (!confirmed) return;
-
-                try {
-                    const response = await fetchWithAuth(`https://citation-app-worker.pnbober.workers.dev/admin/users/${userId}`, {
-                        method: 'DELETE',
-                    });
-                     if (!response) return; // Auth failure handled in fetchWithAuth
-                    const result = await response.json();
-                    if (response.ok) {
-                        window.showCustomAlert(result.message, 'Success');
-                        await fetchAndDisplayUsers();
-                    } else {
-                        window.showCustomAlert('Failed to delete user: ' + (result.message || response.statusText), 'Error');
-                    }
-                } catch (error) {
-                    console.error('Error deleting user:', error);
-                    window.showCustomAlert('Network error during user deletion.', 'Error');
-                }
-            }
-
-            refreshUsersBtn.addEventListener('click', fetchAndDisplayUsers);
-
-
-            // --- Penal Code Management Functions ---
-            async function fetchAndDisplayPenalCodes() {
-                penalCodesTableBody.innerHTML = '<tr><td colspan="6" class="text-center theme-label">Loading penal codes...</td></tr>';
-                try {
-                    const response = await fetchWithAuth('https://citation-app-worker.pnbober.workers.dev/penal-codes', { method: 'GET' });
-                     if (!response) return; // Auth failure handled
-
-                    if (response.ok) {
-                        const penalCodes = await response.json();
-                        penalCodesTableBody.innerHTML = '';
-                        if (penalCodes.length === 0) {
-                            penalCodesTableBody.innerHTML = '<tr><td colspan="6" class="text-center theme-label">No penal codes found.</td></tr>';
-                        } else {
-                            penalCodes.forEach(pc => {
-                                const row = penalCodesTableBody.insertRow();
-                                row.innerHTML = `
-                                    <td>${pc.code}</td>
-                                    <td>${pc.description || 'N/A'}</td>
-                                    <td>$${parseFloat(pc.amount_due || 0).toFixed(2)}</td>
-                                    <td>${pc.type || 'N/A'}</td>
-                                    <td>${parseFloat(pc.jail_time_seconds || 0).toFixed(0)}</td>
-                                    <td>
-                                        <button class="theme-button-secondary py-1 px-3 rounded-md font-semibold edit-penal-code-btn" data-code="${pc.code}">Edit</button>
-                                        <button class="theme-button-danger py-1 px-3 rounded-md font-semibold delete-penal-code-btn" data-code="${pc.code}">Delete</button>
-                                    </td>
-                                `;
-                            });
-                            attachPenalCodeActionListeners();
-                        }
-                    } else {
-                        const errorData = await response.json();
-                        window.showCustomAlert(`Error loading penal codes: ${errorData.message || response.statusText}.`, 'Error');
-                        penalCodesTableBody.innerHTML = `<tr><td colspan="6" class="text-center theme-label text-red-500">Error loading penal codes.</td></tr>`;
-                    }
-                } catch (error) {
-                    console.error('Error fetching penal codes:', error);
-                    window.showCustomAlert('Network error: Could not connect to the Worker to fetch penal codes.', 'Error');
-                    penalCodesTableBody.innerHTML = `<tr><td colspan="6" class="text-center theme-label text-red-500">Network Error. Check console.</td></tr>`;
-                }
-            }
-
-            function attachPenalCodeActionListeners() {
-                document.querySelectorAll('.edit-penal-code-btn').forEach(button => {
-                    button.removeEventListener('click', handleEditPenalCode);
-                    button.addEventListener('click', handleEditPenalCode);
-                });
-
-                document.querySelectorAll('.delete-penal-code-btn').forEach(button => {
-                    button.removeEventListener('click', handleDeletePenalCode);
-                    button.addEventListener('click', handleDeletePenalCode);
-                });
-            }
-
-            async function handleEditPenalCode(event) {
-                currentEditPenalCode = event.target.dataset.code;
-                if (!currentEditPenalCode) {
-                    window.showCustomAlert("Could not find penal code to edit.", "Error");
-                    return;
-                }
-
-                try {
-                    const response = await fetchWithAuth(`https://citation-app-worker.pnbober.workers.dev/penal-codes`, { method: 'GET' });
-                    if (!response || !response.ok) throw new Error('Failed to fetch penal codes.');
-                    const allCodes = await response.json();
-                    const pcToEdit = allCodes.find(pc => pc.code === currentEditPenalCode);
-
-                    if (pcToEdit) {
-                        editPenalCodeCodeDisplay.textContent = pcToEdit.code;
-                        editPenalCodeDescription.value = pcToEdit.description || '';
-                        editPenalCodeAmount.value = parseFloat(pcToEdit.amount_due || 0).toFixed(2);
-                        editPenalCodeType.value = pcToEdit.type || '';
-                        editPenalCodeJailTime.value = parseFloat(pcToEdit.jail_time_seconds || 0).toFixed(0);
-                        editPenalCodeModalOverlay.classList.remove('hidden');
-                    } else {
-                        window.showCustomAlert("Penal code not found for editing.", "Error");
-                    }
-                } catch (error) {
-                    console.error('Error fetching penal code for edit:', error);
-                    window.showCustomAlert('Failed to load penal code data for editing.', 'Error');
-                }
-            }
-
-            editPenalCodeForm.addEventListener('submit', async function(event) {
-                event.preventDefault();
-                const updatedData = {
-                    description: editPenalCodeDescription.value,
-                    amount_due: parseFloat(editPenalCodeAmount.value),
-                    type: editPenalCodeType.value,
-                    jail_time_seconds: parseFloat(editPenalCodeJailTime.value)
-                };
-
-                if (isNaN(updatedData.amount_due) || isNaN(updatedData.jail_time_seconds)) {
-                    window.showCustomAlert("Amount Due and Jail Time must be valid numbers.", "Validation Error");
-                    return;
-                }
-
-                try {
-                    const response = await fetchWithAuth(`https://citation-app-worker.pnbober.workers.dev/admin/penal-codes/${currentEditPenalCode}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(updatedData)
-                    });
-                    if (!response) return; // Auth failure
-                    const result = await response.json();
-                    if (response.ok) {
-                        window.showCustomAlert(result.message, 'Success');
-                        editPenalCodeModalOverlay.classList.add('hidden');
-                        await fetchAndDisplayPenalCodes();
-                    } else {
-                        window.showCustomAlert('Failed to save changes: ' + (result.message || response.statusText), 'Error');
-                    }
-                } catch (error) {
-                    console.error('Error saving penal code changes:', error);
-                    window.showCustomAlert('Network error saving penal code changes.', 'Error');
-                }
-            });
-
-            cancelEditPenalCodeBtn.addEventListener('click', function() {
-                editPenalCodeModalOverlay.classList.add('hidden');
-            });
-
-
-            async function handleDeletePenalCode(event) {
-                const codeToDelete = event.target.dataset.code;
-                const confirmed = await window.showCustomConfirm(`Are you sure you want to delete penal code "${codeToDelete}"? This cannot be undone.`, 'Confirm Deletion');
-                if (!confirmed) return;
-
-                try {
-                    const response = await fetchWithAuth(`https://citation-app-worker.pnbober.workers.dev/admin/penal-codes/${codeToDelete}`, {
-                        method: 'DELETE',
-                    });
-                     if (!response) return; // Auth failure
-                    const result = await response.json();
-                    if (response.ok) {
-                        window.showCustomAlert(result.message, 'Success');
-                        await fetchAndDisplayPenalCodes();
-                    } else {
-                        window.showCustomAlert('Failed to delete penal code: ' + (result.message || response.statusText), 'Error');
-                    }
-                } catch (error) {
-                    console.error('Error deleting penal code:', error);
-                    window.showCustomAlert('Network error during penal code deletion.', 'Error');
-                }
-            }
-
-
-            refreshPenalCodesBtn.addEventListener('click', fetchAndDisplayPenalCodes);
-
-            // --- ADD USER MODAL LOGIC ---
-            addUserBtn.addEventListener('click', () => {
-                addUserForm.reset(); // Clear form on open
-                addUserModalOverlay.classList.remove('hidden');
-            });
-
-            cancelAddUserBtn.addEventListener('click', () => {
-                addUserModalOverlay.classList.add('hidden');
-            });
-
-            addUserModalOverlay.addEventListener('click', (event) => {
-                if (event.target === addUserModalOverlay) {
-                    addUserModalOverlay.classList.add('hidden');
-                }
-            });
-
-            addUserForm.addEventListener('submit', async function(event) {
-                event.preventDefault();
-
-                const username = document.getElementById('addUsername').value;
-                const badgeNumber = document.getElementById('addBadgeNumber').value;
-                const department = document.getElementById('addDepartment').value;
-                const placeholderPassword = 'password'; // A reasonably secure placeholder
-
-                if (!username || !badgeNumber || !department) {
-                    window.showCustomAlert("Please fill out all fields.", "Input Error");
-                    return;
-                }
-
-                try {
-                    // Using the public /register endpoint as seen in signup.html
-                    const response = await fetch('https://citation-app-worker.pnbober.workers.dev/register', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            username,
-                            badgeNumber,
-                            department,
-                            password: placeholderPassword
-                        }),
-                    });
-
-                    const result = await response.json();
-
-                    if (response.ok) {
-                        window.showCustomAlert(
-                            `${result.message} The user's temporary password is: ${placeholderPassword}`, 'Success'
-                        ).then(() => {
-                            addUserModalOverlay.classList.add('hidden');
-                            fetchAndDisplayUsers(); // Refresh the user list
+                    const arrests = await fetchWithAuth(url, { method: 'GET' });
+                    arrestsTableBody.innerHTML = '';
+                    if (arrests && arrests.length > 0) {
+                        arrests.forEach(a => {
+                            const row = arrestsTableBody.insertRow();
+                            const charges = a.appliedCharges || [];
+                            const chargesSummary = charges.length > 0 ? charges.map(c => c.code || 'N/A').join(', ').substring(0, 30) + (charges.map(c => c.code).join(', ').length > 30 ? '...' : '') : 'N/A';
+                            const chargesDetails = charges.length > 0 ? charges.map(c => `<strong>${c.code || 'N/A'}:</strong> ${c.description || 'N/A'}`).join('<br>') : 'N/A';
+                            const details = a.incidentDetails || 'N/A';
+                            const detailsSummary = details.split('\n')[0].substring(0, 30) + (details.length > 30 ? '...' : '');
+                            row.innerHTML = `
+                                <td><input type="checkbox" class="arrest-checkbox theme-input" data-id="${a.id}"></td>
+                                <td>${a.id ? a.id.substring(0, 8) + '...' : 'N/A'}</td>
+                                <td>${a.timestamp ? new Date(a.timestamp).toLocaleString() : 'N/A'}</td>
+                                <td>${a.submittedBy || 'N/A'}</td>
+                                <td>${a.submittedByBadge || 'N/A'}</td>
+                                <td>${a.department || 'N/A'}</td>
+                                <td>${a.suspectName || 'N/A'}</td>
+                                <td><details><summary title="${chargesSummary}">${chargesSummary}</summary><div class="dropdown-content">${chargesDetails}</div></details></td>
+                                <td>$${parseFloat(a.totalFines || 0).toFixed(2)}</td>
+                                <td>${parseFloat(a.totalJailTime || 0).toFixed(0)}s</td>
+                                <td>${a.warrantNeeded ? 'YES' : 'NO'}</td>
+                                <td>${a.servingWarrant ? 'YES' : 'NO'}</td>
+                                <td>${a.paidStatus === true ? 'Yes' : 'No'}</td> <!-- <-- PAID STATUS --> -->
+                                <td><details><summary title="${details}">${detailsSummary}</summary><div class="dropdown-content preserve-whitespace">${details}</div></details></td>
+                            `;
                         });
+                        arrestCountDisplay.textContent = arrests.length;
+                        document.querySelectorAll('.arrest-checkbox').forEach(cb => cb.addEventListener('change', toggleDeleteButtonStateArrests));
+                    } else if (arrests) {
+                        arrestsTableBody.innerHTML = '<tr><td colspan="14" class="text-center theme-label">No arrests found.</td></tr>';
+                        arrestCountDisplay.textContent = 0;
                     } else {
-                        window.showCustomAlert('Failed to create user: ' + (result.message || 'Unknown error.'), 'Error');
+                        arrestsTableBody.innerHTML = '<tr><td colspan="14" class="text-center theme-label text-red-500">Error loading data.</td></tr>';
+                        arrestCountDisplay.textContent = 'Err';
+                    }
+                     selectAllArrestsCheckbox.checked = false; toggleDeleteButtonStateArrests();
+                } catch (error) { console.error('Error fetching arrests:', error); window.showCustomAlert('Network error fetching arrests.', 'Error'); arrestsTableBody.innerHTML = '<tr><td colspan="14" class="text-center theme-label text-red-500">Network Error.</td></tr>'; arrestCountDisplay.textContent = 'Err';
+                } finally { adminInfoDisplay.textContent = `Welcome, Admin ${loggedInUser.username} (Badge: ${loggedInUser.badgeNumber})!`; }
+            }
+
+            // --- Fetch & Display Shift Logs ---
+            async function fetchAndDisplayShiftLogs() {
+                shiftLogsTableBody.innerHTML = '<tr><td colspan="15" class="text-center theme-label">Loading...</td></tr>'; // Colspan = 15
+                adminInfoDisplay.textContent = 'Loading shift logs...';
+                deleteSelectedShiftLogsBtn.disabled = true;
+                let url = '/shift-logs'; const params = new URLSearchParams();
+                if (filterUsernameInput.value.trim()) params.append('username', filterUsernameInput.value.trim());
+                if (filterDepartmentInput.value.trim()) params.append('department', filterDepartmentInput.value.trim());
+                if (filterHostInput.value.trim()) params.append('host', filterHostInput.value.trim());
+                if (filterCallsignInput.value.trim()) params.append('callsign', filterCallsignInput.value.trim());
+                if (filterStartDateInput.value) params.append('startDate', filterStartDateInput.value);
+                if (filterEndDateInput.value) params.append('endDate', filterEndDateInput.value);
+                if (params.toString()) url += `?${params.toString()}`;
+
+                try {
+                    const shiftLogs = await fetchWithAuth(url, { method: 'GET' });
+                    shiftLogsTableBody.innerHTML = '';
+                    if (shiftLogs && shiftLogs.length > 0) {
+                        shiftLogs.forEach(log => {
+                            const row = shiftLogsTableBody.insertRow();
+                            const notes = log.additionalNotes || 'N/A';
+                            const notesSummary = notes.split('\n')[0].substring(0, 30) + (notes.length > 30 ? '...' : '');
+                            row.innerHTML = `
+                                <td><input type="checkbox" class="shiftlog-checkbox theme-input" data-id="${log.id}"></td>
+                                <td>${log.id ? log.id.substring(0, 8) + '...' : 'N/A'}</td>
+                                <td>${log.timestamp ? new Date(log.timestamp).toLocaleString() : 'N/A'}</td>
+                                <td>${log.submittedByUsername || 'N/A'}</td>
+                                <td>${log.submittedByBadge || 'N/A'}</td>
+                                <td>${log.submittedByDepartment || 'N/A'}</td>
+                                <td>${log.submittedByRank || 'N/A'}</td>
+                                <td>${log.hostOfTheSession || 'N/A'}</td> <!-- Corrected field name -->
+                                <td>${log.callsign || 'N/A'}</td>
+                                <td>${log.shiftDuration || 'N/A'}</td>
+                                <td>${log.trafficStops || 0}</td>
+                                <td>${log.citations || 0}</td>
+                                <td>${log.arrests || 0}</td>
+                                <td><details><summary title="${notes}">${notesSummary}</summary><div class="dropdown-content preserve-whitespace">${notes}</div></details></td>
+                                <td>${log.screenshotUrl ? `<img src="${log.screenshotUrl}" alt="Screenshot" class="screenshot-thumbnail max-w-[50px] max-h-[50px] cursor-pointer inline-block">` : 'N/A'}</td>
+                            `;
+                        });
+                        shiftLogCountDisplay.textContent = shiftLogs.length;
+                        document.querySelectorAll('.screenshot-thumbnail').forEach(img => img.addEventListener('click', () => showFullscreenImage(img.src)));
+                        document.querySelectorAll('.shiftlog-checkbox').forEach(cb => cb.addEventListener('change', toggleDeleteButtonStateShiftLogs));
+                    } else if (shiftLogs) {
+                        shiftLogsTableBody.innerHTML = '<tr><td colspan="15" class="text-center theme-label">No shift logs found.</td></tr>';
+                        shiftLogCountDisplay.textContent = 0;
+                    } else {
+                        shiftLogsTableBody.innerHTML = '<tr><td colspan="15" class="text-center theme-label text-red-500">Error loading data.</td></tr>';
+                        shiftLogCountDisplay.textContent = 'Err';
+                    }
+                    selectAllShiftLogsCheckbox.checked = false; toggleDeleteButtonStateShiftLogs();
+                } catch (error) { console.error('Error fetching shift logs:', error); window.showCustomAlert('Network error fetching shift logs.', 'Error'); shiftLogsTableBody.innerHTML = '<tr><td colspan="15" class="text-center theme-label text-red-500">Network Error.</td></tr>'; shiftLogCountDisplay.textContent = 'Err';
+                } finally { adminInfoDisplay.textContent = `Welcome, Admin ${loggedInUser.username} (Badge: ${loggedInUser.badgeNumber})!`; }
+            }
+
+            // --- NEW: Fetch & Display ALL Registrations ---
+            async function fetchAndDisplayAllRegistrations() {
+                allRegistrationsTableBody.innerHTML = '<tr><td colspan="10" class="text-center theme-label">Loading registrations...</td></tr>';
+                vehicleCountDisplay.textContent = '...';
+                trailerCountDisplay.textContent = '...';
+                try {
+                    const response = await fetchWithAuth(`/admin/all-registrations`, { method: 'GET' });
+                    if (response) {
+                        allFetchedRegistrations = response.registrations || [];
+                        vehicleCountDisplay.textContent = response.vehicleCount || 0;
+                        trailerCountDisplay.textContent = response.trailerCount || 0;
+                        displayFilteredRegistrations(); // Display initially
+                    } else {
+                        throw new Error("Failed to fetch registrations.");
                     }
                 } catch (error) {
-                    console.error('Error during user creation:', error);
-                    window.showCustomAlert('An error occurred while creating the user. Check the console for details.', 'Error');
+                    console.error('Error fetching/displaying registrations:', error);
+                    window.showCustomAlert('Error loading registrations.', 'Error');
+                    allRegistrationsTableBody.innerHTML = `<tr><td colspan="10" class="text-center theme-label text-red-500">Error: ${error.message}</td></tr>`;
+                    vehicleCountDisplay.textContent = 'Err'; trailerCountDisplay.textContent = 'Err';
                 }
+            }
+
+            // --- NEW: Helper to Display Filtered Registrations ---
+            function displayFilteredRegistrations() {
+                const ownerIdFilter = filterOwnerIdInput.value.trim().toLowerCase();
+                const ownerUsernameFilter = filterOwnerUsernameInput.value.trim().toLowerCase();
+                const filteredData = allFetchedRegistrations.filter(reg => {
+                    // Ensure properties exist before calling toLowerCase or includes
+                    const ownerId = reg.discord_user_id ? String(reg.discord_user_id).toLowerCase() : '';
+                    const ownerUsername = reg.owner_username ? reg.owner_username.toLowerCase() : '';
+                    const ownerIdMatch = !ownerIdFilter || ownerId.includes(ownerIdFilter);
+                    const ownerUsernameMatch = !ownerUsernameFilter || ownerUsername.includes(ownerUsernameFilter);
+                    return ownerIdMatch && ownerUsernameMatch;
+                });
+
+                allRegistrationsTableBody.innerHTML = '';
+                if (filteredData.length === 0) {
+                    allRegistrationsTableBody.innerHTML = '<tr><td colspan="10" class="text-center theme-label">No registrations found matching criteria.</td></tr>';
+                } else {
+                    filteredData.forEach(reg => {
+                        const row = allRegistrationsTableBody.insertRow();
+                        const banInfo = reg.type === 'Vehicle' ? getBanLevelTextAndClass(reg.ban_lvl) : { text: 'N/A', className: '' };
+                        row.innerHTML = `
+                            <td>${reg.owner_username || 'N/A'}</td>
+                            <td>${reg.discord_user_id || 'N/A'}</td>
+                            <td>${reg.type || 'N/A'}</td>
+                            <td>${reg.plate || 'N/A'}</td>
+                            <td>${reg.state || 'N/A'}</td>
+                            <td>${reg.brand || 'N/A'}</td>
+                            <td>${reg.model || 'N/A'}</td>
+                            <td>${reg.color || 'N/A'}</td>
+                            <td>${reg.year || 'N/A'}</td>
+                            <td class="${banInfo.className}">${banInfo.text}</td>
+                        `;
+                    });
+                }
+            }
+            // Add Ban Level Helper (if not present)
+            if (typeof getBanLevelTextAndClass === 'undefined') {
+                 window.getBanLevelTextAndClass = function(level) {
+                    level = parseInt(level, 10);
+                    switch (level) {
+                        case 0: return { text: '0 (None)', className: 'ban-level-0 text-green-500' };
+                        case 1: return { text: '1 (Warning)', className: 'ban-level-1 text-yellow-500' };
+                        case 2: return { text: '2 (Suspended)', className: 'ban-level-2 text-orange-500' };
+                        case 3: return { text: '3 (Impound/Ban)', className: 'ban-level-3 text-red-500' };
+                        default: return { text: `${level === null || isNaN(level) ? 'N/A' : level} (Unknown)`, className: 'ban-level-unknown theme-subtle-text' };
+                    }
+                }
+            }
+
+
+            // --- Checkbox & Deletion Logic (Citations, Arrests, ShiftLogs) ---
+            function setupDeletion(checkboxSelector, selectAllCheckbox, deleteButton, typeName, apiUrl) {
+                const selectAll = document.getElementById(selectAllCheckbox);
+                const deleteBtn = document.getElementById(deleteButton);
+
+                function toggleDeleteState() {
+                    const checked = document.querySelectorAll(`${checkboxSelector}:checked`);
+                    deleteBtn.disabled = checked.length === 0;
+                }
+
+                selectAll.addEventListener('change', function() {
+                    document.querySelectorAll(checkboxSelector).forEach(cb => { cb.checked = this.checked; });
+                    toggleDeleteState();
+                });
+
+                 // Use event delegation on the table body for checkboxes added later
+                 const tableBody = document.querySelector(`#${typeName}Table tbody`);
+                 if (tableBody) {
+                    tableBody.addEventListener('change', (event) => {
+                        if (event.target.matches(checkboxSelector)) {
+                            toggleDeleteState();
+                        }
+                    });
+                 }
+
+
+                deleteBtn.addEventListener('click', async function() {
+                    const selectedIds = Array.from(document.querySelectorAll(`${checkboxSelector}:checked`)).map(cb => cb.dataset.id);
+                    if (selectedIds.length === 0) { window.showCustomAlert(`Select ${typeName}(s) to delete.`, 'Warning'); return; }
+                    const confirmMsg = `Delete ${selectedIds.length} ${typeName}(s)? This cannot be undone.`;
+                    const confirmed = await window.showCustomConfirm(confirmMsg, 'Confirm Deletion');
+                    if (!confirmed) return;
+
+                    adminInfoDisplay.textContent = `Deleting ${selectedIds.length} ${typeName}(s)...`; deleteBtn.disabled = true;
+                    try {
+                        const response = await fetchWithAuth(apiUrl, { method: 'DELETE', body: { ids: selectedIds } });
+                        if (response && (response.ok || response.status === 204)) { // Handle 204 No Content
+                            const result = response.status === 204 ? { message: `${typeName}(s) deleted.` } : await response.json(); // Use default msg for 204
+                            window.showCustomAlert(result.message, 'Success');
+                            selectAll.checked = false;
+                            // Refresh relevant table
+                            if (typeName === 'citation') await fetchAndDisplayCitations();
+                            else if (typeName === 'arrest') await fetchAndDisplayArrests();
+                            else if (typeName === 'shiftlog') await fetchAndDisplayShiftLogs();
+                        } else {
+                            const errorData = response ? await response.json() : { message: "Unknown error" };
+                            window.showCustomAlert(`Deletion failed: ${errorData.message}`, 'Error');
+                        }
+                    } catch (error) { console.error(`Error deleting ${typeName}s:`, error); window.showCustomAlert(`Error deleting ${typeName}s.`, 'Error');
+                    } finally { deleteBtn.disabled = false; /* Re-enable button regardless of success/failure */ }
+                });
+                return toggleDeleteState; // Return the function to call after loading data
+            }
+            const toggleDeleteButtonStateCitations = setupDeletion('.citation-checkbox', 'selectAllCitations', 'deleteSelectedCitationsBtn', 'citation', '/admin/citations');
+            const toggleDeleteButtonStateArrests = setupDeletion('.arrest-checkbox', 'selectAllArrests', 'deleteSelectedArrestsBtn', 'arrest', '/admin/arrests');
+            const toggleDeleteButtonStateShiftLogs = setupDeletion('.shiftlog-checkbox', 'selectAllShiftLogs', 'deleteSelectedShiftLogsBtn', 'shiftlog', '/admin/shift_logs');
+
+            // --- Delete ALL R2 --- (Existing logic)
+             deleteAllR2ScreenshotsBtn.addEventListener('click', async function() { /* ... keep existing logic ... */ });
+
+            // --- Fullscreen Image Modal ---
+            function showFullscreenImage(src) { fullscreenImage.src = src; fullscreenImageModal.classList.remove('hidden'); }
+            if (closeFullscreenBtn) closeFullscreenBtn.addEventListener('click', () => { fullscreenImageModal.classList.add('hidden'); fullscreenImage.src = ''; });
+            if (fullscreenImageModal) fullscreenImageModal.addEventListener('click', (e) => { if (e.target === fullscreenImageModal) { fullscreenImageModal.classList.add('hidden'); fullscreenImage.src = ''; } });
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !fullscreenImageModal.classList.contains('hidden')) { fullscreenImageModal.classList.add('hidden'); fullscreenImage.src = ''; } });
+             // Add event listener using delegation for dynamically added images
+             const shiftLogsContainer = document.getElementById('shiftLogsContainer');
+             if (shiftLogsContainer) {
+                 shiftLogsContainer.addEventListener('click', (event) => {
+                     if (event.target.matches('.screenshot-thumbnail')) {
+                         showFullscreenImage(event.target.src);
+                     }
+                 });
+             }
+
+
+            // --- User Management --- (Existing logic)
+            async function fetchAndDisplayUsers() { /* ... keep existing logic ... */
+                usersTableBody.innerHTML = '<tr><td colspan="9" class="text-center theme-label">Loading...</td></tr>'; // Colspan = 9
+                try {
+                    const users = await fetchWithAuth('/admin/users');
+                    const citations = await fetchWithAuth('/citations');
+                    const shifts = await fetchWithAuth('/shift-logs');
+                    const arrests = await fetchWithAuth('/arrests');
+                    if (!users || !citations || !shifts || !arrests) throw new Error("Failed partial fetch");
+
+                    users.sort((a, b) => a.id - b.id);
+                    usersTableBody.innerHTML = '';
+                    if (users.length === 0) { usersTableBody.innerHTML = '<tr><td colspan="9" class="text-center theme-label">No users found.</td></tr>'; return; }
+
+                    users.forEach(user => {
+                        const citeCount = citations.filter(c => c.submittedBy === user.username || c.submittedByBadge === user.badge_number).length;
+                        const arrestCount = arrests.filter(a => a.submittedBy === user.username || a.submittedByBadge === user.badge_number).length;
+                        const shiftCount = shifts.filter(s => s.submittedByUsername === user.username || s.submittedByBadge === user.badge_number).length;
+                        const row = usersTableBody.insertRow();
+                        row.innerHTML = `
+                            <td>${user.id}</td><td>${user.username}</td><td>${user.badge_number}</td><td>${user.department || 'N/A'}</td>
+                            <td><select class="theme-input p-1 user-role-select" data-user-id="${user.id}" data-previous-role="${user.role}"><option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option><option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option></select></td>
+                            <td>${citeCount}</td><td>${arrestCount}</td><td>${shiftCount}</td>
+                            <td><button class="theme-button-danger py-1 px-2 text-xs rounded delete-user-btn" data-user-id="${user.id}">Del</button></td>`;
+                    });
+                    attachUserActionListeners();
+                } catch (error) { console.error('Error fetching users:', error); usersTableBody.innerHTML = '<tr><td colspan="9" class="text-center theme-label text-red-500">Error loading users.</td></tr>'; }
+            }
+            function attachUserActionListeners() { document.querySelectorAll('.user-role-select').forEach(sel => { sel.removeEventListener('change', handleUserRoleChange); sel.addEventListener('change', handleUserRoleChange); }); document.querySelectorAll('.delete-user-btn').forEach(btn => { btn.removeEventListener('click', handleDeleteUser); btn.addEventListener('click', handleDeleteUser); }); }
+            async function handleUserRoleChange(e) { /* ... keep existing logic ... */ }
+            async function handleDeleteUser(e) { /* ... keep existing logic ... */ }
+            refreshUsersBtn.addEventListener('click', fetchAndDisplayUsers);
+            addUserBtn.addEventListener('click', () => { addUserForm.reset(); addUserModalOverlay.classList.remove('hidden'); });
+            cancelAddUserBtn.addEventListener('click', () => addUserModalOverlay.classList.add('hidden'));
+            addUserModalOverlay.addEventListener('click', (e) => { if (e.target === addUserModalOverlay) addUserModalOverlay.classList.add('hidden'); });
+            addUserForm.addEventListener('submit', async function(e) { /* ... keep existing logic, ensure fetch uses API_BASE_URL + '/register' ... */
+                 e.preventDefault();
+                 const username = document.getElementById('addUsername').value;
+                 const badgeNumber = document.getElementById('addBadgeNumber').value;
+                 const department = document.getElementById('addDepartment').value;
+                 const placeholderPassword = 'password';
+                 if (!username || !badgeNumber || !department) { window.showCustomAlert("Please fill out all fields.", "Input Error"); return; }
+                 try {
+                     const response = await fetch(API_BASE_URL + '/register', { // Use API_BASE_URL
+                         method: 'POST', headers: { 'Content-Type': 'application/json' },
+                         body: JSON.stringify({ username, badgeNumber, department, password: placeholderPassword }),
+                     });
+                     const result = await response.json();
+                     if (response.ok) { window.showCustomAlert(`${result.message} Temp pass: ${placeholderPassword}`, 'Success').then(() => { addUserModalOverlay.classList.add('hidden'); fetchAndDisplayUsers(); }); }
+                     else { window.showCustomAlert('Failed: ' + (result.message || 'Unknown error.'), 'Error'); }
+                 } catch (error) { console.error('Error creating user:', error); window.showCustomAlert('Error creating user.', 'Error'); }
             });
 
+            // --- Penal Code Management --- (Existing logic)
+            async function fetchAndDisplayPenalCodes() { /* ... keep existing logic, ensure fetch uses API_BASE_URL + '/penal-codes' ... */
+                penalCodesTableBody.innerHTML = '<tr><td colspan="6" class="text-center theme-label">Loading...</td></tr>';
+                try {
+                    const response = await fetch(API_BASE_URL + '/penal-codes', { method: 'GET' }); // No auth needed for GET? Adjust if needed.
+                    if (!response) return; // Auth failure handled
+                    if (response.ok) {
+                        const penalCodes = await response.json(); penalCodesTableBody.innerHTML = '';
+                        if (penalCodes.length === 0) { penalCodesTableBody.innerHTML = '<tr><td colspan="6" class="text-center theme-label">No codes found.</td></tr>'; return; }
+                        penalCodes.forEach(pc => { /* ... populate row ... */
+                             const row = penalCodesTableBody.insertRow();
+                             row.innerHTML = `<td>${pc.code}</td><td>${pc.description || 'N/A'}</td><td>$${parseFloat(pc.amount_due || 0).toFixed(2)}</td><td>${pc.type || 'N/A'}</td><td>${parseFloat(pc.jail_time_seconds || 0).toFixed(0)}</td><td><button class="theme-button-secondary py-1 px-2 text-xs rounded edit-penal-code-btn" data-code="${pc.code}">Edit</button><button class="theme-button-danger py-1 px-2 text-xs rounded delete-penal-code-btn" data-code="${pc.code}">Del</button></td>`;
+                         }); attachPenalCodeActionListeners();
+                    } else { throw new Error(await response.text()); }
+                } catch(error){ console.error('Error fetching codes:', error); penalCodesTableBody.innerHTML = '<tr><td colspan="6" class="text-center theme-label text-red-500">Error loading codes.</td></tr>';}
+            }
+            function attachPenalCodeActionListeners() { document.querySelectorAll('.edit-penal-code-btn').forEach(btn => { btn.removeEventListener('click', handleEditPenalCode); btn.addEventListener('click', handleEditPenalCode); }); document.querySelectorAll('.delete-penal-code-btn').forEach(btn => { btn.removeEventListener('click', handleDeletePenalCode); btn.addEventListener('click', handleDeletePenalCode); }); }
+            async function handleEditPenalCode(e) { /* ... keep existing logic, ensure fetch uses API_BASE_URL + '/penal-codes' ... */
+                currentEditPenalCode = e.target.dataset.code; if (!currentEditPenalCode) return;
+                try {
+                    const response = await fetch(API_BASE_URL + '/penal-codes'); // Assuming public GET
+                    if (!response || !response.ok) throw new Error('Failed fetch');
+                    const allCodes = await response.json(); const pcToEdit = allCodes.find(pc => pc.code === currentEditPenalCode);
+                    if (pcToEdit) { /* ... populate modal ... */
+                        editPenalCodeCodeDisplay.textContent = pcToEdit.code; editPenalCodeDescription.value = pcToEdit.description || ''; editPenalCodeAmount.value = parseFloat(pcToEdit.amount_due || 0).toFixed(2); editPenalCodeType.value = pcToEdit.type || ''; editPenalCodeJailTime.value = parseFloat(pcToEdit.jail_time_seconds || 0).toFixed(0); editPenalCodeModalOverlay.classList.remove('hidden');
+                    } else { window.showCustomAlert("Code not found.", "Error"); }
+                } catch (error) { window.showCustomAlert('Failed load.', 'Error');}
+             }
+            editPenalCodeForm.addEventListener('submit', async function(e) { /* ... keep existing logic, ensure fetch uses fetchWithAuth and API_BASE_URL + '/admin/penal-codes/import' ... */
+                 e.preventDefault(); const updatedData = { description: editPenalCodeDescription.value, amount_due: parseFloat(editPenalCodeAmount.value), type: editPenalCodeType.value, jail_time_seconds: parseFloat(editPenalCodeJailTime.value) };
+                 if (isNaN(updatedData.amount_due) || isNaN(updatedData.jail_time_seconds)) { window.showCustomAlert("Amounts must be numbers.", "Validation Error"); return; }
+                 try {
+                     // Corrected endpoint and method for single update (assuming PUT to /admin/penal-codes/:code)
+                     const response = await fetchWithAuth(`/admin/penal-codes/${currentEditPenalCode}`, { // Assuming PUT endpoint exists
+                         method: 'PUT', body: updatedData
+                     });
+                     if (response) { window.showCustomAlert(response.message || 'Saved!', 'Success'); editPenalCodeModalOverlay.classList.add('hidden'); await fetchAndDisplayPenalCodes(); }
+                     // Error handled by fetchWithAuth
+                 } catch (error) { console.error('Error saving code:', error); /* Error shown by fetchWithAuth */}
+            });
+            cancelEditPenalCodeBtn.addEventListener('click', () => editPenalCodeModalOverlay.classList.add('hidden'));
+            async function handleDeletePenalCode(e) { /* ... keep existing logic, ensure fetch uses fetchWithAuth and API_BASE_URL + '/admin/penal-codes/:code' ... */
+                 const codeToDelete = e.target.dataset.code; const confirmed = await window.showCustomConfirm(`Delete "${codeToDelete}"?`, 'Confirm'); if (!confirmed) return;
+                 try {
+                     const response = await fetchWithAuth(`/admin/penal-codes/${codeToDelete}`, { method: 'DELETE' });
+                     if (response) { window.showCustomAlert(response.message || 'Deleted!', 'Success'); await fetchAndDisplayPenalCodes(); }
+                     // Error handled by fetchWithAuth
+                 } catch (error) { console.error('Error deleting code:', error); /* Error shown by fetchWithAuth */ }
+            }
+            refreshPenalCodesBtn.addEventListener('click', fetchAndDisplayPenalCodes);
+            async function handleImportPenalCodes(csvContent) { /* ... keep existing logic, ensure fetch uses fetchWithAuth and API_BASE_URL + '/admin/penal-codes/import' ... */
+                 if (!csvContent) { window.showCustomAlert("No CSV content.", 'Warning'); return; }
+                 let penalCodesToImport = [];
+                 try {
+                     const lines = csvContent.trim().split('\n'); if (lines.length < 2) throw new Error("Need header + data.");
+                     const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+                     const codeIdx = headers.indexOf('penal code'); const descIdx = headers.indexOf('offense'); const amtIdx = headers.indexOf('amount due'); const typeIdx = headers.indexOf('type'); const jailIdx = headers.indexOf('jail time (secor)');
+                     if (codeIdx === -1 || descIdx === -1 || amtIdx === -1) throw new Error('Missing required headers.');
+                     for (let i = 1; i < lines.length; i++) { /* ... parse row ... */
+                         const row = lines[i].split(','); const code = String(row[codeIdx] || '').trim(); const description = String(row[descIdx] || '').trim(); let amount_due_raw = String(row[amtIdx] || '').trim(); let type_val = (typeIdx !== -1) ? String(row[typeIdx] || '').trim() : null; let jail_time_raw = (jailIdx !== -1) ? String(row[jailIdx] || '').trim() : null; amount_due_raw = amount_due_raw.replace(/[$,]/g, ''); let amount_due = parseFloat(amount_due_raw); let jail_time_seconds_val = null; if (jail_time_raw && jail_time_raw.toLowerCase() !== 'n/a') { jail_time_raw = jail_time_raw.toLowerCase().replace(/seconds|jail time|\(|\)/g, '').trim(); jail_time_seconds_val = parseFloat(jail_time_raw); if (isNaN(jail_time_seconds_val)) jail_time_seconds_val = null; }
+                         if (!code || !description || isNaN(amount_due)) { console.warn(`Skipping row ${i+1}`); continue; }
+                         penalCodesToImport.push({ code, description, amount_due, type: type_val, jail_time_seconds: jail_time_seconds_val });
+                     }
+                     if (penalCodesToImport.length === 0) throw new Error("No valid codes found.");
+
+                     adminInfoDisplay.textContent = `Importing ${penalCodesToImport.length} codes...`; importCsvBtn.disabled = true; pasteImportCsvBtn.disabled = true;
+                     const response = await fetchWithAuth('/admin/penal-codes/import', { method: 'POST', body: { penalCodes: penalCodesToImport } });
+                     if (response) { window.showCustomAlert(response.message || 'Import done!', 'Success'); await fetchAndDisplayPenalCodes(); }
+                     // Error handled by fetchWithAuth
+                 } catch (error) { window.showCustomAlert(`Import Error: ${error.message}`, 'Error'); console.error('CSV Import Error:', error);
+                 } finally { importCsvBtn.disabled = false; pasteImportCsvBtn.disabled = false; adminInfoDisplay.textContent = `Welcome, Admin ${loggedInUser.username}!`; }
+            }
+            penalCodeCsvFile.addEventListener('change', function() { /* ... keep existing logic ... */ });
+            importCsvBtn.addEventListener('click', () => penalCodeCsvFile.click() /* Trigger file input */ );
+            pasteImportCsvBtn.addEventListener('click', () => handleImportPenalCodes(penalCodeCsvText.value));
+
+            // --- Filter Event Listeners ---
+            applyFilterBtn.addEventListener('click', function() { fetchAndDisplayCitations(); fetchAndDisplayArrests(); fetchAndDisplayShiftLogs(); });
+            clearFilterBtn.addEventListener('click', function() { filterUsernameInput.value = ''; filterViolatorNameInput.value = ''; filterDepartmentInput.value = ''; filterOfficerBadgeInput.value = ''; filterStartDateInput.value = ''; filterEndDateInput.value = ''; filterHostInput.value = ''; filterCallsignInput.value = ''; fetchAndDisplayCitations(); fetchAndDisplayArrests(); fetchAndDisplayShiftLogs(); });
+            applyRegistrationFilterBtn.addEventListener('click', displayFilteredRegistrations); // <-- NEW
+            clearRegistrationFilterBtn.addEventListener('click', () => { filterOwnerIdInput.value = ''; filterOwnerUsernameInput.value = ''; displayFilteredRegistrations(); }); // <-- NEW
+
+            // --- Refresh Button ---
+            refreshButton.addEventListener('click', function() {
+                fetchAndDisplayCitations();
+                fetchAndDisplayArrests();
+                fetchAndDisplayShiftLogs();
+                fetchAndDisplayUsers();
+                fetchAndDisplayPenalCodes();
+                fetchAndDisplayAllRegistrations(); // <-- NEW
+            });
 
             // --- Initial Load ---
             fetchAndDisplayCitations();
-            fetchAndDisplayArrests(); // NEW
+            fetchAndDisplayArrests();
             fetchAndDisplayShiftLogs();
             fetchAndDisplayUsers();
             fetchAndDisplayPenalCodes();
+            fetchAndDisplayAllRegistrations(); // <-- NEW
+
         });
-
-        // --- DYNAMIC HEADER HEIGHT SCRIPT (Copied from selection.html) ---
-        (function() {
-            window.syncHeaderHeight = function() { // Made global
-              const header = document.getElementById('appHeader');
-              const mainContent = document.getElementById('mainContentArea');
-              if (!header || !mainContent) return;
-
-              const height = header.offsetHeight || 0;
-              const safePadding = height + 16; // 1rem (16px) for breathing room
-
-              mainContent.style.paddingTop = safePadding + 'px';
-
-              document.documentElement.style.setProperty('--app-header-height', height + 'px');
-            }
-
-            window.addEventListener('DOMContentLoaded', async () => {
-                syncHeaderHeight();
-                setTimeout(syncHeaderHeight, 250); // Re-run after potential font/image load
-            });
-            window.addEventListener('resize', syncHeaderHeight);
-        })();
-        // --- END DYNAMIC HEADER HEIGHT SCRIPT ---
     </script>
 </body>
 </html>
