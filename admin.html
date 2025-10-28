@@ -77,8 +77,8 @@
         /* Styles for fullscreen image modal */
         #fullscreenImageModal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0, 0, 0, 0.9); display: flex; align-items: center; justify-content: center; z-index: 1000; }
         #fullscreenImageModal img { max-width: 90%; max-height: 90%; object-fit: contain; }
-        #closeFullscreenBtn { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.5); border: none; font-size: 2em; color: white; cursor: pointer; padding: 5px 10px; border-radius: 5px; }
-        #closeFullscreenBtn:hover { background-color: rgba(0,0,0,0.7); }
+        #closeFullscreenBtn { position: absolute; top: 20px; right: 20px; background: rgba(0, 0, 0, 0.5); border: none; font-size: 2em; color: white; cursor: pointer; padding: 5px 10px; border-radius: 5px; }
+        #closeFullscreenBtn:hover { background-color: rgba(0, 0, 0, 0.7); }
 
         /* Penal Code Edit Modal styles */
         #editPenalCodeModalOverlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0, 0, 0, 0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; }
@@ -129,7 +129,7 @@
                 <span class="sidebar-item-icon"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></span>
                 <span class="sidebar-item-text">Submit Shift Log</span>
             </a>
-            <a href="registry.html" class="sidebar-item theme-text-color"> <span class="sidebar-item-icon"> <!-- Added active class -->
+            <a href="registry.html" class="sidebar-item theme-text-color"> <span class="sidebar-item-icon"> 
                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16l2.879-2.879a3 3 0 014.242 0L18 16m-6-8v7m-4-4h.01M16 12h.01M4 16l2.879-2.879a3 3 0 014.242 0L13 15m5-1v6m0-6V9a2 2 0 00-2-2h-3.172a2 2 0 00-1.414.586l-4.828 4.828a2 2 0 000 2.828l3.172 3.172a2 2 0 002.828 0L18 16m-6-8h.01"></path></svg>
                  </span>
                 <span class="sidebar-item-text">Vehicle Registry</span>
@@ -205,7 +205,7 @@
             <div class="admin-section">
                 <div class="action-buttons-group">
                     <h3 class="theme-title text-xl font-bold">Manage Users</h3>
-                    <button id="addUserBtn" class="theme-button-primary py-1 px-4 text-sm rounded-md font-semibold">Add User</button> <!-- Smaller button -->
+                    <button id="addUserBtn" class="theme-button-primary py-1 px-4 text-sm rounded-md font-semibold">Add User</button> 
                     <button id="refreshUsersBtn" class="theme-button-secondary py-1 px-4 text-sm rounded-md font-semibold">Refresh Users</button>
                 </div>
                 <div id="usersContainer" class="table-container">
@@ -258,7 +258,7 @@
                         <thead>
                             <tr>
                                 <th><input type="checkbox" id="selectAllCitations" class="theme-input"></th>
-                                <th>ID</th><th>Timestamp</th><th>Submitted By</th><th>Badge #</th><th>Violator ID</th><th>Type</th><th>Amount Due</th><th>Paid?</th><th>Notes</th> <!-- Added Paid? -->
+                                <th>ID</th><th>Timestamp</th><th>Submitted By</th><th>Badge #</th><th>Violator ID</th><th>Type</th><th>Amount Due</th><th>Paid?</th><th>Notes</th> 
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -276,7 +276,7 @@
                         <thead>
                             <tr>
                                 <th><input type="checkbox" id="selectAllArrests" class="theme-input"></th>
-                                <th>ID</th><th>Timestamp</th><th>Submitted By</th><th>Badge #</th><th>Dept</th><th>Suspect</th><th>Charges</th><th>Fines</th><th>Jail</th><th>Warrant?</th><th>Serving?</th><th>Paid?</th><th>Details</th> <!-- Added Paid? -->
+                                <th>ID</th><th>Timestamp</th><th>Submitted By</th><th>Badge #</th><th>Dept</th><th>Suspect</th><th>Charges</th><th>Fines</th><th>Jail</th><th>Warrant?</th><th>Serving?</th><th>Paid?</th><th>Details</th> 
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -339,7 +339,6 @@
         </div> 
     </main>
 
-    <!-- Fullscreen Image Modal -->
     <div id="fullscreenImageModal" class="hidden fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
         <button id="closeFullscreenBtn" class="absolute top-4 right-4 bg-gray-700 hover:bg-gray-600 text-white text-xl p-2 rounded-full w-10 h-10 flex items-center justify-center">X</button>
         <img id="fullscreenImage" src="" alt="Full Screen Screenshot" class="max-w-[90%] max-h-[90%] object-contain">
@@ -450,7 +449,7 @@
             const shiftLogsTableBody = document.querySelector('#shiftLogsTable tbody');
             const usersTableBody = document.querySelector('#usersTable tbody');
             const penalCodesTableBody = document.querySelector('#penalCodesTable tbody');
-            const allRegistrationsTableBody = document.querySelector('#allRegistrationsTable tbody'); // <-- NEW
+            const allRegistrationsTableBody = document.querySelector('#allRegistrationsTable tbody'); 
 
             const refreshButton = document.getElementById('refreshButton');
             const logoutButton = document.getElementById('logoutButton');
@@ -504,15 +503,15 @@
             const citationCountDisplay = document.getElementById('citationCount');
             const arrestCountDisplay = document.getElementById('arrestCount');
             const shiftLogCountDisplay = document.getElementById('shiftLogCount');
-            const vehicleCountDisplay = document.getElementById('vehicleCount'); // <-- NEW
-            const trailerCountDisplay = document.getElementById('trailerCount'); // <-- NEW
+            const vehicleCountDisplay = document.getElementById('vehicleCount'); 
+            const trailerCountDisplay = document.getElementById('trailerCount'); 
 
-            // Registration Filters <-- NEW
+            // Registration Filters 
             const filterOwnerIdInput = document.getElementById('filterOwnerId');
             const filterOwnerUsernameInput = document.getElementById('filterOwnerUsername');
             const applyRegistrationFilterBtn = document.getElementById('applyRegistrationFilterBtn');
             const clearRegistrationFilterBtn = document.getElementById('clearRegistrationFilterBtn');
-            let allFetchedRegistrations = []; // <-- NEW: Store all registrations
+            let allFetchedRegistrations = []; 
 
             // Fullscreen Image Modal
             const fullscreenImageModal = document.getElementById('fullscreenImageModal');
@@ -539,7 +538,7 @@
             if (logoutButton) logoutButton.addEventListener('click', handleLogout);
             if (sidebarLogoutButton) sidebarLogoutButton.addEventListener('click', handleLogout);
 
-            // --- Sidebar/Swipe/Header Logic ---
+            // --- Sidebar/Swipe/Header Height Logic ---
             (function setupLayout() {
                  const appSidebar = document.getElementById('appSidebar'); const sidebarToggle = document.getElementById('sidebarToggle'); const appHeader = document.getElementById('appHeader'); const SIDEBAR_COLLAPSED_KEY = 'sidebarCollapsed'; const isCollapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true'; if (isCollapsed) { appSidebar.classList.add('collapsed'); appHeader.classList.add('collapsed'); if (window.innerWidth <= 1024) mainContentArea.classList.add('collapsed'); } else { if (window.innerWidth <= 1024) mainContentArea.classList.remove('collapsed'); } function toggleSidebar() { const isCurrentlyCollapsed = appSidebar.classList.toggle('collapsed'); appHeader.classList.toggle('collapsed'); if (window.innerWidth <= 1024) mainContentArea.classList.toggle('collapsed', isCurrentlyCollapsed); localStorage.setItem(SIDEBAR_COLLAPSED_KEY, isCurrentlyCollapsed); setTimeout(syncHeaderHeight, 300); } if (sidebarToggle) sidebarToggle.addEventListener('click', toggleSidebar); let touchStartX = 0, touchEndX = 0; const swipeThreshold = 50; document.body.addEventListener('touchstart', (e) => { if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') { touchStartX = null; return; } touchStartX = e.changedTouches[0].screenX; }, { passive: true }); document.body.addEventListener('touchend', (e) => { if (touchStartX === null) return; touchEndX = e.changedTouches[0].screenX; handleSwipeGesture(); }, { passive: true }); function handleSwipeGesture() { if (window.innerWidth >= 1024) return; const deltaX = touchEndX - touchStartX; const isSidebarCollapsed = appSidebar.classList.contains('collapsed'); if (deltaX < -swipeThreshold && !isSidebarCollapsed) toggleSidebar(); else if (deltaX > swipeThreshold && isSidebarCollapsed) toggleSidebar(); touchStartX = 0; touchEndX = 0; }
                  window.syncHeaderHeight = function() { const header = document.getElementById('appHeader'); const mainContent = document.getElementById('mainContentArea'); if (!header || !mainContent) return; const height = header.offsetHeight || 0; const safePadding = height + 16; mainContent.style.paddingTop = safePadding + 'px'; document.documentElement.style.setProperty('--app-header-height', height + 'px'); }; window.addEventListener('DOMContentLoaded', async () => { syncHeaderHeight(); setTimeout(syncHeaderHeight, 250); }); window.addEventListener('resize', syncHeaderHeight);
@@ -577,7 +576,7 @@
                                 <td>${c.violatorName || 'N/A'}</td>
                                 <td><details><summary title="${type}">${type.substring(0,20)}${type.length > 20 ? '...' : ''}</summary><div class="dropdown-content">${type}</div></details></td>
                                 <td>$${parseFloat(c.totalAmountDue || 0).toFixed(2)}</td>
-                                <td>${c.paidStatus === true ? 'Yes' : 'No'}</td> <!-- <-- PAID STATUS --> -->
+                                <td>${c.paidStatus === true ? 'Yes' : 'No'}</td> 
                                 <td><details><summary title="${notes}">${notesSummary}</summary><div class="dropdown-content preserve-whitespace">${notes}</div></details></td>
                             `;
                         });
@@ -633,7 +632,7 @@
                                 <td>${parseFloat(a.totalJailTime || 0).toFixed(0)}s</td>
                                 <td>${a.warrantNeeded ? 'YES' : 'NO'}</td>
                                 <td>${a.servingWarrant ? 'YES' : 'NO'}</td>
-                                <td>${a.paidStatus === true ? 'Yes' : 'No'}</td> <!-- <-- PAID STATUS --> -->
+                                <td>${a.paidStatus === true ? 'Yes' : 'No'}</td> 
                                 <td><details><summary title="${details}">${detailsSummary}</summary><div class="dropdown-content preserve-whitespace">${details}</div></details></td>
                             `;
                         });
@@ -681,7 +680,7 @@
                                 <td>${log.submittedByBadge || 'N/A'}</td>
                                 <td>${log.submittedByDepartment || 'N/A'}</td>
                                 <td>${log.submittedByRank || 'N/A'}</td>
-                                <td>${log.hostOfTheSession || 'N/A'}</td> <!-- Corrected field name -->
+                                <td>${log.hostOfTheSession || 'N/A'}</td> 
                                 <td>${log.callsign || 'N/A'}</td>
                                 <td>${log.shiftDuration || 'N/A'}</td>
                                 <td>${log.trafficStops || 0}</td>
@@ -736,7 +735,8 @@
                 const filteredData = allFetchedRegistrations.filter(reg => {
                     // Ensure properties exist before calling toLowerCase or includes
                     const ownerId = reg.discord_user_id ? String(reg.discord_user_id).toLowerCase() : '';
-                    const ownerUsername = reg.owner_username ? reg.owner_username.toLowerCase() : '';
+                    // Use the saved owner_username (which contains the nickname/username)
+                    const ownerUsername = reg.owner_username ? reg.owner_username.toLowerCase() : ''; 
                     const ownerIdMatch = !ownerIdFilter || ownerId.includes(ownerIdFilter);
                     const ownerUsernameMatch = !ownerUsernameFilter || ownerUsername.includes(ownerUsernameFilter);
                     return ownerIdMatch && ownerUsernameMatch;
@@ -770,9 +770,10 @@
                     level = parseInt(level, 10);
                     switch (level) {
                         case 0: return { text: '0 (None)', className: 'ban-level-0 text-green-500' };
-                        case 1: return { text: '1 (Warning)', className: 'ban-level-1 text-yellow-500' };
-                        case 2: return { text: '2 (Suspended)', className: 'ban-level-2 text-orange-500' };
-                        case 3: return { text: '3 (Impound/Ban)', className: 'ban-level-3 text-red-500' };
+                        case 1: return { text: '1 (Basic+)', className: 'ban-level-1 text-yellow-500' };
+                        case 2: return { text: '2 (Standard+)', className: 'ban-level-2 text-orange-500' };
+                        case 3: return { text: '3 (Premium+)', className: 'ban-level-3 text-red-500' };
+                        case 4: return { text: '4 (Prestige+)', className: 'ban-level-4 text-red-700' };
                         default: return { text: `${level === null || isNaN(level) ? 'N/A' : level} (Unknown)`, className: 'ban-level-unknown theme-subtle-text' };
                     }
                 }
@@ -816,7 +817,7 @@
                     try {
                         const response = await fetchWithAuth(apiUrl, { method: 'DELETE', body: { ids: selectedIds } });
                         if (response && (response.ok || response.status === 204)) { // Handle 204 No Content
-                            const result = response.status === 204 ? { message: `${typeName}(s) deleted.` } : await response.json(); // Use default msg for 204
+                            const result = response.status === 204 ? { message: `${typeName}(s) deleted.` } : response; // Use default msg for 204
                             window.showCustomAlert(result.message, 'Success');
                             selectAll.checked = false;
                             // Refresh relevant table
@@ -824,7 +825,7 @@
                             else if (typeName === 'arrest') await fetchAndDisplayArrests();
                             else if (typeName === 'shiftlog') await fetchAndDisplayShiftLogs();
                         } else {
-                            const errorData = response ? await response.json() : { message: "Unknown error" };
+                            const errorData = response ? response.data || { message: "Unknown error" } : { message: "Unknown error" };
                             window.showCustomAlert(`Deletion failed: ${errorData.message}`, 'Error');
                         }
                     } catch (error) { console.error(`Error deleting ${typeName}s:`, error); window.showCustomAlert(`Error deleting ${typeName}s.`, 'Error');
@@ -837,7 +838,29 @@
             const toggleDeleteButtonStateShiftLogs = setupDeletion('.shiftlog-checkbox', 'selectAllShiftLogs', 'deleteSelectedShiftLogsBtn', 'shiftlog', '/admin/shift_logs');
 
             // --- Delete ALL R2 --- (Existing logic)
-             deleteAllR2ScreenshotsBtn.addEventListener('click', async function() { /* ... keep existing logic ... */ });
+             deleteAllR2ScreenshotsBtn.addEventListener('click', async function() { 
+                 const confirmed = await window.showCustomConfirm("Are you sure you want to delete ALL R2 screenshots? This cannot be undone.", 'Confirm Deletion');
+                 if (!confirmed) return;
+
+                 adminInfoDisplay.textContent = `Deleting ALL R2 screenshots...`; 
+                 deleteAllR2ScreenshotsBtn.disabled = true;
+                 
+                 try {
+                     const response = await fetchWithAuth('/admin/r2-delete-all', { method: 'DELETE' }); // Assuming this endpoint exists on your worker
+                     if (response && response.success) {
+                         window.showCustomAlert(response.message || 'All R2 screenshots deleted successfully.', 'Success');
+                         await fetchAndDisplayShiftLogs(); // Refresh logs after deletion
+                     } else {
+                         window.showCustomAlert(response.message || 'Failed to delete R2 screenshots.', 'Error');
+                     }
+                 } catch (error) {
+                     console.error('Error deleting R2 screenshots:', error);
+                     window.showCustomAlert('Network error deleting R2 screenshots.', 'Error');
+                 } finally {
+                     deleteAllR2ScreenshotsBtn.disabled = false; 
+                     adminInfoDisplay.textContent = `Welcome, Admin ${loggedInUser.username} (Badge: ${loggedInUser.badgeNumber})!`;
+                 }
+             });
 
             // --- Fullscreen Image Modal ---
             function showFullscreenImage(src) { fullscreenImage.src = src; fullscreenImageModal.classList.remove('hidden'); }
@@ -855,8 +878,8 @@
              }
 
 
-            // --- User Management --- (Existing logic)
-            async function fetchAndDisplayUsers() { /* ... keep existing logic ... */
+            // --- User Management --- 
+            async function fetchAndDisplayUsers() { 
                 usersTableBody.innerHTML = '<tr><td colspan="9" class="text-center theme-label">Loading...</td></tr>'; // Colspan = 9
                 try {
                     const users = await fetchWithAuth('/admin/users');
@@ -883,14 +906,66 @@
                     attachUserActionListeners();
                 } catch (error) { console.error('Error fetching users:', error); usersTableBody.innerHTML = '<tr><td colspan="9" class="text-center theme-label text-red-500">Error loading users.</td></tr>'; }
             }
-            function attachUserActionListeners() { document.querySelectorAll('.user-role-select').forEach(sel => { sel.removeEventListener('change', handleUserRoleChange); sel.addEventListener('change', handleUserRoleChange); }); document.querySelectorAll('.delete-user-btn').forEach(btn => { btn.removeEventListener('click', handleDeleteUser); btn.addEventListener('click', handleDeleteUser); }); }
-            async function handleUserRoleChange(e) { /* ... keep existing logic ... */ }
-            async function handleDeleteUser(e) { /* ... keep existing logic ... */ }
+            function attachUserActionListeners() { 
+                document.querySelectorAll('.user-role-select').forEach(sel => { 
+                    sel.removeEventListener('change', handleUserRoleChange); 
+                    sel.addEventListener('change', handleUserRoleChange); 
+                }); 
+                document.querySelectorAll('.delete-user-btn').forEach(btn => { 
+                    btn.removeEventListener('click', handleDeleteUser); 
+                    btn.addEventListener('click', handleDeleteUser); 
+                }); 
+            }
+            async function handleUserRoleChange(e) { 
+                 const userId = e.target.dataset.userId;
+                 const newRole = e.target.value;
+                 const previousRole = e.target.dataset.previousRole;
+
+                 if (previousRole === newRole) return;
+
+                 const confirmed = await window.showCustomConfirm(`Change user role to ${newRole}?`, 'Confirm Role Change');
+                 if (!confirmed) {
+                     e.target.value = previousRole; // Revert selection
+                     return;
+                 }
+                 try {
+                     const response = await fetchWithAuth(`/admin/users/${userId}`, { 
+                         method: 'PUT', 
+                         body: { role: newRole } 
+                     });
+                     if (response) {
+                         await window.showCustomAlert(response.message, 'Success');
+                         e.target.dataset.previousRole = newRole; // Update previous role state
+                     } else {
+                         e.target.value = previousRole; // Revert on failure
+                     }
+                 } catch (error) {
+                     console.error('Error updating role:', error);
+                     e.target.value = previousRole; // Revert on network error
+                 }
+            }
+            async function handleDeleteUser(e) { 
+                 const userId = e.target.dataset.userId;
+                 const userName = e.target.closest('tr').cells[1].textContent;
+
+                 const confirmed = await window.showCustomConfirm(`Permanently delete user ${userName}?`, 'Confirm Deletion');
+                 if (!confirmed) return;
+
+                 try {
+                     const response = await fetchWithAuth(`/admin/users/${userId}`, { method: 'DELETE' });
+                     if (response) {
+                         await window.showCustomAlert(response.message, 'Success');
+                         fetchAndDisplayUsers(); // Refresh table
+                     }
+                 } catch (error) {
+                     console.error('Error deleting user:', error);
+                 }
+            }
             refreshUsersBtn.addEventListener('click', fetchAndDisplayUsers);
             addUserBtn.addEventListener('click', () => { addUserForm.reset(); addUserModalOverlay.classList.remove('hidden'); });
             cancelAddUserBtn.addEventListener('click', () => addUserModalOverlay.classList.add('hidden'));
             addUserModalOverlay.addEventListener('click', (e) => { if (e.target === addUserModalOverlay) addUserModalOverlay.classList.add('hidden'); });
-            addUserForm.addEventListener('submit', async function(e) { /* ... keep existing logic, ensure fetch uses API_BASE_URL + '/register' ... */
+            addUserForm.addEventListener('submit', async function(e) { 
                  e.preventDefault();
                  const username = document.getElementById('addUsername').value;
                  const badgeNumber = document.getElementById('addBadgeNumber').value;
@@ -908,57 +983,64 @@
                  } catch (error) { console.error('Error creating user:', error); window.showCustomAlert('Error creating user.', 'Error'); }
             });
 
-            // --- Penal Code Management --- (Existing logic)
-            async function fetchAndDisplayPenalCodes() { /* ... keep existing logic, ensure fetch uses API_BASE_URL + '/penal-codes' ... */
+            // --- Penal Code Management --- 
+            async function fetchAndDisplayPenalCodes() { 
                 penalCodesTableBody.innerHTML = '<tr><td colspan="6" class="text-center theme-label">Loading...</td></tr>';
                 try {
-                    const response = await fetch(API_BASE_URL + '/penal-codes', { method: 'GET' }); // No auth needed for GET? Adjust if needed.
-                    if (!response) return; // Auth failure handled
+                    const response = await fetch(API_BASE_URL + '/penal-codes', { method: 'GET' }); 
+                    if (!response) return; 
                     if (response.ok) {
                         const penalCodes = await response.json(); penalCodesTableBody.innerHTML = '';
                         if (penalCodes.length === 0) { penalCodesTableBody.innerHTML = '<tr><td colspan="6" class="text-center theme-label">No codes found.</td></tr>'; return; }
-                        penalCodes.forEach(pc => { /* ... populate row ... */
+                        penalCodes.forEach(pc => { 
                              const row = penalCodesTableBody.insertRow();
                              row.innerHTML = `<td>${pc.code}</td><td>${pc.description || 'N/A'}</td><td>$${parseFloat(pc.amount_due || 0).toFixed(2)}</td><td>${pc.type || 'N/A'}</td><td>${parseFloat(pc.jail_time_seconds || 0).toFixed(0)}</td><td><button class="theme-button-secondary py-1 px-2 text-xs rounded edit-penal-code-btn" data-code="${pc.code}">Edit</button><button class="theme-button-danger py-1 px-2 text-xs rounded delete-penal-code-btn" data-code="${pc.code}">Del</button></td>`;
                          }); attachPenalCodeActionListeners();
                     } else { throw new Error(await response.text()); }
                 } catch(error){ console.error('Error fetching codes:', error); penalCodesTableBody.innerHTML = '<tr><td colspan="6" class="text-center theme-label text-red-500">Error loading codes.</td></tr>';}
             }
-            function attachPenalCodeActionListeners() { document.querySelectorAll('.edit-penal-code-btn').forEach(btn => { btn.removeEventListener('click', handleEditPenalCode); btn.addEventListener('click', handleEditPenalCode); }); document.querySelectorAll('.delete-penal-code-btn').forEach(btn => { btn.removeEventListener('click', handleDeletePenalCode); btn.addEventListener('click', handleDeletePenalCode); }); }
-            async function handleEditPenalCode(e) { /* ... keep existing logic, ensure fetch uses API_BASE_URL + '/penal-codes' ... */
+            function attachPenalCodeActionListeners() { 
+                document.querySelectorAll('.edit-penal-code-btn').forEach(btn => { 
+                    btn.removeEventListener('click', handleEditPenalCode); 
+                    btn.addEventListener('click', handleEditPenalCode); 
+                }); 
+                document.querySelectorAll('.delete-penal-code-btn').forEach(btn => { 
+                    btn.removeEventListener('click', handleDeletePenalCode); 
+                    btn.addEventListener('click', handleDeletePenalCode); 
+                }); 
+            }
+            async function handleEditPenalCode(e) { 
                 currentEditPenalCode = e.target.dataset.code; if (!currentEditPenalCode) return;
                 try {
-                    const response = await fetch(API_BASE_URL + '/penal-codes'); // Assuming public GET
+                    const response = await fetch(API_BASE_URL + '/penal-codes'); 
                     if (!response || !response.ok) throw new Error('Failed fetch');
                     const allCodes = await response.json(); const pcToEdit = allCodes.find(pc => pc.code === currentEditPenalCode);
-                    if (pcToEdit) { /* ... populate modal ... */
+                    if (pcToEdit) { 
                         editPenalCodeCodeDisplay.textContent = pcToEdit.code; editPenalCodeDescription.value = pcToEdit.description || ''; editPenalCodeAmount.value = parseFloat(pcToEdit.amount_due || 0).toFixed(2); editPenalCodeType.value = pcToEdit.type || ''; editPenalCodeJailTime.value = parseFloat(pcToEdit.jail_time_seconds || 0).toFixed(0); editPenalCodeModalOverlay.classList.remove('hidden');
                     } else { window.showCustomAlert("Code not found.", "Error"); }
                 } catch (error) { window.showCustomAlert('Failed load.', 'Error');}
              }
-            editPenalCodeForm.addEventListener('submit', async function(e) { /* ... keep existing logic, ensure fetch uses fetchWithAuth and API_BASE_URL + '/admin/penal-codes/import' ... */
-                 e.preventDefault(); const updatedData = { description: editPenalCodeDescription.value, amount_due: parseFloat(editPenalCodeAmount.value), type: editPenalCodeType.value, jail_time_seconds: parseFloat(editPenalCodeJailTime.value) };
-                 if (isNaN(updatedData.amount_due) || isNaN(updatedData.jail_time_seconds)) { window.showCustomAlert("Amounts must be numbers.", "Validation Error"); return; }
+            editPenalCodeForm.addEventListener('submit', async function(e) { 
+                 e.preventDefault(); const updatedData = { penalCodes: [{ code: currentEditPenalCode, description: editPenalCodeDescription.value, amount_due: parseFloat(editPenalCodeAmount.value), type: editPenalCodeType.value, jail_time_seconds: parseFloat(editPenalCodeJailTime.value) }]};
+                 if (isNaN(updatedData.penalCodes[0].amount_due) || isNaN(updatedData.penalCodes[0].jail_time_seconds)) { window.showCustomAlert("Amounts must be numbers.", "Validation Error"); return; }
                  try {
-                     // Corrected endpoint and method for single update (assuming PUT to /admin/penal-codes/:code)
-                     const response = await fetchWithAuth(`/admin/penal-codes/${currentEditPenalCode}`, { // Assuming PUT endpoint exists
-                         method: 'PUT', body: updatedData
+                     // Using the existing batch/upsert endpoint for a single update
+                     const response = await fetchWithAuth(`/admin/penal-codes`, { 
+                         method: 'POST', body: updatedData
                      });
                      if (response) { window.showCustomAlert(response.message || 'Saved!', 'Success'); editPenalCodeModalOverlay.classList.add('hidden'); await fetchAndDisplayPenalCodes(); }
-                     // Error handled by fetchWithAuth
                  } catch (error) { console.error('Error saving code:', error); /* Error shown by fetchWithAuth */}
             });
             cancelEditPenalCodeBtn.addEventListener('click', () => editPenalCodeModalOverlay.classList.add('hidden'));
-            async function handleDeletePenalCode(e) { /* ... keep existing logic, ensure fetch uses fetchWithAuth and API_BASE_URL + '/admin/penal-codes/:code' ... */
+            async function handleDeletePenalCode(e) { 
                  const codeToDelete = e.target.dataset.code; const confirmed = await window.showCustomConfirm(`Delete "${codeToDelete}"?`, 'Confirm'); if (!confirmed) return;
                  try {
                      const response = await fetchWithAuth(`/admin/penal-codes/${codeToDelete}`, { method: 'DELETE' });
                      if (response) { window.showCustomAlert(response.message || 'Deleted!', 'Success'); await fetchAndDisplayPenalCodes(); }
-                     // Error handled by fetchWithAuth
                  } catch (error) { console.error('Error deleting code:', error); /* Error shown by fetchWithAuth */ }
             }
             refreshPenalCodesBtn.addEventListener('click', fetchAndDisplayPenalCodes);
-            async function handleImportPenalCodes(csvContent) { /* ... keep existing logic, ensure fetch uses fetchWithAuth and API_BASE_URL + '/admin/penal-codes/import' ... */
+            async function handleImportPenalCodes(csvContent) { 
                  if (!csvContent) { window.showCustomAlert("No CSV content.", 'Warning'); return; }
                  let penalCodesToImport = [];
                  try {
@@ -966,7 +1048,7 @@
                      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
                      const codeIdx = headers.indexOf('penal code'); const descIdx = headers.indexOf('offense'); const amtIdx = headers.indexOf('amount due'); const typeIdx = headers.indexOf('type'); const jailIdx = headers.indexOf('jail time (secor)');
                      if (codeIdx === -1 || descIdx === -1 || amtIdx === -1) throw new Error('Missing required headers.');
-                     for (let i = 1; i < lines.length; i++) { /* ... parse row ... */
+                     for (let i = 1; i < lines.length; i++) { 
                          const row = lines[i].split(','); const code = String(row[codeIdx] || '').trim(); const description = String(row[descIdx] || '').trim(); let amount_due_raw = String(row[amtIdx] || '').trim(); let type_val = (typeIdx !== -1) ? String(row[typeIdx] || '').trim() : null; let jail_time_raw = (jailIdx !== -1) ? String(row[jailIdx] || '').trim() : null; amount_due_raw = amount_due_raw.replace(/[$,]/g, ''); let amount_due = parseFloat(amount_due_raw); let jail_time_seconds_val = null; if (jail_time_raw && jail_time_raw.toLowerCase() !== 'n/a') { jail_time_raw = jail_time_raw.toLowerCase().replace(/seconds|jail time|\(|\)/g, '').trim(); jail_time_seconds_val = parseFloat(jail_time_raw); if (isNaN(jail_time_seconds_val)) jail_time_seconds_val = null; }
                          if (!code || !description || isNaN(amount_due)) { console.warn(`Skipping row ${i+1}`); continue; }
                          penalCodesToImport.push({ code, description, amount_due, type: type_val, jail_time_seconds: jail_time_seconds_val });
@@ -974,21 +1056,27 @@
                      if (penalCodesToImport.length === 0) throw new Error("No valid codes found.");
 
                      adminInfoDisplay.textContent = `Importing ${penalCodesToImport.length} codes...`; importCsvBtn.disabled = true; pasteImportCsvBtn.disabled = true;
-                     const response = await fetchWithAuth('/admin/penal-codes/import', { method: 'POST', body: { penalCodes: penalCodesToImport } });
+                     const response = await fetchWithAuth('/admin/penal-codes', { method: 'POST', body: { penalCodes: penalCodesToImport } });
                      if (response) { window.showCustomAlert(response.message || 'Import done!', 'Success'); await fetchAndDisplayPenalCodes(); }
-                     // Error handled by fetchWithAuth
                  } catch (error) { window.showCustomAlert(`Import Error: ${error.message}`, 'Error'); console.error('CSV Import Error:', error);
                  } finally { importCsvBtn.disabled = false; pasteImportCsvBtn.disabled = false; adminInfoDisplay.textContent = `Welcome, Admin ${loggedInUser.username}!`; }
             }
-            penalCodeCsvFile.addEventListener('change', function() { /* ... keep existing logic ... */ });
-            importCsvBtn.addEventListener('click', () => penalCodeCsvFile.click() /* Trigger file input */ );
+            penalCodeCsvFile.addEventListener('change', function() {
+                 if (this.files.length > 0) {
+                    const file = this.files[0];
+                    const reader = new FileReader();
+                    reader.onload = function(e) { penalCodeCsvText.value = e.target.result; };
+                    reader.readAsText(file);
+                 }
+            });
+            importCsvBtn.addEventListener('click', () => penalCodeCsvFile.click() );
             pasteImportCsvBtn.addEventListener('click', () => handleImportPenalCodes(penalCodeCsvText.value));
 
             // --- Filter Event Listeners ---
             applyFilterBtn.addEventListener('click', function() { fetchAndDisplayCitations(); fetchAndDisplayArrests(); fetchAndDisplayShiftLogs(); });
             clearFilterBtn.addEventListener('click', function() { filterUsernameInput.value = ''; filterViolatorNameInput.value = ''; filterDepartmentInput.value = ''; filterOfficerBadgeInput.value = ''; filterStartDateInput.value = ''; filterEndDateInput.value = ''; filterHostInput.value = ''; filterCallsignInput.value = ''; fetchAndDisplayCitations(); fetchAndDisplayArrests(); fetchAndDisplayShiftLogs(); });
-            applyRegistrationFilterBtn.addEventListener('click', displayFilteredRegistrations); // <-- NEW
-            clearRegistrationFilterBtn.addEventListener('click', () => { filterOwnerIdInput.value = ''; filterOwnerUsernameInput.value = ''; displayFilteredRegistrations(); }); // <-- NEW
+            applyRegistrationFilterBtn.addEventListener('click', displayFilteredRegistrations); 
+            clearRegistrationFilterBtn.addEventListener('click', () => { filterOwnerIdInput.value = ''; filterOwnerUsernameInput.value = ''; displayFilteredRegistrations(); }); 
 
             // --- Refresh Button ---
             refreshButton.addEventListener('click', function() {
@@ -997,7 +1085,7 @@
                 fetchAndDisplayShiftLogs();
                 fetchAndDisplayUsers();
                 fetchAndDisplayPenalCodes();
-                fetchAndDisplayAllRegistrations(); // <-- NEW
+                fetchAndDisplayAllRegistrations(); 
             });
 
             // --- Initial Load ---
@@ -1006,7 +1094,7 @@
             fetchAndDisplayShiftLogs();
             fetchAndDisplayUsers();
             fetchAndDisplayPenalCodes();
-            fetchAndDisplayAllRegistrations(); // <-- NEW
+            fetchAndDisplayAllRegistrations(); 
 
         });
     </script>
